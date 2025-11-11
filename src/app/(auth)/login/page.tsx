@@ -3,11 +3,11 @@ import { requireUnauth } from '@/lib/auth-utils'
 import React from 'react'
 
 const Page = async() => {
-    await requireUnauth();
+    // await requireUnauth();
   return (
-    <div>
+    
         <LoginForm />
-    </div>
+    
   )
 }
 
