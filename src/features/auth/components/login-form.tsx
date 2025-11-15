@@ -75,7 +75,7 @@ const LoginForm = () => {
                       type="email"
                       placeholder="you@example.com"
                       disabled={isPending}
-                      className="h-11"
+                      className="h-11 "
                       autoComplete="email"
                       {...field}
                     />
