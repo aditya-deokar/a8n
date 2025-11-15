@@ -25,6 +25,7 @@ import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { authClient } from "@/lib/auth-client"
+import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription"
 
 const menuItems = [
   {
@@ -54,7 +55,9 @@ const menuItems = [
 
 const AppSidebar = () => {
   const pathname = usePathname();
-  const router = useRouter()
+  const router = useRouter();
+
+  const { hasActiveSubscription , isLoading } = useHasActiveSubscription()
   
 
   return (
@@ -168,15 +171,18 @@ const AppSidebar = () => {
       <SidebarFooter className="border-t">
         <SidebarMenu>
          {/* Upgrade to Pro Button */}
-          <SidebarMenuItem>
+         {!hasActiveSubscription && !isLoading && (
+             <SidebarMenuItem>
             <SidebarMenuButton 
               className="gap-x-3 h-10 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium transition-all duration-200 group/upgrade"
-              onClick={() => {/* Handle upgrade */}}
+              onClick={() => authClient.checkout({ slug: "n8n"})}
             >
               <Crown className="size-4 transition-transform duration-200 group-hover/upgrade:scale-110" />
               <span>Upgrade to Pro</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
+         )}
+         
 
           {/* User Profile with Dropdown */}
           <SidebarMenuItem>
@@ -210,7 +216,7 @@ const AppSidebar = () => {
 
                 <DropdownMenuItem 
                   className="gap-2 cursor-pointer"
-                  onClick={() => {/* Handle billing */}}
+                  onClick={() => authClient.customer.portal()}
                 >
                   <CreditCard className="size-4" />
                   <span>Billing Portal</span>
