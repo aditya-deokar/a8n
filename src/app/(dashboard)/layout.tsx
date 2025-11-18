@@ -12,7 +12,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
 
         <AppSidebar />
 
-        <SidebarInset className="bg-accent/20">
+        <SidebarInset className="bg-accent/20 rounded-xl border m-2 shadow-sm">
          
               {children}
          
