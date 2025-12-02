@@ -1,12 +1,19 @@
 "use client"
 
+import { NodeSelector } from '@/components/node-selector'
 import { Button } from '@/components/ui/button'
 import { PlusIcon } from 'lucide-react'
+import { useState } from 'react'
 
 
 const AddNodeButton = () => {
+
+  const [selectorOpen, SetselectorOpen] = useState(false)
+
   return (
-    <Button 
+   <NodeSelector onOpenChange={SetselectorOpen} open={selectorOpen}>
+
+     <Button 
         onClick={()=>{}}
         size={"icon"}
         variant={"outline"}
@@ -14,6 +21,7 @@ const AddNodeButton = () => {
     >
         <PlusIcon />
     </Button>
+   </NodeSelector>
   )
 }
 
