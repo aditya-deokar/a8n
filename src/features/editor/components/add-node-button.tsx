@@ -14,7 +14,7 @@ const AddNodeButton = () => {
    <NodeSelector onOpenChange={SetselectorOpen} open={selectorOpen}>
 
      <Button 
-        onClick={()=>{}}
+        onClick={()=> SetselectorOpen(true)}
         size={"icon"}
         variant={"outline"}
         className='bg-background'

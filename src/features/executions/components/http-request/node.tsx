@@ -17,7 +17,7 @@ type HttpRequestNodeType = Node<HttpRequestNodeData>
 
 const HttpRequestNode = (props: NodeProps<HttpRequestNodeType>) => {
 
-    const nodeData = props.data as HttpRequestNodeData;
+    const nodeData = props.data;
     const description = nodeData?.endpoint ? `${nodeData.method || "GET"} : ${nodeData.endpoint}` : "Not Configured"
 
 
