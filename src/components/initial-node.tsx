@@ -13,7 +13,7 @@ const InitialNode = (props: NodeProps) => {
    return (
     <NodeSelector onOpenChange={SetselectorOpen} open={selectorOpen}>
 
-      <WorkflowNode >
+      <WorkflowNode showToolbar={false}>
          <PlaceholderNode
             {...props}
             onClick={ ()=> SetselectorOpen(true) }
