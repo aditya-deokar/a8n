@@ -7,13 +7,14 @@ import WorkflowNode from '../../../components/workflow-node';
 import { BaseNode, BaseNodeContent } from '../../../components/react-flow/base-node';
 import Image from 'next/image';
 import { BaseHandle } from '../../../components/react-flow/base-handle';
+import { type NodeStatus, NodeStatusIndicator } from '@/components/react-flow/node-status-indicator';
 
 interface BaseExecutionNodeProps extends NodeProps {
     icon: LucideIcon | string;
     name: string;
     description?: string;
     children?: ReactNode;
-    // status?:NodeStatus;
+    status?:NodeStatus;
     onSettings?: ()=> void;
     onDoubleClick?: ()=> void;
 }
@@ -25,7 +26,8 @@ const BaseExecutionNode = ({
     description,
     children,
     onSettings,
-    onDoubleClick
+    onDoubleClick,
+    status="initial"
 }: BaseExecutionNodeProps) => {
 
         const { setNodes, setEdges } = useReactFlow();
@@ -50,7 +52,13 @@ const BaseExecutionNode = ({
         onDelete={handleDelete}
         onSettings={onSettings}
     >
-        <BaseNode onDoubleClick={onDoubleClick}>
+        <NodeStatusIndicator
+            status={status}
+        >
+        <BaseNode
+         onDoubleClick={onDoubleClick}
+         status={status} 
+        >
             <BaseNodeContent>
                 {typeof Icon === "string" ? (
                     <Image src={Icon} alt={name} width={16}  height={16}/>
@@ -72,6 +80,8 @@ const BaseExecutionNode = ({
             </BaseNodeContent>
         
         </BaseNode>
+
+        </NodeStatusIndicator>
     </WorkflowNode>
   )
 }
