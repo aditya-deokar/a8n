@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "inngest:dev": "inngest-cli dev"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.31",
@@ -74,6 +75,7 @@
     "sonner": "^2.0.7",
     "superjson": "^2.2.6",
     "tailwind-merge": "^3.3.1",
+    "toposort": "^2.0.2",
     "vaul": "^1.1.2",
     "zod": "^4.1.12"
   },
@@ -82,6 +84,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/toposort": "^2.0.7",
     "babel-plugin-react-compiler": "1.0.0",
     "baseline-browser-mapping": "^2.8.32",
     "eslint": "^9",

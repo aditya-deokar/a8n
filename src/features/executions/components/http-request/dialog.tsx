@@ -18,25 +18,29 @@ const formSchema = z.object({
     // .refine() TODO
 })
 
-export type FormType= z.infer<typeof formSchema>
+export type HttpRequestFormValues = z.infer<typeof formSchema>
+
+
 interface Props {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSubmit: (value: z.infer<typeof formSchema>) => void;
-    defualtEndpoint?: string;
-    defaultMethod?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-    defaultBody?: string;
+    defaultValues?: Partial<HttpRequestFormValues>;
 }
 
 
-const HttpRequestDialog = ({ open, onOpenChange, onSubmit, defaultBody = "", defaultMethod = "GET", defualtEndpoint = "" }: Props) => {
+const HttpRequestDialog = ({ open,
+     onOpenChange, 
+     onSubmit, 
+    defaultValues={}
+    }: Props) => {
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            endpoint: defualtEndpoint,
-            body: defaultBody,
-            method: defaultMethod,
+            endpoint: defaultValues.endpoint || "",
+            body: defaultValues.body || "",
+            method: defaultValues.method || "GET",
         }
     })
 
@@ -44,12 +48,12 @@ const HttpRequestDialog = ({ open, onOpenChange, onSubmit, defaultBody = "", def
     useEffect(() => {
       if(open){
         form.reset({
-            endpoint: defualtEndpoint,
-            method: defaultMethod,
-            body: defaultBody,
+            endpoint: defaultValues.endpoint || "",
+            body: defaultValues.body || "",
+            method: defaultValues.method || "GET",
         })
       }
-    }, [open, defaultBody, defaultMethod, defualtEndpoint, form])
+    }, [open, defaultValues, form])
     
 
     const watchMethod = form.watch("method");
