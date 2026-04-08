@@ -1,48 +1,48 @@
 import { type ReactNode } from "react";
 import { LoaderCircle } from "lucide-react";
- 
+
 import { cn } from "@/lib/utils";
- 
+
 export type NodeStatus = "loading" | "success" | "error" | "initial";
- 
+
 export type NodeStatusVariant = "overlay" | "border";
- 
+
 export type NodeStatusIndicatorProps = {
   status?: NodeStatus;
   variant?: NodeStatusVariant;
   children: ReactNode;
   className?: string;
 };
- 
+
 export const SpinnerLoadingIndicator = ({
   children,
 }: {
   children: ReactNode;
- 
 }) => {
   return (
     <div className="relative">
       <StatusBorder className="border-blue-700/40">{children}</StatusBorder>
- 
-      <div className="bg-background/50 absolute inset-0 z-50 rounded-[9px] backdrop-blur-xs" />
+
+      <div className="absolute inset-0 z-50 rounded-[7px] bg-background/50 backdrop-blur-sm" />
       <div className="absolute inset-0 z-50">
-        <span className="absolute top-[calc(50%-1.25rem)] left-[calc(50%-1.25rem)] inline-block h-10 w-10 animate-ping rounded-full bg-blue-700/20" />
- 
-        <LoaderCircle className="absolute top-[calc(50%-0.75rem)] left-[calc(50%-0.75rem)] size-6 animate-spin text-blue-700" />
+        <span className="absolute left-[calc(50%-1.25rem)] top-[calc(50%-1.25rem)] inline-block h-10 w-10 animate-ping rounded-full bg-blue-700/20" />
+
+        <LoaderCircle className="absolute left-[calc(50%-0.75rem)] top-[calc(50%-0.75rem)] size-6 animate-spin text-blue-700" />
       </div>
     </div>
   );
 };
- 
+
 export const BorderLoadingIndicator = ({
   children,
+  className,
 }: {
   children: ReactNode;
-  className?: string;
+  className?: string,
 }) => {
   return (
     <>
-      <div className="absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)]">
+      <div className="absolute -left-[2px] -top-[2px] h-[calc(100%+4px)] w-[calc(100%+4px)]">
         <style>
           {`
         @keyframes spin {
@@ -60,15 +60,18 @@ export const BorderLoadingIndicator = ({
         }
       `}
         </style>
-        <div className="absolute inset-0 overflow-hidden rounded-2xl">
-          <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,rgb(42,67,233)_0deg,rgba(42,138,246,0)_360deg)]" />
+        <div className={cn(
+          "absolute inset-0 overflow-hidden rounded-sm",
+          className,
+        )}>
+          <div className="spinner rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,_rgba(42,67,233,0.5)_0deg,_rgba(42,138,246,0)_360deg)]" />
         </div>
       </div>
       {children}
     </>
   );
 };
- 
+
 const StatusBorder = ({
   children,
   className,
@@ -80,7 +83,7 @@ const StatusBorder = ({
     <>
       <div
         className={cn(
-          "absolute -top-px -left-px h-[calc(100%+2px)] w-[calc(100%+2px)] rounded-2xl border-2",
+          "absolute -left-[2px] -top-[2px] h-[calc(100%+4px)] w-[calc(100%+4px)] rounded-md border-3",
           className,
         )}
       />
@@ -88,11 +91,12 @@ const StatusBorder = ({
     </>
   );
 };
- 
+
 export const NodeStatusIndicator = ({
   status,
   variant = "border",
   children,
+  className,
 }: NodeStatusIndicatorProps) => {
   switch (status) {
     case "loading":
@@ -100,16 +104,16 @@ export const NodeStatusIndicator = ({
         case "overlay":
           return <SpinnerLoadingIndicator>{children}</SpinnerLoadingIndicator>;
         case "border":
-          return <BorderLoadingIndicator>{children}</BorderLoadingIndicator>;
+          return <BorderLoadingIndicator className={className}>{children}</BorderLoadingIndicator>;
         default:
           return <>{children}</>;
       }
     case "success":
       return (
-        <StatusBorder className="border-emerald-600">{children}</StatusBorder>
+        <StatusBorder className={cn("border-green-700/50", className)}>{children}</StatusBorder>
       );
     case "error":
-      return <StatusBorder className="border-red-400">{children}</StatusBorder>;
+      return <StatusBorder className={cn("border-red-700/50", className)}>{children}</StatusBorder>;
     default:
       return <>{children}</>;
   }
