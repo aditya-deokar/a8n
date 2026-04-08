@@ -1,17 +1,10 @@
-import RegisterForm from '@/features/auth/components/register-form'
-import { requireUnauth } from '@/lib/auth-utils';
-import Image from 'next/image';
-import Link from 'next/link';
+import { RegisterForm } from "@/features/auth/components/register-form";
+import { requireUnauth } from "@/lib/auth-utils";
 
+const Page = async () => {
+  await requireUnauth();
 
-const page = async() => {
-    // await requireUnauth();
-  return (
-    
+  return <RegisterForm />;
+};
 
-          <RegisterForm/>
-   
-  )
-}
-
-export default page
+export default Page;

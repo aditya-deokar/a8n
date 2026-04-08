@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
 
+  turbopack: {
+    root: ".",
+  },
+
   async redirects(){
     return[
       {
