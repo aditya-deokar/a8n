@@ -7,6 +7,7 @@ import {
   KeyIcon,
   LogOutIcon,
   StarIcon,
+  ServerIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,6 +44,11 @@ const menuItems = [
         title: "Executions",
         icon: HistoryIcon,
         url: "/executions",
+      },
+      {
+        title: "MCP Server",
+        icon: ServerIcon,
+        url: "/mcp",
       },
     ],
   }

@@ -25,6 +25,7 @@ model User {
   accounts      Account[]
   workflows     Workflow[]
   credentials   Credential[]
+  apiKeys       ApiKey[]
 
   @@unique([email])
   @@map("user")
@@ -183,4 +184,22 @@ model Execution {
   inngestEventId String @unique
 
   output Json?
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  keyHash    String    @unique
+  keyPrefix  String
+  scopes     String[]  @default([])
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@index([keyHash])
+  @@index([userId])
+  @@map("api_key")
 }

@@ -113,6 +113,7 @@ features/<module>/
 | **executions** | Execution history + node executors | Full: `components/`, `hooks/`, `server/`, `params.ts`, `types.ts` |
 | **triggers** | Trigger node components + executors | `components/` only (sub-folders per trigger) |
 | **subscriptions** | Billing status hooks | `hooks/` only |
+| **mcp** | MCP server dashboard UI + API keys management | Full: `components/`, `hooks/`, `server/` |
 
 ---
 
