@@ -156,6 +156,7 @@ Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to 
 | **[CONFIGURATION.md](./CONFIGURATION.md)** | Environment variables, config files reference |
 | **[DEPLOYMENT.md](./DEPLOYMENT.md)** | Deployment guide and production checklist |
 | **[CONTRIBUTING.md](./CONTRIBUTING.md)** | Contributing guidelines and development workflow |
+| **[mcp/](./mcp/README.md)** | MCP server — protocol, architecture, tools, security, operations |
 | **[adr/](./adr/)** | Architecture Decision Records |
 
 ---

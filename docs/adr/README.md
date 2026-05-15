@@ -13,6 +13,7 @@ This directory contains Architecture Decision Records for Nodebase. ADRs documen
 | [ADR-005](./005-better-auth.md) | Better Auth for Authentication | ✅ Accepted | April 2026 |
 | [ADR-006](./006-neon-serverless-postgres.md) | Neon Serverless PostgreSQL | ✅ Accepted | April 2026 |
 | [ADR-007](./007-credential-encryption.md) | AES-256 Credential Encryption at Rest | ✅ Accepted | April 2026 |
+| [ADR-008](./008-mcp-streamable-http-server.md) | MCP Server via Streamable HTTP | ✅ Accepted | May 2026 |
 
 ## ADR Format
 

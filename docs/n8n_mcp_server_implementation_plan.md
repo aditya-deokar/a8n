@@ -1,5 +1,8 @@
 # n8n MCP Server — Production Implementation Plan
 
+> **Historical document** — This was the original build checklist used during implementation (May 2026).  
+> **For knowledge base documentation**, see **[mcp/README.md](./mcp/README.md)**.
+
 > **Project**: n8n Workflow Automation Platform  
 > **Goal**: Expose all n8n operations via a secure, production-grade MCP server compatible with Antigravity, Cursor, and Claude Code  
 > **SDK**: `@modelcontextprotocol/sdk` (TypeScript) — Streamable HTTP Transport  
