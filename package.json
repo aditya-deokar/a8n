@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "inngest:dev": "inngest-cli dev"
+    "inngest:dev": "inngest-cli dev",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.68",
@@ -89,6 +90,7 @@
     "tailwind-merge": "^3.5.0",
     "toposort": "^2.0.2",
     "vaul": "^1.1.2",
+    "ws": "^8.20.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -98,6 +100,7 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@types/toposort": "^2.0.7",
+    "@types/ws": "^8.18.1",
     "dotenv-cli": "^11.0.0",
     "eslint": "^10",
     "eslint-config-next": "16.2.2",

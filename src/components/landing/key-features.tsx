@@ -17,8 +17,7 @@ import {
   Database,
   Globe,
   Key,
-  Infinity as InfinityIcon,
-  Pulse
+  Infinity as InfinityIcon
 } from 'lucide-react';
 import Image from 'next/image';
 
