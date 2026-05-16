@@ -26,9 +26,15 @@ const Page = async ({ params }: PageProps) => {
     <HydrateClient>
       <ErrorBoundary fallback={<EditorError />}>
         <Suspense fallback={<EditorLoading />}>
-          <EditorHeader workflowId={workflowId} />
-          <main className="flex-1">
-            <Editor workflowId={workflowId} />
+          <main className="relative flex-1 h-full w-full flex flex-col bg-[#fcfcfd] rounded-[1.5rem] overflow-hidden shadow-inner">
+            <div className="absolute top-4 left-4 right-4 z-10 flex justify-center pointer-events-none">
+              <div className="pointer-events-auto w-full max-w-4xl">
+                <EditorHeader workflowId={workflowId} />
+              </div>
+            </div>
+            <div className="flex-1 w-full h-full">
+              <Editor workflowId={workflowId} />
+            </div>
           </main>
         </Suspense>
       </ErrorBoundary>

@@ -17,7 +17,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { NodeType } from "@/generated/prisma";
-import { Separator } from "./ui/separator";
 
 export type NodeTypeOption = {
   type: NodeType;
@@ -152,40 +151,42 @@ export function NodeSelector({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300/50 hover:[&::-webkit-scrollbar-thumb]:bg-gray-400/80 [&::-webkit-scrollbar-thumb]:rounded-full pr-2">
+        <SheetHeader className="px-6 pt-6 pb-2">
+          <SheetTitle className="text-xl font-bold tracking-tight">
             What triggers this workflow?
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="text-gray-500">
             A trigger is a step that starts your workflow.
           </SheetDescription>
         </SheetHeader>
-        <div>
+        <div className="px-6 pb-2">
           {triggerNodes.map((nodeType) => {
             const Icon = nodeType.icon;
 
             return (
               <div
                 key={nodeType.type}
-                className="w-full justify-start h-auto py-5 px-4 rounded-none cursor-pointer border-l-2 border-transparent hover:border-l-primary"
+                className="w-full justify-start h-auto p-4 mb-3 rounded-xl cursor-pointer bg-white/40 border border-white/60 hover:bg-white/90 hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:border-[#5c54a4]/20 transition-all duration-300 group"
                 onClick={() => handleNodeSelect(nodeType)}
               >
-                <div className="flex items-center gap-6 w-full overflow-hidden">
-                  {typeof Icon === "string" ? (
-                    <img
-                      src={Icon}
-                      alt={nodeType.label}
-                      className="size-5 object-contain rounded-sm"
-                    />
-                  ) : (
-                    <Icon className="size-5" />
-                  )}
+                <div className="flex items-center gap-4 w-full overflow-hidden">
+                  <div className="flex items-center justify-center size-10 rounded-lg bg-gradient-to-b from-[#f4f3fb] to-[#e8e9f5] border border-white shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0">
+                    {typeof Icon === "string" ? (
+                      <img
+                        src={Icon}
+                        alt={nodeType.label}
+                        className="size-5 object-contain"
+                      />
+                    ) : (
+                      <Icon className="size-5 text-[#5c54a4]" />
+                    )}
+                  </div>
                   <div className="flex flex-col items-start text-left">
-                    <span className="font-medium text-sm">
+                    <span className="font-semibold text-sm text-gray-900 group-hover:text-[#5c54a4] transition-colors">
                       {nodeType.label}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-gray-500 leading-tight mt-0.5">
                       {nodeType.description}
                     </span>
                   </div>
@@ -194,32 +195,37 @@ export function NodeSelector({
             )
           })}
         </div>
-        <Separator />
-        <div>
+
+        <div className="mx-6 my-2 h-[1px] bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+        <div className="px-6 pt-2 pb-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-4 px-1">Actions</h3>
           {executionNodes.map((nodeType) => {
             const Icon = nodeType.icon;
 
             return (
               <div
                 key={nodeType.type}
-                className="w-full justify-start h-auto py-5 px-4 rounded-none cursor-pointer border-l-2 border-transparent hover:border-l-primary"
+                className="w-full justify-start h-auto p-4 mb-3 rounded-xl cursor-pointer bg-white/40 border border-white/60 hover:bg-white/90 hover:shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:border-[#5c54a4]/20 transition-all duration-300 group"
                 onClick={() => handleNodeSelect(nodeType)}
               >
-                <div className="flex items-center gap-6 w-full overflow-hidden">
-                  {typeof Icon === "string" ? (
-                    <img
-                      src={Icon}
-                      alt={nodeType.label}
-                      className="size-5 object-contain rounded-sm"
-                    />
-                  ) : (
-                    <Icon className="size-5" />
-                  )}
+                <div className="flex items-center gap-4 w-full overflow-hidden">
+                  <div className="flex items-center justify-center size-10 rounded-lg bg-gradient-to-b from-[#f4f3fb] to-[#e8e9f5] border border-white shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0">
+                    {typeof Icon === "string" ? (
+                      <img
+                        src={Icon}
+                        alt={nodeType.label}
+                        className="size-5 object-contain"
+                      />
+                    ) : (
+                      <Icon className="size-5 text-[#5c54a4]" />
+                    )}
+                  </div>
                   <div className="flex flex-col items-start text-left">
-                    <span className="font-medium text-sm">
+                    <span className="font-semibold text-sm text-gray-900 group-hover:text-[#5c54a4] transition-colors">
                       {nodeType.label}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-gray-500 leading-tight mt-0.5">
                       {nodeType.description}
                     </span>
                   </div>

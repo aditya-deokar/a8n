@@ -1,0 +1,64 @@
+/**
+ * Resource: n8n://schema/credential-types
+ *
+ * Provides LLMs with a reference of credential types,
+ * how they map to AI nodes, and security considerations.
+ */
+
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+
+const CREDENTIAL_TYPES_DOC = `# n8n Credential Types Reference
+
+Credentials store encrypted API keys for third-party services. They are linked to workflow nodes that require authentication.
+
+## Available Types
+
+| Type      | Used By          | Value Format                  |
+|-----------|------------------|-------------------------------|
+| OPENAI    | OPENAI node      | OpenAI API key (sk-...)       |
+| ANTHROPIC | ANTHROPIC node   | Anthropic API key (sk-ant-...) |
+| GEMINI    | GEMINI node      | Google AI API key              |
+
+## Security Model
+
+- Credential **values are encrypted** at rest using AES-256 (via Cryptr)
+- The MCP server **never returns decrypted values** — only metadata (id, name, type, timestamps)
+- Each credential is scoped to a single user
+- Credentials are soft-referenced by nodes via \`credentialId\`
+
+## Usage in Workflows
+
+To use an AI node in a workflow:
+1. Create a credential of the matching type (e.g., OPENAI)
+2. Create a workflow with an AI node (e.g., OPENAI node)
+3. Link the credential to the node via its \`credentialId\` field
+4. Configure the node's data fields (model, prompt, etc.)
+
+## MCP Operations
+
+| Operation              | Tool                      | Scope              |
+|------------------------|---------------------------|---------------------|
+| List all credentials   | list_credentials          | credentials:read    |
+| Get credential details | get_credential            | credentials:read    |
+| Filter by type         | list_credentials_by_type  | credentials:read    |
+| Create new credential  | create_credential         | credentials:write   |
+| Update credential      | update_credential         | credentials:write   |
+| Delete credential      | delete_credential         | credentials:write   |
+`;
+
+export function registerCredentialTypesResource(server: McpServer) {
+  server.resource(
+    "credential-types",
+    "n8n://schema/credential-types",
+    { description: "Credential type definitions, security model, and how credentials link to workflow nodes." },
+    async () => ({
+      contents: [
+        {
+          uri: "n8n://schema/credential-types",
+          mimeType: "text/markdown",
+          text: CREDENTIAL_TYPES_DOC,
+        },
+      ],
+    }),
+  );
+}

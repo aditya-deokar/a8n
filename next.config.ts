@@ -8,17 +8,23 @@ const nextConfig: NextConfig = {
     root: ".",
   },
 
-  async redirects(){
-    return[
-      {
-        source: "/",
-        destination:"/workflows",
-        permanent:false
-      }
-    ]
-  }
 
-  
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'i.postimg.cc',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

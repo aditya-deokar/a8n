@@ -38,6 +38,7 @@ graph TB
 
     subgraph APILayer["🔌 API Layer"]
         tRPC["tRPC Routers"]
+        MCP["MCP Server /api/mcp"]
         AuthAPI["Better Auth Handler"]
         WebhookAPI["Webhook Handlers"]
     end
@@ -66,7 +67,10 @@ graph TB
     RSC --> Prisma
     API --> AuthAPI
     API --> tRPC
+    API --> MCP
     API --> WebhookAPI
+    MCP --> Prisma
+    MCP --> Inngest
     tRPC --> Prisma
     tRPC --> Inngest
     WebhookAPI --> Inngest
@@ -384,6 +388,21 @@ sequenceDiagram
     
     Engine->>DB: Step 5 — Update execution (SUCCESS + output)
 ```
+
+---
+
+## MCP Server (AI Client API)
+
+Nodebase exposes a **Model Context Protocol** server at `/api/mcp` for AI-powered clients (Cursor, Claude Desktop, MCP Inspector). It provides 22 tools, 4 resources, and 3 prompts for workflow automation.
+
+| Property | Value |
+|---|---|
+| Transport | Streamable HTTP (stateless) |
+| Auth | Bearer token (scoped API keys or session) |
+| Module | `src/mcp/` |
+| Route | `src/app/api/mcp/route.ts` |
+
+The MCP layer runs parallel to tRPC — tools call Prisma and Inngest directly rather than through tRPC routers. See [mcp/README.md](./mcp/README.md) for full documentation.
 
 ---
 

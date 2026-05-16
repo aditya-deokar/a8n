@@ -130,6 +130,26 @@ POLAR_SUCCESS_URL=http://localhost:3000/success?checkout_id={CHECKOUT_ID}
 
 ---
 
+#### MCP Server
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `MCP_AUDIT_LOG_ENABLED` | No | `true` | Set to `"false"` to disable MCP audit console output |
+| `MCP_CORS_ORIGINS` | No | `"*"` | Allowed CORS origins (defined in config; not wired to route yet) |
+
+**Where Used:**
+- `src/mcp/config.ts` — `MCP_CONFIG.AUDIT_LOG_ENABLED`, `MCP_CONFIG.CORS_ORIGINS`
+- `src/mcp/middleware/audit-logger.ts` — structured request logging
+
+**Planned (not implemented):**
+- `MCP_SERVER_ENABLED` — feature flag to disable the endpoint
+- `MCP_API_KEY_SECRET` — server secret for HMAC API key hashing
+- `MCP_RATE_LIMIT_ENABLED` — toggle rate limiting
+
+> Full MCP operations guide: [mcp/10-operations.md](./mcp/10-operations.md)
+
+---
+
 #### Development
 
 | Variable | Required | Default | Description |

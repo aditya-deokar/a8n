@@ -1,0 +1,21 @@
+import Hero from "@/components/landing/hero";
+import VisualEditorSection from "@/components/landing/visual-editor";
+import AINodesSection from "@/components/landing/ai-nodes";
+import KeyFeatures from "@/components/landing/key-features";
+import HowItWorks from "@/components/landing/how-it-works";
+import Pricing from "@/components/landing/pricing";
+import Footer from "@/components/landing/footer";
+
+export default function LandingPage() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between">
+      <Hero />
+      <VisualEditorSection />
+      <AINodesSection />
+      <KeyFeatures />
+      <HowItWorks />
+      <Pricing />
+      <Footer />
+    </main>
+  );
+}
