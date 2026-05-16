@@ -10,19 +10,19 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export const McpDashboardHeader = () => {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
-      <div className="flex items-center gap-3">
-        <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-          <ServerIcon className="size-5.5" />
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <div className="size-14 rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] flex items-center justify-center text-[#5c54a4] shrink-0 border border-white shadow-inner">
+          <ServerIcon className="size-7" />
         </div>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg md:text-xl font-semibold">Model Context Protocol</h1>
-            <span className="text-[10px] font-bold tracking-wide uppercase bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Model Context Protocol</h1>
+            <span className="text-xs font-bold tracking-wide uppercase bg-[#5c54a4]/10 text-[#5c54a4] px-2.5 py-1 rounded-lg border border-[#5c54a4]/20 shadow-sm">
               v1.0 Server
             </span>
           </div>
-          <p className="text-xs md:text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500 font-medium">
             Manage your secure MCP API keys and external agentic application integrations
           </p>
         </div>
@@ -58,17 +58,17 @@ export const McpDashboardOverview = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {metrics.map((metric, idx) => (
-        <Card key={idx} className="p-4 shadow-none bg-accent/10 border-accent/40">
+        <Card key={idx} className="p-5 bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-2xl transition-all duration-300">
           <CardContent className="p-0 flex items-start justify-between gap-2">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground font-medium">{metric.title}</span>
-              <span className="text-base font-semibold text-foreground">{metric.value}</span>
-              <span className="text-[11px] text-muted-foreground">{metric.desc}</span>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm text-gray-500 font-medium">{metric.title}</span>
+              <span className="text-xl font-bold text-gray-900 tracking-tight">{metric.value}</span>
+              <span className="text-xs text-gray-400 font-medium">{metric.desc}</span>
             </div>
-            <div className="size-8 rounded-lg bg-background border flex items-center justify-center text-muted-foreground shrink-0 mt-0.5">
-              <metric.icon className="size-4" />
+            <div className="size-10 rounded-xl bg-[#f8f9fc] border border-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+              <metric.icon className="size-5" />
             </div>
           </CardContent>
         </Card>

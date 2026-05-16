@@ -47,10 +47,10 @@ export const EntityHeader = ({
 }: EntityHeaderProps) => {
   return (
     <div className="flex flex-row items-center justify-between gap-x-4">
-      <div className="flex flex-col">
-        <h1 className="text-lg md:text-xl font-semibold">{title}</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">{title}</h1>
         {description && (
-          <p className="text-xs md:text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500 font-medium">
             {description}
           </p>
         )}
@@ -58,8 +58,9 @@ export const EntityHeader = ({
       {onNew && !newButtonHref && (
         <Button 
           disabled={isCreating || disabled} 
-          size="sm" 
+          size="default" 
           onClick={onNew}
+          className="bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-5 shadow-sm shadow-[#5c54a4]/20 gap-2 h-11"
         >
           <PlusIcon className="size-4" />
           {newButtonLabel}
@@ -67,8 +68,9 @@ export const EntityHeader = ({
       )}
       {newButtonHref && !onNew && (
         <Button 
-          size="sm" 
+          size="default" 
           asChild
+          className="bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-5 shadow-sm shadow-[#5c54a4]/20 gap-2 h-11"
         >
           <Link href={newButtonHref} prefetch>
             <PlusIcon className="size-4" />
@@ -265,11 +267,11 @@ export function EntityList<T>({
 
   return (
     <div className={cn(
-      "flex flex-col gap-y-4",
+      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
       className,
     )}>
       {items.map((item, index) => (
-        <div key={getKey ? getKey(item, index) : index}>
+        <div key={getKey ? getKey(item, index) : index} className="h-full">
           {renderItem(item, index)}
         </div>
       ))}
@@ -312,10 +314,10 @@ export const EntityItem = ({
   }
 
   return (
-    <Link href={href} prefetch>
+    <Link href={href} prefetch className="block h-full">
       <Card
         className={cn(
-          "p-4 shadow-none hover:shadow cursor-pointer",
+          "h-full p-5 bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-2xl cursor-pointer transition-all duration-300",
           isRemoving && "opacity-50 cursor-not-allowed",
           className,
         )}

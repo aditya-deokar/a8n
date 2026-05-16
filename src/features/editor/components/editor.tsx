@@ -12,6 +12,7 @@ import {
   type EdgeChange,
   type Connection,
   Background,
+  BackgroundVariant,
   Controls,
   MiniMap,
   Panel,
@@ -79,15 +80,25 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         panOnDrag={false}
         selectionOnDrag
       >
-        <Background />
-        <Controls />
-        <MiniMap />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={2} color="#e2e4f0" />
+        <Controls 
+          className="!bg-white/70 !backdrop-blur-xl !border !border-white/50 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] !rounded-2xl overflow-hidden [&>button]:!border-b-white/50 hover:[&>button]:!bg-white/90 transition-all" 
+          showInteractive={false} 
+        />
+        <MiniMap 
+          className="!bg-white/70 !backdrop-blur-xl !border !border-white/50 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] !rounded-2xl overflow-hidden" 
+          maskColor="rgba(246, 248, 251, 0.6)"
+        />
         <Panel position="top-right">
-          <AddNodeButton />
+          <div className="mt-16 mr-2">
+            <AddNodeButton />
+          </div>
         </Panel>
         {hasManualTrigger && (
           <Panel position="bottom-center">
-            <ExecuteWorkflowButton workflowId={workflowId} />
+            <div className="mb-6">
+              <ExecuteWorkflowButton workflowId={workflowId} />
+            </div>
           </Panel>
         )}
       </ReactFlow>

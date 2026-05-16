@@ -4,6 +4,8 @@ import { Provider } from 'jotai'
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { ThemeProvider } from "@/components/theme-provider"
+
 
 import "./globals.css";
 
@@ -34,10 +36,17 @@ export default function RootLayout({
       >
         <TRPCReactProvider>
           <NuqsAdapter>
-            <Provider>
-              {children}
-              <Toaster />
-            </Provider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Provider>
+                {children}
+                <Toaster />
+              </Provider>
+            </ThemeProvider>
           </NuqsAdapter>
         </TRPCReactProvider>
       </body>

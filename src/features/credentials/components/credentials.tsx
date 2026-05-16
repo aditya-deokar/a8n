@@ -145,8 +145,8 @@ export const CredentialItem = ({
         </>
       }
       image={
-        <div className="size-8 flex items-center justify-center">
-          <Image src={logo} alt={data.type} width={20} height={20} />
+        <div className="size-12 rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] flex items-center justify-center flex-shrink-0 border border-white shadow-inner">
+          <Image src={logo} alt={data.type} width={24} height={24} />
         </div>
       }
       onRemove={handleRemove}
