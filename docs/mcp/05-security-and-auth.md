@@ -28,7 +28,7 @@ Authorization: Bearer <token>
 flowchart TD
   Request[Incoming_Request]
   Extract[extractBearerToken]
-  Prefix{Starts_with_n8n_mcp_?}
+  Prefix{Starts_with_a8n_mcp_?}
   ApiKey[validateApiKey_SHA256]
   Session[better_auth_getSession]
   AuthInfo[McpAuthInfo]
@@ -53,7 +53,7 @@ flowchart TD
 
 | Property | Value |
 |---|---|
-| Prefix | `n8n_mcp_` |
+| Prefix | `a8n_mcp_` |
 | Length | 48 random characters (base64url) |
 | Storage | SHA-256 hash only — raw key shown once at creation |
 | Scopes | Configurable per key |
@@ -63,7 +63,7 @@ flowchart TD
 
 ### Session tokens (dashboard / testing)
 
-Any Bearer token **not** starting with `n8n_mcp_` is validated via Better Auth `getSession()`.
+Any Bearer token **not** starting with `a8n_mcp_` is validated via Better Auth `getSession()`.
 
 | Property | Value |
 |---|---|
@@ -232,5 +232,5 @@ Unless the MCP SDK injects `authInfo` from headers automatically, **`auth` may b
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

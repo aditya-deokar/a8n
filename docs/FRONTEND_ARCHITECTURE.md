@@ -22,7 +22,7 @@
 
 ## Rendering Strategy
 
-Nodebase uses **React Server Components (RSC) by default** and opts into Client Components only where interactivity is required.
+a8n uses **React Server Components (RSC) by default** and opts into Client Components only where interactivity is required.
 
 ```mermaid
 graph TD

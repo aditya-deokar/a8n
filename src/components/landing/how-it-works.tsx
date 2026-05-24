@@ -31,7 +31,7 @@ const steps = [
   {
     step: '03',
     title: 'Deploy',
-    description: 'Execute with confidence. Nodebase handles the reliability, scaling, and real-time monitoring. Your workflows never fail silently.',
+    description: 'Execute with confidence. a8n handles the reliability, scaling, and real-time monitoring. Your workflows never fail silently.',
     icon: Rocket,
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',

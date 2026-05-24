@@ -2,13 +2,13 @@
 
 > **Status:** Accepted  
 > **Date:** May 2026  
-> **Deciders:** Nodebase team
+> **Deciders:** a8n team
 
 ---
 
 ## Context
 
-Nodebase needs to expose workflow automation capabilities to AI-powered clients (Cursor, Claude Desktop, MCP Inspector). The [Model Context Protocol](https://modelcontextprotocol.io/) provides a standard for tools, resources, and prompts.
+a8n needs to expose workflow automation capabilities to AI-powered clients (Cursor, Claude Desktop, MCP Inspector). The [Model Context Protocol](https://modelcontextprotocol.io/) provides a standard for tools, resources, and prompts.
 
 We needed to choose:
 
@@ -72,5 +72,5 @@ Implement an MCP server at `/api/mcp` using:
 ---
 
 <div align="center">
-  <sub>ADR-008 — Nodebase Architecture Decision Records</sub>
+  <sub>ADR-008 — a8n Architecture Decision Records</sub>
 </div>

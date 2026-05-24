@@ -9,7 +9,7 @@
 ## What you'll learn
 
 - The three main MCP transport options and when to use each
-- Why Nodebase uses Streamable HTTP
+- Why a8n uses Streamable HTTP
 - How `mcp-remote` bridges stdio-only clients to HTTP
 - POST / GET / DELETE semantics on `/api/mcp`
 
@@ -52,7 +52,7 @@ In stdio mode, the MCP server runs as a **child process**. The client writes JSO
 
 **Best for:** Local development tools, Claude Desktop with a local binary, CLI utilities.
 
-**Not suitable for:** Multi-tenant SaaS where users connect over the internet — Nodebase is a web app, not a subprocess.
+**Not suitable for:** Multi-tenant SaaS where users connect over the internet — a8n is a web app, not a subprocess.
 
 ---
 
@@ -66,15 +66,15 @@ Early MCP HTTP implementations used **Server-Sent Events** for server-to-client 
 - Session management required
 - More complex deployment behind load balancers
 
-Nodebase does **not** implement legacy SSE as the primary transport. The route's GET handler supports SSE fallbacks via the SDK transport when clients request it.
+a8n does **not** implement legacy SSE as the primary transport. The route's GET handler supports SSE fallbacks via the SDK transport when clients request it.
 
 ---
 
-## Streamable HTTP (Nodebase choice)
+## Streamable HTTP (a8n choice)
 
 **Streamable HTTP** is the modern MCP transport for remote servers. It uses standard HTTP methods with the MCP JSON-RPC body in POST requests.
 
-### Why Nodebase uses it
+### Why a8n uses it
 
 | Requirement | Streamable HTTP fit |
 |---|---|
@@ -102,7 +102,7 @@ The SDK class `WebStandardStreamableHTTPServerTransport` works with the Web Stan
 
 ## HTTP route semantics
 
-Nodebase exposes a single endpoint: **`/api/mcp`**
+a8n exposes a single endpoint: **`/api/mcp`**
 
 | Method | Purpose |
 |---|---|
@@ -118,9 +118,9 @@ If the transport cannot handle a GET request, the route returns server metadata:
 
 ```json
 {
-  "name": "n8n-mcp-server",
+  "name": "a8n-mcp-server",
   "version": "1.0.0",
-  "description": "n8n Workflow Automation Platform — MCP Server...",
+  "description": "a8n Workflow Automation Platform — MCP Server...",
   "endpoint": "/api/mcp",
   "transport": "streamable-http",
   "auth": "Bearer token (API key or session)"
@@ -136,11 +136,11 @@ Some clients (Claude Desktop, Antigravity) only support **stdio** MCP servers. T
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "http://localhost:3000/api/mcp"],
       "env": {
-        "MCP_HEADERS": "Authorization: Bearer n8n_mcp_<your-api-key>"
+        "MCP_HEADERS": "Authorization: Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -153,11 +153,11 @@ Some clients (Claude Desktop, Antigravity) only support **stdio** MCP servers. T
 sequenceDiagram
   participant Claude as Claude_Desktop
   participant Remote as mcp_remote
-  participant Nodebase as api_mcp
+  participant a8n as api_mcp
 
   Claude->>Remote: stdio JSON-RPC
-  Remote->>Nodebase: HTTP POST + Authorization header
-  Nodebase->>Remote: HTTP response
+  Remote->>a8n: HTTP POST + Authorization header
+  a8n->>Remote: HTTP response
   Remote->>Claude: stdio JSON-RPC response
 ```
 
@@ -170,11 +170,11 @@ Cursor supports Streamable HTTP directly — no bridge required:
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "url": "http://localhost:3000/api/mcp",
       "transport": "streamable-http",
       "headers": {
-        "Authorization": "Bearer n8n_mcp_<your-api-key>"
+        "Authorization": "Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -237,5 +237,5 @@ Full client examples: [10 — Operations](./10-operations.md).
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

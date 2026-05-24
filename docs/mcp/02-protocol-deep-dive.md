@@ -63,7 +63,7 @@ MCP messages are **JSON-RPC 2.0** payloads sent over a transport (stdio, SSE, or
 }
 ```
 
-Nodebase tool handlers return results as **text content** containing JSON strings via `mcpJsonResponse()` in `src/mcp/shared/sanitize.ts`.
+a8n tool handlers return results as **text content** containing JSON strings via `mcpJsonResponse()` in `src/mcp/shared/sanitize.ts`.
 
 ---
 
@@ -74,7 +74,7 @@ Before tools or resources are used, the client and server perform an **initializ
 ```mermaid
 sequenceDiagram
   participant Client as MCP_Client
-  participant Server as Nodebase_Server
+  participant Server as a8n_Server
 
   Client->>Server: initialize(params)
   Server->>Client: initialize result (capabilities)
@@ -109,7 +109,7 @@ After a successful `initialize`, the client sends this notification to indicate 
 ```bash
 curl -X POST http://localhost:3000/api/mcp \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer n8n_mcp_<your-api-key>" \
+  -H "Authorization: Bearer a8n_mcp_<your-api-key>" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",
@@ -126,7 +126,7 @@ curl -X POST http://localhost:3000/api/mcp \
 | Method | Purpose |
 |---|---|
 | `resources/list` | List available resource URIs |
-| `resources/read` | Fetch content for a URI (e.g. `n8n://schema/workflow`) |
+| `resources/read` | Fetch content for a URI (e.g. `a8n://schema/workflow`) |
 
 Resources are ideal for schema reference material the model should read before calling `update_workflow`.
 
@@ -141,9 +141,9 @@ Prompts return `messages` arrays suitable for injection into the host's conversa
 
 ---
 
-## Tool handler lifecycle (Nodebase)
+## Tool handler lifecycle (a8n)
 
-When `tools/call` reaches the Nodebase server:
+When `tools/call` reaches the a8n server:
 
 1. **HTTP route** authenticates Bearer token and checks rate limits
 2. **Transport** parses JSON-RPC and routes to the MCP SDK
@@ -175,7 +175,7 @@ flowchart TD
 
 MCP uses standard JSON-RPC error codes plus application-level errors.
 
-| Code | Meaning | Nodebase usage |
+| Code | Meaning | a8n usage |
 |---|---|---|
 | `-32700` | Parse error | Malformed JSON body |
 | `-32600` | Invalid request | Missing required fields |
@@ -203,12 +203,12 @@ Missing required scope: workflows:write. Granted scopes: workflows:read, system:
 
 ## Stateless vs sessionful servers
 
-| Mode | Behavior | Nodebase choice |
+| Mode | Behavior | a8n choice |
 |---|---|---|
 | **Sessionful** | Server assigns session ID; state persists across requests | Not used |
 | **Stateless** | Each request creates fresh server + transport | **Used** |
 
-Nodebase sets `sessionIdGenerator: undefined` on `WebStandardStreamableHTTPServerTransport`, meaning:
+a8n sets `sessionIdGenerator: undefined` on `WebStandardStreamableHTTPServerTransport`, meaning:
 
 - No session store required
 - Horizontally scalable in theory
@@ -221,7 +221,7 @@ See [03 — Transports](./03-transports.md) for transport-level detail.
 
 ## Content types in tool results
 
-Nodebase returns tool results as MCP **content** blocks:
+a8n returns tool results as MCP **content** blocks:
 
 ```json
 {
@@ -262,5 +262,5 @@ The HTTP route validates authentication before handing off to the MCP SDK, but *
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

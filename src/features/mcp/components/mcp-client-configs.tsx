@@ -24,16 +24,16 @@ export const McpClientConfigs = () => {
     antigravity: {
       title: "Antigravity",
       logo: "/logos/gemini.svg",
-      desc: "Connect Google Gemini and the Antigravity agentic framework to n8n operations.",
+      desc: "Connect Google Gemini and the Antigravity agentic framework to a8n operations.",
       filename: ".gemini/settings.json",
       code: JSON.stringify(
         {
           mcpServers: {
-            n8n: {
+            a8n: {
               command: "npx",
               args: ["-y", "mcp-remote", endpointUrl],
               env: {
-                MCP_HEADERS: "Authorization: Bearer n8n_mcp_<your_api_key>",
+                MCP_HEADERS: "Authorization: Bearer a8n_mcp_<your_api_key>",
               },
             },
           },
@@ -44,16 +44,16 @@ export const McpClientConfigs = () => {
     },
     cursor: {
       title: "Cursor IDE",
-      desc: "Integrate n8n directly into Cursor's Composer and Agent Chat.",
+      desc: "Integrate a8n directly into Cursor's Composer and Agent Chat.",
       filename: ".cursor/mcp.json",
       code: JSON.stringify(
         {
           mcpServers: {
-            n8n: {
+            a8n: {
               url: endpointUrl,
               transport: "streamable-http",
               headers: {
-                Authorization: "Bearer n8n_mcp_<your_api_key>",
+                Authorization: "Bearer a8n_mcp_<your_api_key>",
               },
             },
           },
@@ -65,16 +65,16 @@ export const McpClientConfigs = () => {
     claude: {
       title: "Claude Code",
       logo: "/logos/anthropic.svg",
-      desc: "Provide Anthropic Claude Desktop and Claude Code CLI with complete n8n capabilities.",
+      desc: "Provide Anthropic Claude Desktop and Claude Code CLI with complete a8n capabilities.",
       filename: "claude_desktop_config.json",
       code: JSON.stringify(
         {
           mcpServers: {
-            n8n: {
+            a8n: {
               command: "npx",
               args: ["-y", "mcp-remote", endpointUrl],
               env: {
-                MCP_HEADERS: "Authorization: Bearer n8n_mcp_<your_api_key>",
+                MCP_HEADERS: "Authorization: Bearer a8n_mcp_<your_api_key>",
               },
             },
           },
@@ -86,7 +86,7 @@ export const McpClientConfigs = () => {
     inspector: {
       title: "MCP Inspector",
       desc: "Official debugging client to view and execute tools, resources, and prompts.",
-      code: `# 1. Start the inspector CLI\nnpx @modelcontextprotocol/inspector\n\n# 2. Open the UI and connect with:\n# Transport: Streamable HTTP\n# URL:       ${endpointUrl}\n# Header:    Authorization: Bearer n8n_mcp_<your_api_key>`,
+      code: `# 1. Start the inspector CLI\nnpx @modelcontextprotocol/inspector\n\n# 2. Open the UI and connect with:\n# Transport: Streamable HTTP\n# URL:       ${endpointUrl}\n# Header:    Authorization: Bearer a8n_mcp_<your_api_key>`,
     },
   };
 

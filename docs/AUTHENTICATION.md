@@ -232,7 +232,7 @@ export default async function LoginPage() {
 
 ## Route Protection Strategy
 
-Nodebase uses **three layers** of route protection:
+a8n uses **three layers** of route protection:
 
 ### Layer 1: Server Component Guards
 
@@ -498,7 +498,7 @@ sequenceDiagram
     U->>AC: authClient.signIn.social({ provider: "github" })
     AC->>API: POST /api/auth/sign-in/social
     API-->>U: Redirect to GitHub OAuth
-    U->>GH: Authorize Nodebase
+    U->>GH: Authorize a8n
     GH-->>API: GET /api/auth/callback/github?code=xxx
     API->>GH: Exchange code for token
     GH-->>API: Access token + profile

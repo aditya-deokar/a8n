@@ -2,7 +2,7 @@
 
 > **Last Updated:** April 2026
 
-Thank you for your interest in contributing to Nodebase! This guide covers the development workflow, coding conventions, and standards to maintain a consistent and high-quality codebase.
+Thank you for your interest in contributing to a8n! This guide covers the development workflow, coding conventions, and standards to maintain a consistent and high-quality codebase.
 
 ---
 

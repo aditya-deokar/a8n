@@ -116,10 +116,10 @@ const CONTENT = `# My Schema\n\n...markdown...`;
 export function registerMySchemaResource(server: McpServer) {
   server.resource(
     "my-schema",
-    "n8n://schema/my-schema",
+    "a8n://schema/my-schema",
     { description: "Description for tools/list" },
     async () => ({
-      contents: [{ uri: "n8n://schema/my-schema", mimeType: "text/markdown", text: CONTENT }],
+      contents: [{ uri: "a8n://schema/my-schema", mimeType: "text/markdown", text: CONTENT }],
     }),
   );
 }
@@ -201,7 +201,7 @@ npx @modelcontextprotocol/inspector
 
 1. Transport: **Streamable HTTP**
 2. URL: `http://localhost:3000/api/mcp`
-3. Headers: `Authorization: Bearer n8n_mcp_<key>`
+3. Headers: `Authorization: Bearer a8n_mcp_<key>`
 4. Call `health_check` → `tools/list` → your new tool
 
 Or use the seed script:
@@ -232,5 +232,5 @@ npx tsx scripts/mcp-seed-key.ts
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

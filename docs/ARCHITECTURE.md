@@ -20,7 +20,7 @@
 
 ## Architecture Overview
 
-Nodebase is a **full-stack monolithic application** built on Next.js 16 (App Router). It follows a layered architecture with clear separation between the presentation layer, API layer, execution engine, and data layer.
+a8n is a **full-stack monolithic application** built on Next.js 16 (App Router). It follows a layered architecture with clear separation between the presentation layer, API layer, execution engine, and data layer.
 
 ```mermaid
 graph TB
@@ -188,7 +188,7 @@ premiumProcedure       → Active Polar subscription required
 
 ### 3. Workflow Execution Engine (Inngest)
 
-The execution engine is the heart of Nodebase. It uses **Inngest** for durable, event-driven workflow execution with automatic retries and realtime status streaming.
+The execution engine is the heart of a8n. It uses **Inngest** for durable, event-driven workflow execution with automatic retries and realtime status streaming.
 
 → See [WORKFLOW_ENGINE.md](./WORKFLOW_ENGINE.md) for the complete deep-dive.
 
@@ -393,7 +393,7 @@ sequenceDiagram
 
 ## MCP Server (AI Client API)
 
-Nodebase exposes a **Model Context Protocol** server at `/api/mcp` for AI-powered clients (Cursor, Claude Desktop, MCP Inspector). It provides 22 tools, 4 resources, and 3 prompts for workflow automation.
+a8n exposes a **Model Context Protocol** server at `/api/mcp` for AI-powered clients (Cursor, Claude Desktop, MCP Inspector). It provides 22 tools, 4 resources, and 3 prompts for workflow automation.
 
 | Property | Value |
 |---|---|

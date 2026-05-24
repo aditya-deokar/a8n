@@ -8,7 +8,7 @@
 
 ## Context
 
-Nodebase needs an API layer that:
+a8n needs an API layer that:
 - Provides type safety from server to client without code generation
 - Supports authentication and authorization middleware
 - Handles input validation

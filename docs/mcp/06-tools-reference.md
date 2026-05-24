@@ -21,7 +21,7 @@ All tools are invoked via JSON-RPC `tools/call`:
 ```bash
 curl -X POST http://localhost:3000/api/mcp \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer n8n_mcp_<your-api-key>" \
+  -H "Authorization: Bearer a8n_mcp_<your-api-key>" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",
@@ -111,7 +111,7 @@ Creates a workflow with an `INITIAL` node at position (0, 0).
 
 **Scope:** `workflows:write`
 
-**Full replacement** of all nodes and connections. Read `n8n://schema/workflow` resource before calling.
+**Full replacement** of all nodes and connections. Read `a8n://schema/workflow` resource before calling.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -413,5 +413,5 @@ Tool errors are caught by `withErrorBoundary()` and returned as text content wit
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

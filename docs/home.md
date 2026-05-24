@@ -1,13 +1,13 @@
-# Nodebase Landing Page Structure
+# a8n Landing Page Structure
 
-This document outlines the structure and content for the Nodebase landing page. Nodebase is an AI-powered workflow automation platform designed to be a high-performance, developer-friendly alternative to n8n and Zapier.
+This document outlines the structure and content for the a8n landing page. a8n is an AI-powered workflow automation platform designed to be a high-performance, developer-friendly alternative to a8n and Zapier.
 
 ## 1. Hero Section
 - **Headline:** Build the Future of Automation with AI-Native Workflows.
 - **Subheadline:** The ultimate platform to design, build, and execute intelligent automation pipelines. Visual, durable, and type-safe from the ground up.
 - **Primary CTA:** Get Started for Free (links to `/signup`)
 - **Secondary CTA:** View Documentation (links to `/docs`)
-- **Visual:** A high-fidelity screenshot or video of the Nodebase visual editor in action.
+- **Visual:** A high-fidelity screenshot or video of the a8n visual editor in action.
 
 ## 2. Visual Workflow Editor (Core Feature)
 - **Heading:** Visualize Your Logic.
@@ -35,7 +35,7 @@ This document outlines the structure and content for the Nodebase landing page. 
 
 ## 5. Built for Developers (Tech Stack)
 - **Heading:** The Stack of the Future.
-- **Description:** Nodebase is built with the latest technologies to ensure maximum performance and developer experience.
+- **Description:** a8n is built with the latest technologies to ensure maximum performance and developer experience.
 - **Stack Highlights:**
     - **Next.js 16 & React 19:** Modern app architecture.
     - **tRPC v11:** End-to-end type-safe API layer.
@@ -46,7 +46,7 @@ This document outlines the structure and content for the Nodebase landing page. 
 ## 6. How It Works
 - **Step 1: Connect:** Set up triggers like manual starts, Stripe events, or Google Forms.
 - **Step 2: Orchestrate:** Use the visual editor to link triggers to AI models, HTTP requests, or messaging platforms.
-- **Step 3: Deploy:** Execute with confidence. Nodebase handles the reliability, scaling, and monitoring.
+- **Step 3: Deploy:** Execute with confidence. a8n handles the reliability, scaling, and monitoring.
 
 ## 7. Pricing & Tiers
 - **Free Tier:** Start building with essential nodes and execution history.

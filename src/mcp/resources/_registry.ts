@@ -6,10 +6,10 @@
  * type definitions for better tool usage.
  *
  * Resources (4):
- *   - n8n://schema/workflow        → Workflow JSON structure
- *   - n8n://schema/node-types      → Node types with fields & categories
- *   - n8n://schema/credential-types → Credential types & security model
- *   - n8n://docs/api               → Complete API reference
+ *   - a8n://schema/workflow        → Workflow JSON structure
+ *   - a8n://schema/node-types      → Node types with fields & categories
+ *   - a8n://schema/credential-types → Credential types & security model
+ *   - a8n://docs/api               → Complete API reference
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";

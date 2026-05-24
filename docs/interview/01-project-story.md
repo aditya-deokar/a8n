@@ -2,7 +2,7 @@
 
 ## 30-second version
 
-"This project is an AI-native workflow automation platform similar in spirit to n8n or Zapier, but built with a modern TypeScript stack. Users create workflows as DAGs in a visual editor, store credentials securely, and trigger executions through a durable event-driven engine. Internally, the product uses tRPC for type-safe full-stack development. Externally, it exposes an MCP server so AI clients can manage workflows and consume platform context through standardized tools, resources, and prompts."
+"This project is an AI-native workflow automation platform similar in spirit to a8n or Zapier, but built with a modern TypeScript stack. Users create workflows as DAGs in a visual editor, store credentials securely, and trigger executions through a durable event-driven engine. Internally, the product uses tRPC for type-safe full-stack development. Externally, it exposes an MCP server so AI clients can manage workflows and consume platform context through standardized tools, resources, and prompts."
 
 ## 2-minute senior version
 

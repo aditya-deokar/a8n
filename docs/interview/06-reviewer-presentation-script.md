@@ -36,7 +36,7 @@ By the end of the presentation, the reviewer should understand:
 
 ## 1. Opening
 
-"Good morning/afternoon. Today I am presenting my final-year project, which is an AI-powered workflow automation platform called Nodebase.
+"Good morning/afternoon. Today I am presenting my final-year project, which is an AI-powered workflow automation platform called a8n.
 
 The idea behind this project is to let users visually design automation workflows, connect external services such as AI providers and communication platforms, and execute those workflows reliably. In addition to the normal web application experience, the platform also exposes an MCP server, which allows AI clients to interact with the system in a standardized way."
 
@@ -228,7 +228,7 @@ Thank you. I'd be happy to answer any questions."
 
 ## Short 4-minute version
 
-"Good morning/afternoon. My project is an AI-powered workflow automation platform called Nodebase.
+"Good morning/afternoon. My project is an AI-powered workflow automation platform called a8n.
 
 The main goal of the project is to let users visually create workflows, connect external services, and execute them reliably. A workflow is represented as a graph of nodes and connections, so users can model triggers and actions in a drag-and-drop interface.
 

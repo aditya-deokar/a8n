@@ -8,7 +8,7 @@
 
 ## Context
 
-Nodebase needs a framework that supports:
+a8n needs a framework that supports:
 - Server-Side Rendering (SSR) for fast page loads and SEO
 - API routes for tRPC, auth, and webhook endpoints
 - React Server Components for efficient data fetching

@@ -1,5 +1,5 @@
 /**
- * Resource: n8n://schema/node-types
+ * Resource: a8n://schema/node-types
  *
  * Provides LLMs with a comprehensive reference of all available
  * node types, their categories, descriptions, and configuration fields.
@@ -7,7 +7,7 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const NODE_TYPES_DOC = `# n8n Node Types Reference
+const NODE_TYPES_DOC = `# a8n Node Types Reference
 
 Nodes are the building blocks of workflows. Each node has a **type**, a **category**, and specific **data fields**.
 
@@ -63,12 +63,12 @@ Nodes are the building blocks of workflows. Each node has a **type**, a **catego
 export function registerNodeTypesResource(server: McpServer) {
   server.resource(
     "node-types",
-    "n8n://schema/node-types",
+    "a8n://schema/node-types",
     { description: "All available node types with categories, descriptions, data fields, and credential requirements." },
     async () => ({
       contents: [
         {
-          uri: "n8n://schema/node-types",
+          uri: "a8n://schema/node-types",
           mimeType: "text/markdown",
           text: NODE_TYPES_DOC,
         },

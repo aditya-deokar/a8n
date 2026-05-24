@@ -4,7 +4,7 @@
 > **Engine:** Inngest v4.2.0 with Realtime Middleware  
 > **Pattern:** Event-driven, durable step functions with topological DAG execution
 
-This is the **heart of Nodebase** — the system that transforms a visual DAG of nodes into a reliable, observable execution pipeline.
+This is the **heart of a8n** — the system that transforms a visual DAG of nodes into a reliable, observable execution pipeline.
 
 ---
 
@@ -94,14 +94,14 @@ import { realtimeMiddleware } from "@inngest/realtime/middleware";
 import { Inngest } from "inngest";
 
 export const inngest = new Inngest({ 
-  id: "nodebase",
+  id: "a8n",
   middleware: [realtimeMiddleware() as any],
 });
 ```
 
 | Config | Value | Purpose |
 |---|---|---|
-| `id` | `"nodebase"` | Application identifier in Inngest dashboard |
+| `id` | `"a8n"` | Application identifier in Inngest dashboard |
 | `middleware` | `realtimeMiddleware()` | Enables `publish()` function for streaming status to the browser |
 
 ### Function Registration

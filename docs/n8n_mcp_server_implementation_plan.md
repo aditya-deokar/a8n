@@ -1,10 +1,10 @@
-# n8n MCP Server — Production Implementation Plan
+# a8n MCP Server — Production Implementation Plan
 
 > **Historical document** — This was the original build checklist used during implementation (May 2026).  
 > **For knowledge base documentation**, see **[mcp/README.md](./mcp/README.md)**.
 
-> **Project**: n8n Workflow Automation Platform  
-> **Goal**: Expose all n8n operations via a secure, production-grade MCP server compatible with Antigravity, Cursor, and Claude Code  
+> **Project**: a8n Workflow Automation Platform  
+> **Goal**: Expose all a8n operations via a secure, production-grade MCP server compatible with Antigravity, Cursor, and Claude Code  
 > **SDK**: `@modelcontextprotocol/sdk` (TypeScript) — Streamable HTTP Transport  
 > **Date**: May 2026
 
@@ -313,11 +313,11 @@ export async function DELETE(request: Request): Promise<Response> {
 
 ```typescript
 export const MCP_CONFIG = {
-  SERVER_NAME: "n8n-mcp-server",
+  SERVER_NAME: "a8n-mcp-server",
   SERVER_VERSION: "1.0.0",
   ENDPOINT_PATH: "/api/mcp",
   MAX_REQUESTS_PER_MINUTE: 60,
-  API_KEY_PREFIX: "n8n_mcp_",
+  API_KEY_PREFIX: "a8n_mcp_",
   API_KEY_LENGTH: 48,
 } as const;
 ```
@@ -393,7 +393,7 @@ export type McpScope = keyof typeof MCP_SCOPES;
 ```typescript
 // Validates the Authorization: Bearer <token> header
 // Supports two token types:
-//   1. API Key:     "n8n_mcp_..." → hashed & looked up in DB
+//   1. API Key:     "a8n_mcp_..." → hashed & looked up in DB
 //   2. Session JWT: better-auth session token → validated via auth.api
 //
 // Returns { ok: true, userId, scopes } or { ok: false, error }
@@ -537,10 +537,10 @@ Resources provide static or semi-static information that LLMs can reference with
 
 | Resource URI | Description |
 |---|---|
-| `n8n://schema/workflow` | Workflow JSON structure reference |
-| `n8n://schema/node-types` | All available node types with fields |
-| `n8n://schema/credential-types` | Credential type enum & descriptions |
-| `n8n://docs/api` | Summary of all available MCP tools |
+| `a8n://schema/workflow` | Workflow JSON structure reference |
+| `a8n://schema/node-types` | All available node types with fields |
+| `a8n://schema/credential-types` | Credential type enum & descriptions |
+| `a8n://docs/api` | Summary of all available MCP tools |
 
 ### MCP Prompts (Guided Templates)
 
@@ -639,11 +639,11 @@ npx @modelcontextprotocol/inspector
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "http://localhost:3000/api/mcp"],
       "env": {
-        "MCP_API_KEY": "n8n_mcp_<your-api-key>"
+        "MCP_API_KEY": "a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -655,11 +655,11 @@ npx @modelcontextprotocol/inspector
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "url": "http://localhost:3000/api/mcp",
       "transport": "streamable-http",
       "headers": {
-        "Authorization": "Bearer n8n_mcp_<your-api-key>"
+        "Authorization": "Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -671,11 +671,11 @@ npx @modelcontextprotocol/inspector
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "http://localhost:3000/api/mcp"],
       "env": {
-        "MCP_HEADERS": "Authorization: Bearer n8n_mcp_<your-api-key>"
+        "MCP_HEADERS": "Authorization: Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -683,7 +683,7 @@ npx @modelcontextprotocol/inspector
 ```
 
 > [!TIP]
-> For production deployment, replace `localhost:3000` with your deployed URL (e.g., `https://n8n.yourdomain.com/api/mcp`).
+> For production deployment, replace `localhost:3000` with your deployed URL (e.g., `https://a8n.yourdomain.com/api/mcp`).
 
 ---
 

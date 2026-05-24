@@ -1,4 +1,4 @@
-# n8n MCP Server — Client Configuration Guide
+# a8n MCP Server — Client Configuration Guide
 
 > **This document has moved.** See the MCP documentation hub for up-to-date guides.
 
@@ -24,11 +24,11 @@
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "url": "http://localhost:3000/api/mcp",
       "transport": "streamable-http",
       "headers": {
-        "Authorization": "Bearer n8n_mcp_<your-api-key>"
+        "Authorization": "Bearer a8n_mcp_<your-api-key>"
       }
     }
   }

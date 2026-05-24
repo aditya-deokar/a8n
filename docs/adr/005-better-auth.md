@@ -8,7 +8,7 @@
 
 ## Context
 
-Nodebase requires:
+a8n requires:
 - Email/password authentication
 - Social login (GitHub, Google)
 - Session management (database-backed)

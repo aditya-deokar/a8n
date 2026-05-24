@@ -1,4 +1,5 @@
 import Hero from "@/components/landing/hero";
+import UseCasesSection from "@/components/landing/use-cases";
 import VisualEditorSection from "@/components/landing/visual-editor";
 import AINodesSection from "@/components/landing/ai-nodes";
 import KeyFeatures from "@/components/landing/key-features";
@@ -10,12 +11,13 @@ export default function LandingPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between">
       <Hero />
+      <UseCasesSection />
       <VisualEditorSection />
-      <AINodesSection />
+      {/* <AINodesSection />
       <KeyFeatures />
       <HowItWorks />
       <Pricing />
-      <Footer />
+      <Footer /> */}
     </main>
   );
 }

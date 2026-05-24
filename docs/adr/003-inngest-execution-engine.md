@@ -8,7 +8,7 @@
 
 ## Context
 
-Nodebase workflows can contain multiple nodes that make external API calls (AI models, HTTP requests, messaging services). These operations:
+a8n workflows can contain multiple nodes that make external API calls (AI models, HTTP requests, messaging services). These operations:
 - Can take seconds to minutes to complete (AI model generation)
 - May fail transiently (rate limits, network errors)
 - Should not block the user's HTTP request

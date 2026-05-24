@@ -8,7 +8,7 @@
  * Endpoint: POST /api/mcp
  *
  * Authentication: Bearer token in Authorization header
- *   - API Key:    "Bearer n8n_mcp_..."
+ *   - API Key:    "Bearer a8n_mcp_..."
  *   - Session:    "Bearer <session-token>"
  *
  * Compatible with: Antigravity, Cursor, Claude Code, MCP Inspector

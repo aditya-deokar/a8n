@@ -1,5 +1,5 @@
 /**
- * Resource: n8n://schema/credential-types
+ * Resource: a8n://schema/credential-types
  *
  * Provides LLMs with a reference of credential types,
  * how they map to AI nodes, and security considerations.
@@ -7,7 +7,7 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const CREDENTIAL_TYPES_DOC = `# n8n Credential Types Reference
+const CREDENTIAL_TYPES_DOC = `# a8n Credential Types Reference
 
 Credentials store encrypted API keys for third-party services. They are linked to workflow nodes that require authentication.
 
@@ -49,12 +49,12 @@ To use an AI node in a workflow:
 export function registerCredentialTypesResource(server: McpServer) {
   server.resource(
     "credential-types",
-    "n8n://schema/credential-types",
+    "a8n://schema/credential-types",
     { description: "Credential type definitions, security model, and how credentials link to workflow nodes." },
     async () => ({
       contents: [
         {
-          uri: "n8n://schema/credential-types",
+          uri: "a8n://schema/credential-types",
           mimeType: "text/markdown",
           text: CREDENTIAL_TYPES_DOC,
         },

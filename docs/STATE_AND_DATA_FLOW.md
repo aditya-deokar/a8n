@@ -21,7 +21,7 @@
 
 ## State Management Overview
 
-Nodebase uses a **layered state management** approach where each type of state is managed by the most appropriate tool:
+a8n uses a **layered state management** approach where each type of state is managed by the most appropriate tool:
 
 ```mermaid
 graph TD
