@@ -220,10 +220,10 @@ Users manage keys in the browser; AI clients use keys via Bearer auth on `/api/m
 
 | Key | Value |
 |---|---|
-| `SERVER_NAME` | `n8n-mcp-server` |
+| `SERVER_NAME` | `a8n-mcp-server` |
 | `SERVER_VERSION` | `1.0.0` |
 | `ENDPOINT_PATH` | `/api/mcp` |
-| `API_KEY_PREFIX` | `n8n_mcp_` |
+| `API_KEY_PREFIX` | `a8n_mcp_` |
 | `RATE_LIMIT.FREE_TIER` | 30 req/min |
 | `RATE_LIMIT.PRO_TIER` | 120 req/min |
 | `AUDIT_LOG_ENABLED` | env `MCP_AUDIT_LOG_ENABLED` |
@@ -252,5 +252,5 @@ Users manage keys in the browser; AI clients use keys via Bearer auth on `/api/m
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

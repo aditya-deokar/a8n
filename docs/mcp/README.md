@@ -1,13 +1,13 @@
-# Nodebase MCP Server — Documentation Hub
+# a8n MCP Server — Documentation Hub
 
 > **Last Updated:** May 2026  
-> **Status:** Living documentation for the Nodebase Model Context Protocol server
+> **Status:** Living documentation for the a8n Model Context Protocol server
 
 ---
 
 ## What is this?
 
-The **Nodebase MCP Server** exposes workflow automation operations to AI-powered clients (Cursor, Claude Desktop, MCP Inspector, and others) through the [Model Context Protocol](https://modelcontextprotocol.io/). It runs as a Streamable HTTP endpoint at `/api/mcp` and provides **22 tools**, **4 resources**, and **3 prompts** for managing workflows, credentials, executions, and API keys.
+The **a8n MCP Server** exposes workflow automation operations to AI-powered clients (Cursor, Claude Desktop, MCP Inspector, and others) through the [Model Context Protocol](https://modelcontextprotocol.io/). It runs as a Streamable HTTP endpoint at `/api/mcp` and provides **22 tools**, **4 resources**, and **3 prompts** for managing workflows, credentials, executions, and API keys.
 
 **Endpoint:** `POST /api/mcp` (Streamable HTTP)  
 **Source:** [`src/mcp/`](../../src/mcp/)  
@@ -88,7 +88,7 @@ Choose the path that matches your goal:
 | Dashboard UI | [`src/features/mcp/`](../../src/features/mcp/) |
 | ADR (architecture decision) | [adr/008-mcp-streamable-http-server.md](../adr/008-mcp-streamable-http-server.md) |
 | Legacy client guide (redirect) | [MCP_CLIENT_SETUP.md](../MCP_CLIENT_SETUP.md) |
-| Historical build checklist | [n8n_mcp_server_implementation_plan.md](../n8n_mcp_server_implementation_plan.md) |
+| Historical build checklist | [a8n_mcp_server_implementation_plan.md](../a8n_mcp_server_implementation_plan.md) |
 
 ---
 
@@ -104,5 +104,5 @@ Choose the path that matches your goal:
 ---
 
 <div align="center">
-  <sub>Nodebase MCP Server v1.0.0 — Built with @modelcontextprotocol/sdk</sub>
+  <sub>a8n MCP Server v1.0.0 — Built with @modelcontextprotocol/sdk</sub>
 </div>

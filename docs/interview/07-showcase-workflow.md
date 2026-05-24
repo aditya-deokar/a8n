@@ -204,7 +204,7 @@ The Discord webhook path is the safer live-demo option in the current project be
 
 ### Suggested bot username
 
-`Nodebase Support Bot`
+`a8n Support Bot`
 
 ### Suggested message content
 

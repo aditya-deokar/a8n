@@ -180,7 +180,7 @@ Inngest is the **workflow execution engine** — providing durable, event-driven
 
 **Key Capabilities Used:**
 
-| Feature | Usage in Nodebase |
+| Feature | Usage in a8n |
 |---|---|
 | **Step Functions** | Each workflow step (create-execution, prepare, execute nodes) is individually retryable |
 | **Event Triggers** | `workflows/execute.workflow` event triggers the main function |

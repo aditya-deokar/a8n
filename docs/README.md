@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ Nodebase
+# ⚡ a8n
 
 ### AI-Powered Workflow Automation Platform
 
@@ -17,9 +17,9 @@ Build, connect, and execute intelligent automation workflows with a visual drag-
 
 ---
 
-## 📖 What is Nodebase?
+## 📖 What is a8n?
 
-**Nodebase** is a full-stack workflow automation platform that empowers users to design, build, and execute complex automation pipelines through an intuitive visual editor. Think of it as an AI-native alternative to n8n or Zapier — built from the ground up with modern web technologies.
+**a8n** is a full-stack workflow automation platform that empowers users to design, build, and execute complex automation pipelines through an intuitive visual editor. Think of it as an AI-native alternative to a8n or Zapier — built from the ground up with modern web technologies.
 
 Users create **workflows** as directed acyclic graphs (DAGs) by connecting **nodes** — triggers that start workflows (manual, Google Forms, Stripe webhooks) and executors that perform actions (HTTP requests, AI model calls via OpenAI/Anthropic/Gemini, Discord/Slack messaging). The platform executes these workflows reliably using **Inngest** as a durable, event-driven execution engine with real-time status streaming.
 
@@ -69,7 +69,7 @@ The platform includes a complete SaaS stack: user authentication (email/password
 ## 📁 Project Structure
 
 ```
-n8n/
+a8n/
 ├── prisma/
 │   └── schema.prisma              # Database schema (8 models, 3 enums)
 ├── public/                        # Static assets and logos
@@ -116,7 +116,7 @@ n8n/
 ```bash
 # 1. Clone the repository
 git clone <repository-url>
-cd n8n
+cd a8n
 
 # 2. Install dependencies
 pnpm install

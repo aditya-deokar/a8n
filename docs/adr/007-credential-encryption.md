@@ -8,7 +8,7 @@
 
 ## Context
 
-Nodebase stores third-party API keys (OpenAI, Anthropic, Gemini) in the database. These credentials are used during workflow execution to call external AI services.
+a8n stores third-party API keys (OpenAI, Anthropic, Gemini) in the database. These credentials are used during workflow execution to call external AI services.
 
 **Security requirements:**
 - API keys must never be stored in plaintext in the database

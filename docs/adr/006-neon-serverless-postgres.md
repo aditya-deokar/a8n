@@ -8,7 +8,7 @@
 
 ## Context
 
-Nodebase needs a relational database that:
+a8n needs a relational database that:
 - Supports complex queries with joins and foreign keys (workflow → nodes → connections)
 - Works in serverless environments (Vercel's ephemeral functions)
 - Handles connection pooling without manual configuration

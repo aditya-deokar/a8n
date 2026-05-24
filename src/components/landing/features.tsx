@@ -141,7 +141,7 @@ export default function Features() {
             <div className="flex min-h-[300px] flex-col items-center justify-center relative">
               <h4 className="mt-8 text-3xl font-bold">
                 <ScrambleHover
-                  text="n8n.cloud"
+                  text="a8n.cloud"
                   scrambleSpeed={50}
                   maxIterations={15}
                   className="bg-gradient-to-t from-rose-400 to-rose-600 bg-clip-text text-transparent"

@@ -25,7 +25,7 @@ MCP provides a **standardized context layer** between:
 - **MCP Server** — a service that exposes capabilities (tools, resources, prompts) to the host
 - **MCP Client** — the bridge inside the host that speaks MCP to servers
 
-In Nodebase, the MCP server lets AI assistants manage workflows, credentials, and executions without custom integration code per client.
+In a8n, the MCP server lets AI assistants manage workflows, credentials, and executions without custom integration code per client.
 
 ---
 
@@ -49,7 +49,7 @@ MCP servers expose three types of capabilities:
 ```mermaid
 flowchart LR
   Host[MCP_Host_Client]
-  Server[MCP_Server_Nodebase]
+  Server[MCP_Server_a8n]
   Tools[Tools_actions]
   Resources[Resources_context]
   Prompts[Prompts_templates]
@@ -58,7 +58,7 @@ flowchart LR
   Server --> Tools
   Server --> Resources
   Server --> Prompts
-  Tools -->|"Prisma / Inngest"| Backend[(Nodebase_Backend)]
+  Tools -->|"Prisma / Inngest"| Backend[(a8n_Backend)]
 ```
 
 ### Tools — executable actions
@@ -72,18 +72,18 @@ flowchart LR
 
 **When to use:** The model needs to *do something* — create a workflow, list credentials, trigger an execution.
 
-**Nodebase example:** 22 tools across workflows, credentials, executions, nodes, system, and API keys.
+**a8n example:** 22 tools across workflows, credentials, executions, nodes, system, and API keys.
 
 ### Resources — read-only context
 
 **Resources** are addressable content the model can read for context. Each resource has:
 
-- A **URI** (e.g. `n8n://schema/workflow`)
+- A **URI** (e.g. `a8n://schema/workflow`)
 - **Contents** (often markdown or JSON describing schemas)
 
 **When to use:** The model needs to *understand structure* before acting — workflow JSON shape, node type fields, API reference.
 
-**Nodebase example:** 4 resources including workflow schema, node types, credential types, and full API docs.
+**a8n example:** 4 resources including workflow schema, node types, credential types, and full API docs.
 
 ### Prompts — guided templates
 
@@ -91,7 +91,7 @@ flowchart LR
 
 **When to use:** You want consistent, step-by-step guidance for complex tasks — creating a workflow, debugging an execution.
 
-**Nodebase example:** `create_workflow`, `debug_execution`, `setup_integration`.
+**a8n example:** `create_workflow`, `debug_execution`, `setup_integration`.
 
 ---
 
@@ -105,13 +105,13 @@ flowchart LR
 | **Guidance** | Prompt engineering only | Native prompts primitive |
 | **Client support** | Per-integration | One protocol, many hosts |
 
-MCP does not replace your REST/tRPC API. Nodebase keeps tRPC for the dashboard and adds MCP as an **AI-native interface** with scoped API keys and LLM-oriented resources.
+MCP does not replace your REST/tRPC API. a8n keeps tRPC for the dashboard and adds MCP as an **AI-native interface** with scoped API keys and LLM-oriented resources.
 
 ---
 
 ## Roles in the ecosystem
 
-| Role | Description | Nodebase example |
+| Role | Description | a8n example |
 |---|---|---|
 | **Host** | Application embedding the LLM | Cursor IDE, Claude Desktop |
 | **Client** | MCP protocol implementation inside the host | Cursor's built-in MCP client |
@@ -140,7 +140,7 @@ See [02 — Protocol Deep Dive](./02-protocol-deep-dive.md) for message-level de
 | Component | Purpose |
 |---|---|
 | [modelcontextprotocol.io](https://modelcontextprotocol.io/) | Official specification and docs |
-| `@modelcontextprotocol/sdk` | TypeScript SDK (used by Nodebase) |
+| `@modelcontextprotocol/sdk` | TypeScript SDK (used by a8n) |
 | **Cursor** | IDE with native Streamable HTTP MCP support |
 | **Claude Desktop** | Uses `mcp-remote` bridge for HTTP servers |
 | **MCP Inspector** | Debug tool for testing servers |
@@ -164,11 +164,11 @@ See [02 — Protocol Deep Dive](./02-protocol-deep-dive.md) for message-level de
 
 ---
 
-## Nodebase MCP at a glance
+## a8n MCP at a glance
 
 | Property | Value |
 |---|---|
-| Server name | `n8n-mcp-server` |
+| Server name | `a8n-mcp-server` |
 | Version | `1.0.0` |
 | Endpoint | `POST /api/mcp` |
 | Transport | Streamable HTTP (stateless) |
@@ -182,11 +182,11 @@ See [02 — Protocol Deep Dive](./02-protocol-deep-dive.md) for message-level de
 ## Next steps
 
 - [02 — Protocol Deep Dive](./02-protocol-deep-dive.md) — JSON-RPC messages and lifecycle
-- [03 — Transports](./03-transports.md) — why Nodebase uses Streamable HTTP
+- [03 — Transports](./03-transports.md) — why a8n uses Streamable HTTP
 - [04 — Architecture](./04-architecture.md) — how this server is structured
 
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

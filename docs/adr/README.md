@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-This directory contains Architecture Decision Records for Nodebase. ADRs document significant architectural decisions, their context, and rationale.
+This directory contains Architecture Decision Records for a8n. ADRs document significant architectural decisions, their context, and rationale.
 
 ## Index
 

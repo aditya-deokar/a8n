@@ -1,5 +1,5 @@
 /**
- * Resource: n8n://schema/workflow
+ * Resource: a8n://schema/workflow
  *
  * Provides LLMs with a structural reference for how workflows
  * are composed — the JSON shape of nodes, edges, and positions.
@@ -7,7 +7,7 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const WORKFLOW_SCHEMA_DOC = `# n8n Workflow Schema Reference
+const WORKFLOW_SCHEMA_DOC = `# a8n Workflow Schema Reference
 
 A workflow is a directed acyclic graph (DAG) composed of **nodes** and **edges** (connections).
 
@@ -64,12 +64,12 @@ Nodes are executed in **topological order** — each node runs only after all it
 export function registerWorkflowSchemaResource(server: McpServer) {
   server.resource(
     "workflow-schema",
-    "n8n://schema/workflow",
-    { description: "Structural reference for n8n workflow JSON — nodes, edges, positions, and execution order." },
+    "a8n://schema/workflow",
+    { description: "Structural reference for a8n workflow JSON — nodes, edges, positions, and execution order." },
     async () => ({
       contents: [
         {
-          uri: "n8n://schema/workflow",
+          uri: "a8n://schema/workflow",
           mimeType: "text/markdown",
           text: WORKFLOW_SCHEMA_DOC,
         },

@@ -1,6 +1,6 @@
 # MCP Platform Integration
 
-> **Audience:** Developers understanding how MCP connects to Nodebase internals  
+> **Audience:** Developers understanding how MCP connects to a8n internals  
 > **Prerequisites:** [04 — Architecture](./04-architecture.md), [WORKFLOW_ENGINE.md](../WORKFLOW_ENGINE.md)  
 > **Last Updated:** May 2026
 
@@ -198,5 +198,5 @@ Same entry point as the dashboard "Run" button via `workflows.execute` tRPC muta
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

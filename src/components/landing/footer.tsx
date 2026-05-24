@@ -80,7 +80,7 @@ export default function Footer() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-rose-500 rounded-lg flex items-center justify-center font-bold text-white">N</div>
-                <span className="text-2xl font-bold text-white tracking-tighter">Nodebase</span>
+                <span className="text-2xl font-bold text-white tracking-tighter">a8n</span>
               </div>
               <p className="text-zinc-500 max-w-xs text-sm leading-relaxed">
                 The open-source alternative for high-performance AI-native workflow orchestration.
@@ -122,7 +122,7 @@ export default function Footer() {
           </div>
 
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-600 font-medium tracking-tight">
-            <p>© 2026 Nodebase Inc. All rights reserved.</p>
+            <p>© 2026 a8n Inc. All rights reserved.</p>
             <div className="flex gap-6">
               <span>Built with Next.js & Tailwind</span>
               <span className="flex items-center gap-1">Status: <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Operational</span>

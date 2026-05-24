@@ -24,7 +24,7 @@ Each decision follows: **Context → Decision → Consequences**.
 
 ### Context
 
-MCP supports stdio, SSE, and Streamable HTTP transports. Nodebase is a deployed Next.js SaaS application.
+MCP supports stdio, SSE, and Streamable HTTP transports. a8n is a deployed Next.js SaaS application.
 
 ### Decision
 
@@ -209,5 +209,5 @@ See [adr/008-mcp-streamable-http-server.md](../adr/008-mcp-streamable-http-serve
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

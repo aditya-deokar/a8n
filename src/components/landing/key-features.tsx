@@ -260,7 +260,7 @@ export default function KeyFeatures() {
             </motion.span>
           </motion.h2>
           <p className="text-zinc-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            Every layer of Nodebase is engineered for deterministic performance and 
+            Every layer of a8n is engineered for deterministic performance and 
             industrial-grade security in high-stakes automation.
           </p>
         </motion.div>

@@ -8,13 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+// Removed Card imports
 import {
   Form,
   FormControl,
@@ -98,18 +92,17 @@ export function RegisterForm() {
   const isPending = form.formState.isSubmitting;
 
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle>
-            Get Started
-          </CardTitle>
-          <CardDescription>
-            Create your account to get started
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
+    <div className="flex flex-col gap-8 w-full max-w-[400px] mx-auto">
+      <div className="flex flex-col gap-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Get Started
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Create your account to get started
+        </p>
+      </div>
+      <div>
+        <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
@@ -199,8 +192,7 @@ export function RegisterForm() {
               </div>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };

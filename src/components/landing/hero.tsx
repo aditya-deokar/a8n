@@ -100,9 +100,10 @@ export default function Hero() {
         src="https://i.postimg.cc/9FdVdN2J/vector1.webp"
         alt="Vector"
         width={300}
-        draggable={false}
         height={300}
+        draggable={false}
         className="absolute top-0 right-0 z-[1] object-cover object-center select-none pointer-events-none opacity-20"
+        style={{ width: 'auto', height: 'auto' }}
       />
       <Image
         src="https://i.postimg.cc/qR6Hz1Qc/vector2.png"
@@ -110,7 +111,9 @@ export default function Hero() {
         width={300}
         height={300}
         draggable={false}
+        priority
         className="absolute top-0 left-0 z-[1] object-cover object-center select-none pointer-events-none opacity-20"
+        style={{ width: 'auto', height: 'auto' }}
       />
       
       <div className="container mx-auto px-4 2xl:max-w-[1400px] relative z-10">
@@ -143,6 +146,7 @@ export default function Hero() {
               height={500}
               draggable={false}
               className="mx-6 mb-3 inline-block h-14 w-14 md:h-20 md:w-20"
+              style={{ width: 'auto', height: 'auto' }}
             />
             limits.
           </motion.h1>
@@ -242,17 +246,19 @@ export default function Hero() {
         src="https://i.postimg.cc/25Kfksd8/vector5.webp"
         alt="Vector"
         width={300}
-        draggable={false}
         height={300}
+        draggable={false}
         className="absolute bottom-0 -left-44 z-[1] -rotate-90 object-cover object-center select-none pointer-events-none opacity-10"
+        style={{ width: 'auto', height: 'auto' }}
       />
       <Image
         src="https://i.postimg.cc/bvJhjytB/vector6.png"
         alt="Vector"
         width={300}
-        draggable={false}
         height={300}
+        draggable={false}
         className="absolute -right-44 bottom-0 z-[1] rotate-90 object-cover object-center select-none pointer-events-none opacity-10"
+        style={{ width: 'auto', height: 'auto' }}
       />
     </div>
   );

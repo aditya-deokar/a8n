@@ -11,7 +11,7 @@ import { z } from "zod";
 export function registerCreateWorkflowPrompt(server: McpServer) {
   server.prompt(
     "create_workflow",
-    "Step-by-step guide for building an n8n workflow. Provide a description of what you want the workflow to do.",
+    "Step-by-step guide for building an a8n workflow. Provide a description of what you want the workflow to do.",
     {
       description: z
         .string()
@@ -23,7 +23,7 @@ export function registerCreateWorkflowPrompt(server: McpServer) {
           role: "user",
           content: {
             type: "text",
-            text: `I want to create an n8n workflow that does the following:
+            text: `I want to create an a8n workflow that does the following:
 
 ${args.description}
 

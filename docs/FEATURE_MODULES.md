@@ -20,7 +20,7 @@
 
 ## Architecture Overview
 
-Nodebase uses a **feature-based modular architecture** where code is organized by business domain, not technical layer. Each feature module is a self-contained vertical slice of the application.
+a8n uses a **feature-based modular architecture** where code is organized by business domain, not technical layer. Each feature module is a self-contained vertical slice of the application.
 
 ```mermaid
 graph TD

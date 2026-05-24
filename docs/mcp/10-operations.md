@@ -62,7 +62,7 @@ Save the returned `rawKey` — it is shown only once.
 ```bash
 curl -X POST http://localhost:3000/api/mcp \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer n8n_mcp_<your-key>" \
+  -H "Authorization: Bearer a8n_mcp_<your-key>" \
   -d '{
     "jsonrpc": "2.0",
     "method": "tools/call",
@@ -82,11 +82,11 @@ Create `.cursor/mcp.json` in your project root:
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "url": "http://localhost:3000/api/mcp",
       "transport": "streamable-http",
       "headers": {
-        "Authorization": "Bearer n8n_mcp_<your-api-key>"
+        "Authorization": "Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -103,11 +103,11 @@ Edit `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "http://localhost:3000/api/mcp"],
       "env": {
-        "MCP_HEADERS": "Authorization: Bearer n8n_mcp_<your-api-key>"
+        "MCP_HEADERS": "Authorization: Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -121,11 +121,11 @@ Create `.gemini/settings.json`:
 ```json
 {
   "mcpServers": {
-    "n8n": {
+    "a8n": {
       "command": "npx",
       "args": ["-y", "mcp-remote", "http://localhost:3000/api/mcp"],
       "env": {
-        "MCP_HEADERS": "Authorization: Bearer n8n_mcp_<your-api-key>"
+        "MCP_HEADERS": "Authorization: Bearer a8n_mcp_<your-api-key>"
       }
     }
   }
@@ -144,7 +144,7 @@ In the Inspector UI:
 |---|---|
 | Transport | Streamable HTTP |
 | URL | `http://localhost:3000/api/mcp` |
-| Headers | `Authorization: Bearer n8n_mcp_<your-api-key>` |
+| Headers | `Authorization: Bearer a8n_mcp_<your-api-key>` |
 
 ---
 
@@ -202,14 +202,14 @@ Replace `localhost:3000` in all client configs with your production origin.
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `401 Missing Authorization header` | No Bearer token | Add `Authorization: Bearer n8n_mcp_...` |
+| `401 Missing Authorization header` | No Bearer token | Add `Authorization: Bearer a8n_mcp_...` |
 | `401 Invalid or expired API key` | Wrong/revoked/expired key | Create new key at `/mcp` |
 | `429 Rate limit exceeded` | Too many requests | Wait for `Retry-After`; reduce call frequency |
 | `Permission denied: requires "X" scope` | Key lacks scope | Create key with required scope or `*` |
 | Connection refused | Dev server not running | `pnpm dev` |
 | Tools return errors after 401 passes | Auth context not injected | See [05 — Security](./05-security-and-auth.md) known limitation |
 | CORS error in browser | CORS not configured on route | Add CORS headers or use non-browser client |
-| Empty workflow after update | Malformed nodes/edges | Read `n8n://schema/workflow` resource first |
+| Empty workflow after update | Malformed nodes/edges | Read `a8n://schema/workflow` resource first |
 
 ### Debug with server_info
 
@@ -242,5 +242,5 @@ Successful responses include:
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

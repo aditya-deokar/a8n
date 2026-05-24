@@ -110,7 +110,7 @@ If "${args.service}" isn't a supported node type, we can use the HTTP_REQUEST no
             role: "user",
             content: {
               type: "text",
-              text: `I want to set up a ${args.service} integration in my n8n workflow.
+              text: `I want to set up a ${args.service} integration in my a8n workflow.
 
 ${guide}
 

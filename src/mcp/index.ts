@@ -1,5 +1,5 @@
 /**
- * n8n MCP Server Factory
+ * a8n MCP Server Factory
  *
  * Creates and configures the McpServer instance with all registered
  * tools, resources, and prompts. This is the central entry point

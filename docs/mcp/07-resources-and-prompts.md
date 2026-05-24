@@ -34,7 +34,7 @@
 
 Resources are static markdown content registered at server startup. Access via `resources/read` with the URI.
 
-### n8n://schema/workflow
+### a8n://schema/workflow
 
 | Property | Value |
 |---|---|
@@ -47,7 +47,7 @@ Resources are static markdown content registered at server startup. Access via `
 
 ---
 
-### n8n://schema/node-types
+### a8n://schema/node-types
 
 | Property | Value |
 |---|---|
@@ -60,7 +60,7 @@ Resources are static markdown content registered at server startup. Access via `
 
 ---
 
-### n8n://schema/credential-types
+### a8n://schema/credential-types
 
 | Property | Value |
 |---|---|
@@ -73,7 +73,7 @@ Resources are static markdown content registered at server startup. Access via `
 
 ---
 
-### n8n://docs/api
+### a8n://docs/api
 
 | Property | Value |
 |---|---|
@@ -91,11 +91,11 @@ Resources are static markdown content registered at server startup. Access via `
 ```bash
 curl -X POST http://localhost:3000/api/mcp \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer n8n_mcp_<your-api-key>" \
+  -H "Authorization: Bearer a8n_mcp_<your-api-key>" \
   -d '{
     "jsonrpc": "2.0",
     "method": "resources/read",
-    "params": { "uri": "n8n://schema/workflow" },
+    "params": { "uri": "a8n://schema/workflow" },
     "id": 1
   }'
 ```
@@ -184,7 +184,7 @@ Prompts return `messages` arrays for the host to inject into the conversation. T
 
 ### Reduce hallucinated node shapes
 
-Always fetch `n8n://schema/workflow` and `n8n://schema/node-types` before the first `update_workflow` call in a session.
+Always fetch `a8n://schema/workflow` and `a8n://schema/node-types` before the first `update_workflow` call in a session.
 
 ### Prefer prompts for multi-step tasks
 
@@ -196,7 +196,7 @@ Resources are static at build time but may change between deployments. Re-read w
 
 ### Resources are not a substitute for tools
 
-`n8n://docs/api` describes tools; you must still call `tools/call` to execute them.
+`a8n://docs/api` describes tools; you must still call `tools/call` to execute them.
 
 ---
 
@@ -220,5 +220,5 @@ If resources drift from actual behavior, prefer `list_node_types` and `server_in
 ---
 
 <div align="center">
-  <sub>Part of the Nodebase MCP documentation series</sub>
+  <sub>Part of the a8n MCP documentation series</sub>
 </div>

@@ -1,5 +1,5 @@
 /**
- * Resource: n8n://docs/api
+ * Resource: a8n://docs/api
  *
  * Provides LLMs with a complete reference of all available
  * MCP tools, their scopes, inputs, and usage patterns.
@@ -7,7 +7,7 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const API_DOCS = `# n8n MCP Server — API Reference
+const API_DOCS = `# a8n MCP Server — API Reference
 
 ## Authentication
 
@@ -16,7 +16,7 @@ All requests require a Bearer token in the Authorization header:
 Authorization: Bearer <api_key_or_session_token>
 \`\`\`
 
-- **API Key**: \`n8n_mcp_...\` — scoped permissions, created via create_api_key
+- **API Key**: \`a8n_mcp_...\` — scoped permissions, created via create_api_key
 - **Session Token**: better-auth session — full access
 
 ## Permission Scopes
@@ -90,10 +90,10 @@ Authorization: Bearer <api_key_or_session_token>
 
 | URI                          | Description                              |
 |------------------------------|------------------------------------------|
-| n8n://schema/workflow        | Workflow JSON structure reference         |
-| n8n://schema/node-types      | All available node types with fields      |
-| n8n://schema/credential-types| Credential type definitions & security    |
-| n8n://docs/api               | This API reference document               |
+| a8n://schema/workflow        | Workflow JSON structure reference         |
+| a8n://schema/node-types      | All available node types with fields      |
+| a8n://schema/credential-types| Credential type definitions & security    |
+| a8n://docs/api               | This API reference document               |
 
 ## Common Workflows
 
@@ -114,12 +114,12 @@ Authorization: Bearer <api_key_or_session_token>
 export function registerApiDocsResource(server: McpServer) {
   server.resource(
     "api-docs",
-    "n8n://docs/api",
+    "a8n://docs/api",
     { description: "Complete MCP API reference — all tools, scopes, resources, and common usage patterns." },
     async () => ({
       contents: [
         {
-          uri: "n8n://docs/api",
+          uri: "a8n://docs/api",
           mimeType: "text/markdown",
           text: API_DOCS,
         },

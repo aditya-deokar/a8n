@@ -3,7 +3,7 @@
 > **Last Updated:** April 2026  
 > **Time to setup:** ~15 minutes
 
-This guide walks you through setting up the Nodebase development environment from scratch. By the end, you'll have the full application running locally with authentication, database, and the workflow execution engine.
+This guide walks you through setting up the a8n development environment from scratch. By the end, you'll have the full application running locally with authentication, database, and the workflow execution engine.
 
 ---
 
@@ -49,7 +49,7 @@ You'll also need accounts for:
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd n8n
+cd a8n
 
 # Install dependencies with pnpm
 pnpm install

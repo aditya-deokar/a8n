@@ -1,6 +1,6 @@
-# 📚 Nodebase — Documentation Implementation Plan
+# 📚 a8n — Documentation Implementation Plan
 
-> **Project:** Nodebase — AI-Powered Workflow Automation Platform  
+> **Project:** a8n — AI-Powered Workflow Automation Platform  
 > **Goal:** Create industry-grade, maintainable documentation that a senior engineer would be proud to hand off  
 > **Inspired by:** Stripe Docs, Vercel Engineering Blog, HashiCorp Architecture Guides, Turborepo Docs
 
@@ -83,7 +83,7 @@ Replace the boilerplate `create-next-app` README with a proper project README.
 
 **Sections:**
 1. **Hero Banner** — Project name, one-line tagline, badges (build status, license, tech stack)
-2. **What is Nodebase?** — 2-3 paragraph project description with key capabilities
+2. **What is a8n?** — 2-3 paragraph project description with key capabilities
 3. **Screenshots / Demo** — Key UI screenshots (editor, workflows list, execution view)
 4. **Key Features** — Bullet list of capabilities:
    - Visual DAG workflow editor (React Flow)
@@ -317,7 +317,7 @@ This is the most technically complex and important doc — the heart of the appl
 **Sections:**
 1. **Engine Overview** — Mermaid diagram of the full execution pipeline
 2. **Inngest Integration:**
-   - Client setup (`inngest/client.ts`) — `id: "nodebase"`, realtime middleware
+   - Client setup (`inngest/client.ts`) — `id: "a8n"`, realtime middleware
    - Event schema: `workflows/execute.workflow` with `workflowId` payload
    - Retry policy: 3 retries in production, 0 in dev
    - Failure handler: update execution status to `FAILED`
