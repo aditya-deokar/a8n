@@ -86,6 +86,7 @@ export default function Features() {
             <div className="mt-8 relative h-64 w-full flex items-center justify-center">
                <div className="absolute inset-0 bg-gradient-to-t from-rose-500/10 to-transparent rounded-2xl" />
                <Image 
+                 unoptimized
                  src="https://i.postimg.cc/L6NQFz3m/mobile-dark.webp" 
                  alt="UI Preview" 
                  width={200} 
