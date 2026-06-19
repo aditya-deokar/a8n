@@ -10,10 +10,15 @@ export type HttpRequestToken = Realtime.Token<
 >;
 
 export async function fetchHttpRequestRealtimeToken(): Promise<HttpRequestToken> {
-  const token = await getSubscriptionToken(inngest, {
-    channel: httpRequestChannel(),
-    topics: ["status"],
-  });
+  try {
+    const token = await getSubscriptionToken(inngest, {
+      channel: httpRequestChannel(),
+      topics: ["status"],
+    });
 
-  return token;
+    return token;
+  } catch (error) {
+    console.error("Failed to fetch Inngest realtime token:", error);
+    return null as any;
+  }
 };
