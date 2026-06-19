@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "inngest:dev": "inngest-cli dev",
+    "inngest:dev": "npx --yes --ignore-scripts=false inngest-cli@latest dev",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -124,7 +124,8 @@
     "onlyBuiltDependencies": [
       "@prisma/engines",
       "esbuild",
-      "prisma"
+      "prisma",
+      "inngest-cli"
     ]
   }
 }

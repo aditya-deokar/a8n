@@ -15,7 +15,7 @@ const Layout = ({ children }: { children: React.ReactNode; }) => {
           <AppHeaderActions />
         </div>
       </div>
-      <main className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex-1 overflow-auto">
+      <main className="flex-1 overflow-hidden min-h-0">
         {children}
       </main>
     </>

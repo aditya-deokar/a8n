@@ -98,20 +98,12 @@ export const McpClientConfigs = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <TerminalIcon className="size-4 text-primary" />
-          <span>Client Integration Presets</span>
-        </h3>
-        <p className="text-xs text-muted-foreground">
-          Select your preferred AI assistant to view drop-in configuration snippets. Be sure to replace the placeholder with your generated secret key.
-        </p>
-      </div>
+      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 ml-1">Client Integration Presets</h3>
 
       <Tabs defaultValue="antigravity" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto gap-1 bg-accent/40 p-1">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto gap-1 bg-white/40 dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] p-1.5 rounded-2xl shadow-sm">
           {Object.entries(presets).map(([key, preset]) => (
-            <TabsTrigger key={key} value={key} className="text-xs py-2 gap-1.5 font-medium">
+            <TabsTrigger key={key} value={key} className="text-xs py-2 gap-1.5 font-medium rounded-xl data-[state=active]:bg-[#5c54a4]/10 data-[state=active]:text-[#5c54a4] dark:data-[state=active]:bg-[#2a2a2c] dark:data-[state=active]:text-white transition-all">
               {preset.logo && (
                 <Image src={preset.logo} alt={preset.title} width={14} height={14} className="shrink-0" />
               )}
@@ -122,14 +114,14 @@ export const McpClientConfigs = () => {
 
         {Object.entries(presets).map(([key, preset]) => (
           <TabsContent key={key} value={key} className="mt-3">
-            <div className="rounded-lg border bg-background overflow-hidden flex flex-col">
-              <div className="flex items-center justify-between px-3 py-2 bg-accent/30 border-b gap-2">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">{preset.title}</span>
+            <div className="rounded-[1.5rem] border border-gray-100 dark:border-white/[0.08] bg-white/40 dark:bg-[#111111]/80 backdrop-blur-xl shadow-sm overflow-hidden flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/[0.08] gap-2">
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">{preset.title}</span>
                   {preset.filename && (
                     <>
                       <span>&bull;</span>
-                      <span className="font-mono bg-background px-1.5 py-0.5 rounded border text-[11px]">
+                      <span className="font-mono bg-white dark:bg-zinc-900/50 px-2 py-0.5 rounded-md border border-gray-100 dark:border-white/[0.05] text-[11px]">
                         {preset.filename}
                       </span>
                     </>
@@ -139,7 +131,7 @@ export const McpClientConfigs = () => {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 gap-1 px-2 text-xs hover:bg-background"
+                  className="h-8 gap-1.5 px-3 rounded-lg text-xs hover:bg-gray-100 dark:hover:bg-zinc-800"
                   onClick={() => handleCopy(key, preset.code)}
                 >
                   {copiedTab === key ? (
@@ -156,11 +148,11 @@ export const McpClientConfigs = () => {
                 </Button>
               </div>
 
-              <div className="p-3 bg-muted/20 font-mono text-xs overflow-x-auto text-foreground/90 leading-relaxed selection:bg-primary selection:text-primary-foreground">
+              <div className="p-4 font-mono text-xs overflow-x-auto text-gray-800 dark:text-gray-300 leading-relaxed selection:bg-[#5c54a4]/20 selection:text-[#5c54a4] dark:selection:text-indigo-300">
                 <pre>{preset.code}</pre>
               </div>
 
-              <div className="px-3 py-2 bg-accent/10 border-t text-[11px] text-muted-foreground flex items-center justify-between gap-2">
+              <div className="px-4 py-3 border-t border-gray-100 dark:border-white/[0.08] text-[11px] text-gray-500 dark:text-gray-400 flex items-center justify-between gap-2">
                 <span>{preset.desc}</span>
                 {key === "inspector" && (
                   <a

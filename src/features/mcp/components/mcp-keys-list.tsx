@@ -6,10 +6,10 @@ import { formatDistanceToNow } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { KeyIcon, TrashIcon, ShieldAlertIcon, CheckCircle2Icon } from "lucide-react";
-import { LoadingView, ErrorView, EmptyView } from "@/components/entity-components";
-import { McpKeyCreateModal } from "./mcp-key-create-modal";
+import { LoadingView, ErrorView } from "@/components/entity-components";
+import { PlusIcon } from "lucide-react";
 
-export const McpKeysList = () => {
+export const McpKeysList = ({ onNew }: { onNew: () => void }) => {
   const { data: keys, isLoading, isError } = useMcpKeys();
   const revokeMutation = useRevokeMcpKey();
 
@@ -23,7 +23,7 @@ export const McpKeysList = () => {
 
   if (keys.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 border rounded-xl bg-background text-center gap-4">
+      <div className="flex flex-col items-center justify-center p-8 bg-white/40 dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm rounded-[1.5rem] text-center gap-4">
         <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
           <KeyIcon className="size-6" />
         </div>
@@ -33,7 +33,10 @@ export const McpKeysList = () => {
             Generate an API key to securely connect external clients like Cursor, Claude Code, or Antigravity to your workspace.
           </p>
         </div>
-        <McpKeyCreateModal />
+        <Button onClick={onNew} size="sm" className="bg-[#5c54a4] hover:bg-[#4a4387] text-white shadow-sm shadow-[#5c54a4]/20 gap-1.5 transition-all">
+          <PlusIcon className="size-4" />
+          <span>Generate API Key</span>
+        </Button>
       </div>
     );
   }
@@ -45,7 +48,7 @@ export const McpKeysList = () => {
         const isWildcard = apiKey.scopes.includes("*");
 
         return (
-          <Card key={apiKey.id} className="p-4 shadow-none hover:shadow-xs transition-shadow">
+          <Card key={apiKey.id} className="p-4 bg-white/40 dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm hover:bg-gray-50 dark:hover:bg-[#1c1c1e]/80 rounded-[1.5rem] transition-all duration-300">
             <CardContent className="p-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
@@ -53,8 +56,8 @@ export const McpKeysList = () => {
                 </div>
                 <div className="flex flex-col gap-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm truncate">{apiKey.name}</span>
-                    <span className="font-mono text-xs bg-accent px-1.5 py-0.5 rounded text-muted-foreground">
+                    <span className="font-semibold text-sm truncate text-gray-900 dark:text-gray-100">{apiKey.name}</span>
+                    <span className="font-mono text-xs bg-gray-100 dark:bg-zinc-800/80 px-1.5 py-0.5 rounded text-gray-500 dark:text-zinc-400">
                       {apiKey.keyPrefix}...
                     </span>
                     {isWildcard ? (

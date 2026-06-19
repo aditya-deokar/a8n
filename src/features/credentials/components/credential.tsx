@@ -2,7 +2,6 @@
 
 import { CredentialType } from "@/generated/prisma";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { 
   useCreateCredential, 
   useUpdateCredential,
@@ -36,7 +35,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { XIcon } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -71,12 +70,15 @@ interface CredentialFormProps {
     type: CredentialType;
     value: string;
   };
+  onSuccess?: () => void;
+  onCancel?: () => void;
 };
 
 export const CredentialForm = ({
   initialData,
+  onSuccess: onSuccessCallback,
+  onCancel,
 }: CredentialFormProps) => {
-  const router = useRouter();
   const createCredential = useCreateCredential();
   const updateCredential = useUpdateCredential();
   const { handleError, modal } = useUpgradeModal();
@@ -97,11 +99,13 @@ export const CredentialForm = ({
       await updateCredential.mutateAsync({
         id: initialData.id,
         ...values,
-      })
+      }).then(() => {
+        onSuccessCallback?.();
+      });
     } else {
       await createCredential.mutateAsync(values, {
         onSuccess: (data) => {
-          router.push(`/credentials/${data.id}`);
+          onSuccessCallback?.();
         },
         onError: (error) => {
           handleError(error);
@@ -113,93 +117,104 @@ export const CredentialForm = ({
   return (
     <>
       {modal}
-      <Card className="shadow-none">
-        <CardHeader>
-          <CardTitle>
+      <div className="flex flex-col h-full bg-white dark:bg-[#0f0f11]">
+        <div className="pb-4 pt-6 px-6 border-b border-gray-100 dark:border-zinc-800/50 flex-shrink-0">
+          <h2 className="text-xl font-semibold tracking-tight">
             {isEdit ? "Edit Credential" : "Create Credential"}
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             {isEdit
               ? "Update your API key or credential details"
               : "Add a new API key or credential to your account"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div className="p-6 flex-1 overflow-y-auto">
           <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="My API key" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                <div className="flex flex-col gap-6">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Name</FormLabel>
                         <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
+                          <Input 
+                            placeholder="My API key" 
+                            className="rounded-xl bg-gray-50/50 dark:bg-zinc-900/80 border-gray-200/60 dark:border-zinc-800 h-12 px-4 shadow-inner dark:shadow-none focus-visible:ring-2 focus-visible:ring-[#5c54a4]/20 focus-visible:border-[#5c54a4] transition-all"
+                            {...field} 
+                          />
                         </FormControl>
-                        <SelectContent>
+                        <FormMessage className="ml-1" />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Type</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full rounded-xl bg-gray-50/50 dark:bg-zinc-900/80 border-gray-200/60 dark:border-zinc-800 !h-12 px-4 focus:ring-2 focus:ring-[#5c54a4]/20 focus:border-[#5c54a4] transition-all">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-2xl border-white/5 shadow-2xl bg-white/80 dark:bg-[#1c1c1e]/80 backdrop-blur-2xl p-1.5 overflow-hidden">
                           {credentialTypeOptions.map((option) => (
                             <SelectItem
                               key={option.value}
                               value={option.value}
+                              className="rounded-xl cursor-pointer py-2.5 px-3 focus:bg-[#5c54a4] focus:text-white transition-colors duration-200 data-[state=checked]:bg-[#5c54a4]/10 data-[state=checked]:text-[#5c54a4] dark:data-[state=checked]:text-white"
                             >
-                              <div className="flex items-center gap-2">
-                                <Image
-                                  src={option.logo}
-                                  alt={option.label}
-                                  width={16}
-                                  height={16}
-                                />
-                                {option.label}
+                              <div className="flex items-center gap-3">
+                                <div className="bg-white/10 p-1 rounded-md shadow-sm">
+                                  <Image
+                                    src={option.logo}
+                                    alt={option.label}
+                                    width={20}
+                                    height={20}
+                                    className="rounded-[4px]"
+                                  />
+                                </div>
+                                <span className="font-medium text-[15px]">{option.label}</span>
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="value"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1.5">
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">API Key</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password" 
+                            placeholder="sk-..."
+                            className="rounded-xl bg-gray-50/50 dark:bg-zinc-900/80 border-gray-200/60 dark:border-zinc-800 h-12 px-4 shadow-inner dark:shadow-none focus-visible:ring-2 focus-visible:ring-[#5c54a4]/20 focus-visible:border-[#5c54a4] transition-all"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage className="ml-1" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="sk-..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-3 pt-6 mt-auto">
                   <Button
                     type="submit"
+                    className="w-full rounded-xl h-12 bg-[#5c54a4] hover:bg-[#4a4387] text-white font-semibold text-[15px] shadow-md shadow-[#5c54a4]/20 transition-all active:scale-[0.98]"
                     disabled={
                       createCredential.isPending ||
                       updateCredential.isPending
@@ -209,26 +224,68 @@ export const CredentialForm = ({
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
-                    asChild
+                    variant="ghost"
+                    className="w-full rounded-xl h-12 hover:bg-gray-100 dark:hover:bg-zinc-900/50 text-gray-700 dark:text-gray-300 font-semibold text-[15px] transition-all active:scale-[0.98]"
+                    onClick={onCancel}
                   >
-                    <Link href="/credentials" prefetch>
-                      Cancel
-                    </Link>
+                    Cancel
                   </Button>
                 </div>
               </form>
           </Form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </>
   )
 };
 
 export const CredentialView = ({
   credentialId,
-}: { credentialId: string }) => {
+  onSuccess,
+  onCancel,
+}: { 
+  credentialId: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}) => {
   const { data: credential } = useSuspenseCredential(credentialId);
 
-  return <CredentialForm initialData={credential} />
+  return <CredentialForm initialData={credential} onSuccess={onSuccess} onCancel={onCancel} />
+};
+
+export const CredentialModal = ({
+  isOpen,
+  setIsOpen,
+  credentialId,
+}: {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+  credentialId?: string | null;
+}) => {
+  return (
+    <div className="flex flex-col h-full w-full relative">
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="absolute top-4 right-4 z-10 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
+        onClick={() => setIsOpen(false)}
+      >
+        <XIcon className="size-4" />
+      </Button>
+      {credentialId ? (
+        <CredentialView 
+          key={credentialId}
+          credentialId={credentialId} 
+          onSuccess={() => setIsOpen(false)}
+          onCancel={() => setIsOpen(false)}
+        />
+      ) : (
+        <CredentialForm 
+          key="new"
+          onSuccess={() => setIsOpen(false)}
+          onCancel={() => setIsOpen(false)}
+        />
+      )}
+    </div>
+  );
 };
