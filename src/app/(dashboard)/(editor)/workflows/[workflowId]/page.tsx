@@ -22,7 +22,7 @@ const Page = async ({ params }: PageProps) => {
   await requireAuth();
 
   const { workflowId } = await params;
-  prefetchWorkflow(workflowId);
+  await prefetchWorkflow(workflowId);
 
   return (
     <HydrateClient>

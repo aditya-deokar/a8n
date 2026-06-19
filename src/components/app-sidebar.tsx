@@ -76,7 +76,7 @@ export const AppSidebar = () => {
         <SidebarMenuItem>
           <SidebarMenuButton asChild className="gap-x-4 h-12 px-4 hover:bg-white/10 text-white">
             <Link href="/" prefetch>
-              <Image src="/logos/logo.svg" alt="a8n" width={32} height={32} className="brightness-0 invert" />
+              <Image src="/logos/logo.svg" alt="a8n" width={32} height={32} className="brightness-0 invert" style={{ width: 'auto', height: 'auto' }} />
               <span className="font-bold text-xl tracking-tight">a8n</span>
             </Link>
           </SidebarMenuButton>

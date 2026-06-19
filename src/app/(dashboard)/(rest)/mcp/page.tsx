@@ -10,7 +10,7 @@ const Page = async () => {
   await requireAuth();
 
   // Prefetch MCP API keys state for SSR hydration
-  prefetchMcpKeys();
+  await prefetchMcpKeys();
 
   return (
     <HydrateClient>

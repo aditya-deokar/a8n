@@ -18,6 +18,7 @@ import {
   Panel,
 } from '@xyflow/react';
 import { ErrorView, LoadingView } from "@/components/entity-components";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { useTheme } from "next-themes";
 
@@ -29,7 +30,39 @@ import { NodeType } from '@/generated/prisma';
 import { ExecuteWorkflowButton } from './execute-workflow-button';
 
 export const EditorLoading = () => {
-  return <LoadingView message="Loading editor..." />;
+  return (
+    <div className="flex flex-col h-full w-full gap-2 overflow-hidden min-h-0">
+      <div className="flex items-stretch gap-2 shrink-0">
+        <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
+          <Skeleton className="size-10 rounded-xl dark:bg-zinc-800" />
+        </div>
+        <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex-1 flex items-center px-8 h-[88px]">
+          <div className="flex flex-row items-center justify-between gap-x-4 w-full">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-5 w-24 rounded-md dark:bg-zinc-800" />
+              <Skeleton className="size-4 rounded-sm dark:bg-zinc-800" />
+              <Skeleton className="h-8 w-32 rounded-lg dark:bg-zinc-800" />
+            </div>
+            <Skeleton className="h-9 w-32 rounded-xl dark:bg-zinc-800" />
+          </div>
+        </div>
+        <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
+          <Skeleton className="size-10 rounded-xl dark:bg-zinc-800" />
+        </div>
+      </div>
+      <div className="flex-1 flex flex-row w-full overflow-hidden min-h-0 gap-2">
+        <main className="relative flex-1 h-full flex flex-col bg-[#f6f8fb] dark:bg-[#18181b] rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden min-w-0 min-h-0">
+          <div className="flex-1 w-full h-full flex items-center justify-center relative">
+            <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(currentColor 1.5px, transparent 1.5px)', backgroundSize: '24px 24px' }} />
+            <div className="absolute inset-6 flex justify-between pointer-events-none">
+              <Skeleton className="h-[200px] w-12 rounded-2xl dark:bg-zinc-800" />
+              <Skeleton className="h-[150px] w-48 rounded-2xl absolute bottom-0 right-0 dark:bg-zinc-800" />
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 export const EditorError = () => {

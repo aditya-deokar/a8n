@@ -41,7 +41,7 @@ export const executeWorkflow = inngest.createFunction(
       slackChannel(),
     ],
   } as any,
-  async ({ event, step, publish }: any) => {
+  async ({ event, step }: any) => {
     const inngestEventId = event.id;
     const workflowId = event.data.workflowId;
 
@@ -83,6 +83,20 @@ export const executeWorkflow = inngest.createFunction(
 
     // Initialize context with any initial data from the trigger
     let context = event.data.initialData || {};
+
+    // Shim for legacy @inngest/realtime middleware publish
+    const publish = async (input: any) => {
+      const { topic, channel, data } = await input;
+      const publishOpts = {
+        topics: [topic],
+        channel,
+        runId: event.id,
+      };
+      
+      const result = await (inngest as any).inngestApi.publish(publishOpts, data);
+      if (!result.ok) throw new Error("Failed to publish event to realtime");
+      return data;
+    };
 
     // Execute each node
     for (const node of sortedNodes) {
