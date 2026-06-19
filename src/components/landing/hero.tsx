@@ -97,6 +97,7 @@ export default function Hero() {
       </div>
 
       <Image
+        unoptimized
         src="https://i.postimg.cc/9FdVdN2J/vector1.webp"
         alt="Vector"
         width={300}
@@ -106,6 +107,7 @@ export default function Hero() {
         style={{ width: 'auto', height: 'auto' }}
       />
       <Image
+        unoptimized
         src="https://i.postimg.cc/qR6Hz1Qc/vector2.png"
         alt="Vector"
         width={300}
@@ -140,6 +142,7 @@ export default function Hero() {
           >
             Automate without
             <Image
+              unoptimized
               src="https://i.postimg.cc/Bb5yKkFF/rose.webp"
               alt="Logo"
               width={500}
@@ -243,6 +246,7 @@ export default function Hero() {
       </div>
 
       <Image
+        unoptimized
         src="https://i.postimg.cc/25Kfksd8/vector5.webp"
         alt="Vector"
         width={300}
@@ -252,6 +256,7 @@ export default function Hero() {
         style={{ width: 'auto', height: 'auto' }}
       />
       <Image
+        unoptimized
         src="https://i.postimg.cc/bvJhjytB/vector6.png"
         alt="Vector"
         width={300}

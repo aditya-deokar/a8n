@@ -48,9 +48,9 @@ export const EntityHeader = ({
   return (
     <div className="flex flex-row items-center justify-between gap-x-4">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">{title}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{title}</h1>
         {description && (
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             {description}
           </p>
         )}
@@ -122,9 +122,9 @@ export const EntitySearch = ({
 }: EntitySearchProps) => {
   return (
     <div className="relative ml-auto">
-      <SearchIcon className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <SearchIcon className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
       <Input 
-        className="max-w-[200px] bg-background shadow-none border-border pl-8"
+        className="max-w-[200px] bg-white dark:bg-zinc-900 h-10 pl-10 pr-4 rounded-xl text-sm border-gray-100 dark:border-zinc-800 shadow-[0_2px_10px_rgba(0,0,0,0.02)] focus-visible:ring-2 focus-visible:ring-[#6b62bd]/20 focus-visible:ring-offset-0 transition-all placeholder:text-gray-400 dark:text-zinc-100"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -217,23 +217,23 @@ export const EmptyView = ({
   onNew
 }: EmptyViewProps) => {
   return (
-    <Empty className="border border-dashed bg-white">
+    <Empty className="border border-dashed bg-white dark:bg-zinc-900/50 dark:border-zinc-800 rounded-2xl">
       <EmptyHeader>
-        <EmptyMedia variant="icon">
+        <EmptyMedia variant="icon" className="dark:bg-zinc-800 dark:text-zinc-400">
           <PackageOpenIcon />
         </EmptyMedia>
       </EmptyHeader>
-      <EmptyTitle>
+      <EmptyTitle className="dark:text-zinc-100">
         No items
       </EmptyTitle>
       {!!message && (
-        <EmptyDescription>
+        <EmptyDescription className="dark:text-zinc-400">
           {message}
         </EmptyDescription>
       )}
       {!!onNew && (
         <EmptyContent>
-          <Button onClick={onNew}>
+          <Button onClick={onNew} className="bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-5 shadow-sm shadow-[#5c54a4]/20 gap-2 transition-all">
             Add item
           </Button>
         </EmptyContent>
@@ -317,7 +317,7 @@ export const EntityItem = ({
     <Link href={href} prefetch className="block h-full">
       <Card
         className={cn(
-          "h-full p-5 bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-2xl cursor-pointer transition-all duration-300",
+          "h-full p-5 bg-white dark:bg-card border border-gray-100 dark:border-border shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-2xl cursor-pointer transition-all duration-300",
           isRemoving && "opacity-50 cursor-not-allowed",
           className,
         )}

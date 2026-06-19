@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
 import { useAtomValue } from "jotai";
 import { editorAtom } from "../store/atoms";
+import { AddNodeButton } from "./add-node-button";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   const editor = useAtomValue(editorAtom);
@@ -110,13 +111,13 @@ export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
         onChange={(e) => setName(e.target.value)}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
-        className="h-8 w-auto min-w-[150px] px-3 rounded-lg border-gray-200 bg-white/50 focus:bg-white focus:ring-[#5c54a4]/20 transition-all shadow-sm text-sm"
+        className="h-8 w-auto min-w-[150px] px-3 rounded-lg border-gray-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 focus:bg-white dark:focus:bg-zinc-900 focus:ring-[#5c54a4]/20 transition-all shadow-sm text-sm"
       />
     )
   }
 
   return (
-    <BreadcrumbItem onClick={() => setIsEditing(true)} className="cursor-pointer font-semibold text-gray-900 hover:text-[#5c54a4] transition-all bg-white/50 px-3 py-1 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white hover:shadow-sm">
+    <BreadcrumbItem onClick={() => setIsEditing(true)} className="cursor-pointer font-semibold text-gray-900 dark:text-zinc-100 hover:text-[#5c54a4] dark:hover:text-[#7972b9] transition-all bg-white/50 dark:bg-zinc-900/50 px-3 py-1 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-zinc-800 hover:bg-white dark:hover:bg-zinc-900 hover:shadow-sm">
       {workflow.name}
     </BreadcrumbItem>
   )
@@ -128,7 +129,7 @@ export const EditorBreadcrumbs = ({ workflowId }: { workflowId: string }) => {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link prefetch href="/workflows" className="text-gray-500 hover:text-gray-900 font-medium transition-colors">
+            <Link prefetch href="/workflows" className="text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 font-medium transition-colors">
               Workflows
             </Link>
           </BreadcrumbLink>
@@ -142,12 +143,19 @@ export const EditorBreadcrumbs = ({ workflowId }: { workflowId: string }) => {
 
 export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 rounded-2xl px-4 bg-white/70 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mx-auto w-full transition-all duration-300 hover:bg-white/90">
-      <SidebarTrigger className="bg-white hover:bg-gray-50 shadow-sm border border-gray-100 rounded-xl" />
-      <div className="flex flex-row items-center justify-between gap-x-4 w-full">
-        <EditorBreadcrumbs workflowId={workflowId} />
-        <EditorSaveButton workflowId={workflowId} />
+    <div className="flex items-stretch gap-2 shrink-0">
+      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
+        <SidebarTrigger className="bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-sm border border-gray-100 dark:border-zinc-800 rounded-xl size-10 [&>svg]:size-5" />
       </div>
-    </header>
+      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex-1 flex items-center px-8 h-[88px]">
+        <div className="flex flex-row items-center justify-between gap-x-4 w-full">
+          <EditorBreadcrumbs workflowId={workflowId} />
+          <EditorSaveButton workflowId={workflowId} />
+        </div>
+      </div>
+      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
+        <AddNodeButton />
+      </div>
+    </div>
   );
 };

@@ -1,23 +1,32 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
-import { memo, useState } from "react";
+import { PlusIcon, XIcon } from "lucide-react";
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { NodeSelector } from "@/components/node-selector";
+import { useAtom } from "jotai";
+import { nodeSelectorOpenAtom } from "../store/atoms";
+import { cn } from "@/lib/utils";
 
 export const AddNodeButton = memo(() => {
-  const [selectorOpen, setSelectorOpen] = useState(false);
+  const [selectorOpen, setSelectorOpen] = useAtom(nodeSelectorOpenAtom);
 
   return (
-    <NodeSelector open={selectorOpen} onOpenChange={setSelectorOpen}>
-      <Button
-        onClick={() => setSelectorOpen(true)}
-        size="icon"
-        className="h-14 w-14 rounded-full bg-white/80 hover:bg-white text-[#5c54a4] backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.16)] transition-all duration-300 hover:scale-105 group"
-      >
-        <PlusIcon className="size-6 transition-transform duration-300 group-hover:rotate-90" />
-      </Button>
-    </NodeSelector>
+    <Button
+      onClick={() => setSelectorOpen(!selectorOpen)}
+      size="icon"
+      className={cn(
+        "size-10 text-white rounded-xl shadow-md transition-all duration-300 group",
+        selectorOpen 
+          ? "bg-zinc-700 hover:bg-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700 shadow-zinc-900/20" 
+          : "bg-[#5c54a4] hover:bg-[#4b448a] shadow-[#5c54a4]/20"
+      )}
+    >
+      {selectorOpen ? (
+        <XIcon className="size-5 transition-transform duration-300 rotate-0 group-hover:rotate-90" />
+      ) : (
+        <PlusIcon className="size-5 transition-transform duration-300 rotate-0 group-hover:rotate-90" />
+      )}
+    </Button>
   )
 });
 

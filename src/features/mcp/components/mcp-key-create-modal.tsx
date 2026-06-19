@@ -89,7 +89,7 @@ export const McpKeyCreateModal = () => {
   return (
     <Dialog open={open} onOpenChange={handleReset}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
+        <Button size="sm" className="bg-[#5c54a4] hover:bg-[#4a4387] text-white shadow-sm shadow-[#5c54a4]/20 gap-1.5 transition-all">
           <PlusIcon className="size-4" />
           <span>Generate API Key</span>
         </Button>

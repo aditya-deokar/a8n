@@ -168,8 +168,8 @@ export const WorkflowItem = ({
         </>
       }
       image={
-        <div className="size-12 rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] flex items-center justify-center flex-shrink-0 border border-white shadow-inner">
-          <WorkflowIcon className="size-6 text-[#5c54a4]" />
+        <div className="size-12 rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] dark:from-indigo-950/50 dark:to-indigo-900/50 flex items-center justify-center flex-shrink-0 border border-white dark:border-indigo-900/50 shadow-inner">
+          <WorkflowIcon className="size-6 text-[#5c54a4] dark:text-indigo-400" />
         </div>
       }
       onRemove={handleRemove}

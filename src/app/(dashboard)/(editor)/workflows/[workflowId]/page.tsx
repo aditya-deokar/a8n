@@ -9,6 +9,8 @@ import { requireAuth } from "@/lib/auth-utils";
 import { HydrateClient } from "@/trpc/server";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { ReactFlowProvider } from "@xyflow/react";
+import { NodeSelector } from "@/components/node-selector";
 
 interface PageProps {
   params: Promise<{
@@ -26,16 +28,19 @@ const Page = async ({ params }: PageProps) => {
     <HydrateClient>
       <ErrorBoundary fallback={<EditorError />}>
         <Suspense fallback={<EditorLoading />}>
-          <main className="relative flex-1 h-full w-full flex flex-col bg-[#fcfcfd] rounded-[1.5rem] overflow-hidden shadow-inner">
-            <div className="absolute top-4 left-4 right-4 z-10 flex justify-center pointer-events-none">
-              <div className="pointer-events-auto w-full max-w-4xl">
-                <EditorHeader workflowId={workflowId} />
+          <ReactFlowProvider>
+            <div className="flex flex-col h-full w-full gap-2 overflow-hidden min-h-0">
+              <EditorHeader workflowId={workflowId} />
+              <div className="flex-1 flex flex-row w-full overflow-hidden min-h-0">
+                <main className="relative flex-1 h-full flex flex-col bg-[#f6f8fb] dark:bg-[#18181b] rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden min-w-0 min-h-0">
+                  <div className="flex-1 w-full h-full">
+                    <Editor workflowId={workflowId} />
+                  </div>
+                </main>
+                <NodeSelector />
               </div>
             </div>
-            <div className="flex-1 w-full h-full">
-              <Editor workflowId={workflowId} />
-            </div>
-          </main>
+          </ReactFlowProvider>
         </Suspense>
       </ErrorBoundary>
     </HydrateClient>
