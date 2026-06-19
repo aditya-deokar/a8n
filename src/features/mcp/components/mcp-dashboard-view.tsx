@@ -12,17 +12,17 @@ export const McpDashboardHeader = () => {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <div className="size-14 rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] flex items-center justify-center text-[#5c54a4] shrink-0 border border-white shadow-inner">
+        <div className="size-14 rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] dark:from-indigo-950/50 dark:to-indigo-900/50 flex items-center justify-center text-[#5c54a4] dark:text-indigo-400 shrink-0 border border-white dark:border-indigo-900/50 shadow-inner">
           <ServerIcon className="size-7" />
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Model Context Protocol</h1>
-            <span className="text-xs font-bold tracking-wide uppercase bg-[#5c54a4]/10 text-[#5c54a4] px-2.5 py-1 rounded-lg border border-[#5c54a4]/20 shadow-sm">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Model Context Protocol</h1>
+            <span className="text-xs font-bold tracking-wide uppercase bg-[#5c54a4]/10 text-[#5c54a4] dark:text-indigo-300 dark:bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-[#5c54a4]/20 dark:border-indigo-500/20 shadow-sm">
               v1.0 Server
             </span>
           </div>
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             Manage your secure MCP API keys and external agentic application integrations
           </p>
         </div>
@@ -60,14 +60,14 @@ export const McpDashboardOverview = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {metrics.map((metric, idx) => (
-        <Card key={idx} className="p-5 bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-2xl transition-all duration-300">
+        <Card key={idx} className="p-5 bg-white dark:bg-card border border-gray-100 dark:border-border shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] rounded-2xl transition-all duration-300">
           <CardContent className="p-0 flex items-start justify-between gap-2">
             <div className="flex flex-col gap-1.5">
-              <span className="text-sm text-gray-500 font-medium">{metric.title}</span>
-              <span className="text-xl font-bold text-gray-900 tracking-tight">{metric.value}</span>
-              <span className="text-xs text-gray-400 font-medium">{metric.desc}</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">{metric.title}</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">{metric.value}</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{metric.desc}</span>
             </div>
-            <div className="size-10 rounded-xl bg-[#f8f9fc] border border-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+            <div className="size-10 rounded-xl bg-[#f8f9fc] dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 flex items-center justify-center text-gray-500 dark:text-gray-400 shrink-0">
               <metric.icon className="size-5" />
             </div>
           </CardContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   ReactFlow, 
   applyNodeChanges, 
@@ -19,10 +19,10 @@ import {
 } from '@xyflow/react';
 import { ErrorView, LoadingView } from "@/components/entity-components";
 import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
+import { useTheme } from "next-themes";
 
 import '@xyflow/react/dist/style.css';
 import { nodeComponents } from '@/config/node-components';
-import { AddNodeButton } from './add-node-button';
 import { useSetAtom } from 'jotai';
 import { editorAtom } from '../store/atoms';
 import { NodeType } from '@/generated/prisma';
@@ -40,6 +40,12 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
   const { 
     data: workflow
   } = useSuspenseWorkflow(workflowId);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const setEditor = useSetAtom(editorAtom);
 
@@ -66,6 +72,7 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
   return (
     <div className='size-full'>
       <ReactFlow
+        colorMode={mounted && resolvedTheme === 'dark' ? 'dark' : 'light'}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -80,20 +87,16 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
         panOnDrag={false}
         selectionOnDrag
       >
-        <Background variant={BackgroundVariant.Dots} gap={24} size={2} color="#e2e4f0" />
+        <Background variant={BackgroundVariant.Dots} gap={24} size={2} color={mounted && resolvedTheme === 'dark' ? '#27272a' : '#e2e4f0'} />
         <Controls 
-          className="!bg-white/70 !backdrop-blur-xl !border !border-white/50 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] !rounded-2xl overflow-hidden [&>button]:!border-b-white/50 hover:[&>button]:!bg-white/90 transition-all" 
+          className="!bg-white/80 dark:!bg-zinc-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-zinc-800/50 !shadow-sm !rounded-2xl overflow-hidden [&>button]:!border-b-white/50 dark:[&>button]:!border-b-zinc-800/50 hover:[&>button]:!bg-white/90 dark:hover:[&>button]:!bg-zinc-800/90 transition-all [&>button]:dark:!bg-zinc-900/50 [&>button>svg]:dark:!fill-zinc-400" 
           showInteractive={false} 
         />
         <MiniMap 
-          className="!bg-white/70 !backdrop-blur-xl !border !border-white/50 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] !rounded-2xl overflow-hidden" 
-          maskColor="rgba(246, 248, 251, 0.6)"
+          className="!bg-white/80 dark:!bg-zinc-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-zinc-800/50 !shadow-sm !rounded-2xl overflow-hidden" 
+          maskColor={mounted && resolvedTheme === 'dark' ? "rgba(24, 24, 27, 0.6)" : "rgba(246, 248, 251, 0.6)"}
         />
-        <Panel position="top-right">
-          <div className="mt-16 mr-2">
-            <AddNodeButton />
-          </div>
-        </Panel>
+
         {hasManualTrigger && (
           <Panel position="bottom-center">
             <div className="mb-6">
