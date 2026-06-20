@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "inngest:dev": "npx --yes --ignore-scripts=false inngest-cli@latest dev",
+    "seed:showcase": "tsx scripts/seed-showcase-workflow.ts",
+    "demo:ngrok": "tsx scripts/setup-demo-ngrok.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

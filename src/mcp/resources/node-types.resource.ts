@@ -34,17 +34,17 @@ Nodes are the building blocks of workflows. Each node has a **type**, a **catego
 
 | Type         | Description                                      | Data Fields                              |
 |--------------|--------------------------------------------------|------------------------------------------|
-| HTTP_REQUEST | Make HTTP requests to external APIs              | url, method, headers, body               |
-| DISCORD      | Send messages to Discord channels via webhooks   | webhookUrl, content                      |
-| SLACK        | Send messages to Slack channels via webhooks     | webhookUrl, text, channel                |
+| HTTP_REQUEST | Make HTTP requests to external APIs              | variableName, endpoint, method, body     |
+| DISCORD      | Send messages to Discord channels via webhooks   | variableName, webhookUrl, content, username |
+| SLACK        | Send messages to Slack/workflow webhooks         | variableName, webhookUrl, content        |
 
 ### AI Nodes
 
 | Type      | Description                              | Data Fields                         | Required Credential |
 |-----------|------------------------------------------|-------------------------------------|---------------------|
-| OPENAI    | Generate text using OpenAI GPT models    | model, prompt, temperature          | OPENAI              |
-| ANTHROPIC | Generate text using Anthropic Claude     | model, prompt, maxTokens            | ANTHROPIC           |
-| GEMINI    | Generate text using Google Gemini        | model, prompt                       | GEMINI              |
+| OPENAI    | Generate text using OpenAI GPT models    | variableName, credentialId, systemPrompt, userPrompt | OPENAI              |
+| ANTHROPIC | Generate text using Anthropic Claude     | variableName, credentialId, systemPrompt, userPrompt | ANTHROPIC           |
+| GEMINI    | Generate text using Google Gemini        | variableName, credentialId, systemPrompt, userPrompt | GEMINI              |
 
 ### System
 

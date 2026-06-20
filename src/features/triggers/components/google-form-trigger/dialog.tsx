@@ -28,7 +28,10 @@ export const GoogleFormTriggerDialog = ({
   const workflowId = params.workflowId as string;
 
   // Construct the webhook URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  const baseUrl =
+    process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000"
   const webhookUrl = 
     `${baseUrl}/api/webhooks/google-form?workflowId=${workflowId}`;
 

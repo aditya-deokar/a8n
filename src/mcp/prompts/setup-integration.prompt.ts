@@ -33,7 +33,7 @@ const INTEGRATION_GUIDES: Record<string, string> = {
 
 1. **Create credential**: Use \`create_credential\` with type "GEMINI" and your Google AI API key
 2. **Add to workflow**: Create or update a workflow with a GEMINI node, setting:
-   - \`model\`: e.g., "gemini-2.0-flash"
+   - \`model\`: e.g., "gemini-3-flash-preview"
    - \`prompt\`: The prompt text
 3. **Link credential**: Include the credentialId in the node's data
 4. **Connect**: Wire a trigger node → GEMINI node`,

@@ -48,7 +48,7 @@ A workflow is a directed acyclic graph (DAG) composed of **nodes** and **edges**
   "name": "my-workflow",
   "nodes": [
     { "id": "node-1", "type": "MANUAL_TRIGGER", "position": { "x": 0, "y": 0 }, "data": {} },
-    { "id": "node-2", "type": "HTTP_REQUEST", "position": { "x": 300, "y": 0 }, "data": { "url": "https://api.example.com", "method": "GET" } }
+    { "id": "node-2", "type": "HTTP_REQUEST", "position": { "x": 300, "y": 0 }, "data": { "variableName": "apiResult", "endpoint": "https://api.example.com", "method": "GET" } }
   ],
   "edges": [
     { "source": "node-1", "target": "node-2", "sourceHandle": "main", "targetHandle": "main" }
