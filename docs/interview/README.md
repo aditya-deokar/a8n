@@ -21,6 +21,7 @@ Read the files in this order:
 6. `06-reviewer-presentation-script.md`
 7. `07-showcase-workflow.md`
 8. `08-showcase-workflow-script.md`
+9. `09-all-nodes-demo-workflow.md`
 
 ## What you should be able to explain after studying this
 

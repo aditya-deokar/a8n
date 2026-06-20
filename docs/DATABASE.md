@@ -278,8 +278,8 @@ A single step in a workflow graph. Nodes have a type (trigger or executor), a po
 | `OPENAI` | `{ variableName, credentialId, systemPrompt, userPrompt }` |
 | `ANTHROPIC` | `{ variableName, credentialId, systemPrompt, userPrompt }` |
 | `GEMINI` | `{ variableName, credentialId, systemPrompt, userPrompt }` |
-| `DISCORD` | `{ variableName, webhookUrl, message }` |
-| `SLACK` | `{ variableName, webhookUrl, message }` |
+| `DISCORD` | `{ variableName, webhookUrl, content, username }` |
+| `SLACK` | `{ variableName, webhookUrl, content }` |
 | `GOOGLE_FORM_TRIGGER` | `{}` (data comes from webhook) |
 | `STRIPE_TRIGGER` | `{}` (data comes from webhook) |
 

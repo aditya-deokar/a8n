@@ -71,9 +71,15 @@ export const BaseTriggerNode = memo(
               )}
               {children}
               <BaseHandle
+                id="main"
+                type="source"
+                position={Position.Right}
+              />
+              <BaseHandle
                 id="source-1"
                 type="source"
                 position={Position.Right}
+                className="pointer-events-none opacity-0"
               />
             </BaseNodeContent>
           </BaseNode>
