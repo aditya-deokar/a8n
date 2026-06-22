@@ -2,11 +2,11 @@
 
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { NodeDialogContent } from "@/components/node-dialog";
 
 interface Props {
   open: boolean;
@@ -19,7 +19,7 @@ export const ManualTriggerDialog = ({
 }: Props) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <NodeDialogContent>
         <DialogHeader>
           <DialogTitle>Manual Trigger</DialogTitle>
           <DialogDescription>
@@ -31,7 +31,7 @@ export const ManualTriggerDialog = ({
             Used to manually execute a workflow, no configuration available.
           </p>
         </div>
-      </DialogContent>
+      </NodeDialogContent>
     </Dialog>
   );
 };

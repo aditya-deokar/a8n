@@ -4,7 +4,9 @@ import { createId } from "@paralleldrive/cuid2";
 import { useReactFlow } from "@xyflow/react";
 import {
   GlobeIcon,
+  MailIcon,
   MousePointerIcon,
+  TableIcon,
   XIcon,
 } from "lucide-react";
 import { useCallback } from "react";
@@ -78,6 +80,18 @@ const executionNodes: NodeTypeOption[] = [
     label: "Slack",
     description: "Send a message to Slack",
     icon: "/logos/slack.svg",
+  },
+  {
+    type: NodeType.EMAIL,
+    label: "Email",
+    description: "Send an email through SMTP",
+    icon: MailIcon,
+  },
+  {
+    type: NodeType.GOOGLE_SHEETS,
+    label: "Google Sheets",
+    description: "Append a row to a Google Sheet",
+    icon: TableIcon,
   },
 ];
 

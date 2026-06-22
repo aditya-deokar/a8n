@@ -37,6 +37,8 @@ Nodes are the building blocks of workflows. Each node has a **type**, a **catego
 | HTTP_REQUEST | Make HTTP requests to external APIs              | variableName, endpoint, method, body     |
 | DISCORD      | Send messages to Discord channels via webhooks   | variableName, webhookUrl, content, username |
 | SLACK        | Send messages to Slack/workflow webhooks         | variableName, webhookUrl, content        |
+| EMAIL        | Send email through SMTP                          | variableName, credentialId, to, subject, body, from, replyTo |
+| GOOGLE_SHEETS | Append a row to a Google Sheet                 | variableName, credentialId, spreadsheetId, sheetName, rowJson |
 
 ### AI Nodes
 
@@ -45,6 +47,13 @@ Nodes are the building blocks of workflows. Each node has a **type**, a **catego
 | OPENAI    | Generate text using OpenAI GPT models    | variableName, credentialId, systemPrompt, userPrompt | OPENAI              |
 | ANTHROPIC | Generate text using Anthropic Claude     | variableName, credentialId, systemPrompt, userPrompt | ANTHROPIC           |
 | GEMINI    | Generate text using Google Gemini        | variableName, credentialId, systemPrompt, userPrompt | GEMINI              |
+
+### Action Credentials
+
+| Type          | Required Credential | Credential Value Format       |
+|---------------|---------------------|-------------------------------|
+| EMAIL         | SMTP_EMAIL          | SMTP JSON with host, port, user, pass |
+| GOOGLE_SHEETS | GOOGLE_SHEETS       | Google service-account JSON   |
 
 ### System
 

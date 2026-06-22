@@ -6,6 +6,9 @@ import { discordChannel } from "@/inngest/channels/discord";
 import ky from "ky";
 
 Handlebars.registerHelper("json", (context) => {
+  if (context === undefined) {
+    return new Handlebars.SafeString("null");
+  }
   const jsonString = JSON.stringify(context, null, 2);
   const safeString = new Handlebars.SafeString(jsonString);
 

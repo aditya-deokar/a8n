@@ -114,10 +114,10 @@ export function registerGetCredential(server: McpServer) {
 export function registerCreateCredential(server: McpServer) {
   server.tool(
     "create_credential",
-    "Create a new credential. The value is encrypted at rest. Available types: OPENAI, ANTHROPIC, GEMINI.",
+    "Create a new credential. The value is encrypted at rest. Available types: OPENAI, ANTHROPIC, GEMINI, SMTP_EMAIL, GOOGLE_SHEETS.",
     {
       name: z.string().min(1).describe("Human-readable name for this credential"),
-      type: z.enum(["OPENAI", "ANTHROPIC", "GEMINI"]).describe("Credential type"),
+      type: z.enum(CredentialType).describe("Credential type"),
       value: z.string().min(1).describe("The secret value (e.g., API key). Will be encrypted."),
     },
     async (args, extra) => {
@@ -160,7 +160,7 @@ export function registerUpdateCredential(server: McpServer) {
     {
       id: z.string().describe("The credential ID to update"),
       name: z.string().min(1).describe("New name"),
-      type: z.enum(["OPENAI", "ANTHROPIC", "GEMINI"]).describe("New credential type"),
+      type: z.enum(CredentialType).describe("New credential type"),
       value: z.string().min(1).describe("New secret value (will be encrypted)"),
     },
     async (args, extra) => {
@@ -229,9 +229,9 @@ export function registerDeleteCredential(server: McpServer) {
 export function registerListCredentialsByType(server: McpServer) {
   server.tool(
     "list_credentials_by_type",
-    "List all credentials of a specific type (OPENAI, ANTHROPIC, or GEMINI). Useful for finding credentials to attach to workflow nodes.",
+    "List all credentials of a specific type. Useful for finding credentials to attach to workflow nodes.",
     {
-      type: z.enum(["OPENAI", "ANTHROPIC", "GEMINI"]).describe("Credential type to filter by"),
+      type: z.enum(CredentialType).describe("Credential type to filter by"),
     },
     async (args, extra) => {
       const auth = (extra as any).authInfo as McpAuthInfo;
