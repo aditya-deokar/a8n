@@ -18,6 +18,8 @@ Credentials store encrypted API keys for third-party services. They are linked t
 | OPENAI    | OPENAI node      | OpenAI API key (sk-...)       |
 | ANTHROPIC | ANTHROPIC node   | Anthropic API key (sk-ant-...) |
 | GEMINI    | GEMINI node      | Google AI API key              |
+| SMTP_EMAIL | EMAIL node       | SMTP JSON with host, port, user, pass |
+| GOOGLE_SHEETS | GOOGLE_SHEETS node | Google service-account JSON |
 
 ## Security Model
 
@@ -28,11 +30,11 @@ Credentials store encrypted API keys for third-party services. They are linked t
 
 ## Usage in Workflows
 
-To use an AI node in a workflow:
+To use a credential-backed node in a workflow:
 1. Create a credential of the matching type (e.g., OPENAI)
-2. Create a workflow with an AI node (e.g., OPENAI node)
+2. Create a workflow with a node requiring that credential (e.g., OPENAI, EMAIL, GOOGLE_SHEETS)
 3. Link the credential to the node via its \`credentialId\` field
-4. Configure the node's data fields (model, prompt, etc.)
+4. Configure the node's data fields (prompt, recipient, spreadsheet ID, etc.)
 
 ## MCP Operations
 

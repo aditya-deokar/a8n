@@ -12,7 +12,8 @@ import path from "node:path";
 import prisma from "../src/lib/db";
 
 const USER_EMAIL = "adityadeokar80@gmail.com";
-const WORKFLOW_NAME = "All Nodes Demo - AI Operations Command Center";
+const ALL_NODES_WORKFLOW_NAME = "All Nodes Demo - AI Operations Command Center";
+const EXAM_WORKFLOW_NAME = "Exam Result Flow - Google Form to Gemini Email Sheet";
 const PORT = Number(process.env.DEMO_PORT || process.env.PORT || 3000);
 const ENV_PATH = path.join(process.cwd(), ".env");
 const NGROK_BIN_DIR = path.join(process.cwd(), "node_modules", "ngrok", "bin");
@@ -134,7 +135,7 @@ function startNgrokCli() {
   );
 }
 
-async function findDemoWorkflowId() {
+async function findDemoWorkflowIds() {
   const user = await prisma.user.findUnique({
     where: { email: USER_EMAIL },
     select: { id: true },
@@ -142,20 +143,26 @@ async function findDemoWorkflowId() {
 
   if (!user) return null;
 
-  const workflow = await prisma.workflow.findFirst({
+  const workflows = await prisma.workflow.findMany({
     where: {
       userId: user.id,
-      name: WORKFLOW_NAME,
+      name: {
+        in: [ALL_NODES_WORKFLOW_NAME, EXAM_WORKFLOW_NAME],
+      },
     },
     select: {
       id: true,
+      name: true,
     },
     orderBy: {
       updatedAt: "desc",
     },
   });
 
-  return workflow?.id || null;
+  return {
+    allNodesWorkflowId: workflows.find((workflow) => workflow.name === ALL_NODES_WORKFLOW_NAME)?.id || null,
+    examWorkflowId: workflows.find((workflow) => workflow.name === EXAM_WORKFLOW_NAME)?.id || null,
+  };
 }
 
 async function shutdown() {
@@ -180,20 +187,27 @@ async function main() {
     NEXT_PUBLIC_WEBHOOK_BASE_URL: publicUrl,
   });
 
-  const workflowId = await findDemoWorkflowId();
+  const workflowIds = await findDemoWorkflowIds();
 
   console.log(`ngrok tunnel started: ${publicUrl} -> http://localhost:${PORT}`);
   console.log(".env updated: NGROK_URL, NEXT_PUBLIC_WEBHOOK_BASE_URL");
   console.log("");
 
-  if (workflowId) {
+  if (workflowIds?.allNodesWorkflowId || workflowIds?.examWorkflowId) {
     console.log("Demo webhook URLs:");
-    console.log(
-      `Google Form: ${publicUrl}/api/webhooks/google-form?workflowId=${workflowId}`,
-    );
-    console.log(
-      `Stripe:      ${publicUrl}/api/webhooks/stripe?workflowId=${workflowId}`,
-    );
+    if (workflowIds.allNodesWorkflowId) {
+      console.log(
+        `All Nodes Google Form: ${publicUrl}/api/webhooks/google-form?workflowId=${workflowIds.allNodesWorkflowId}`,
+      );
+      console.log(
+        `All Nodes Stripe:      ${publicUrl}/api/webhooks/stripe?workflowId=${workflowIds.allNodesWorkflowId}`,
+      );
+    }
+    if (workflowIds.examWorkflowId) {
+      console.log(
+        `Exam Result Google Form: ${publicUrl}/api/webhooks/google-form?workflowId=${workflowIds.examWorkflowId}`,
+      );
+    }
   } else {
     console.log(
       `Demo workflow not found. Run "pnpm seed:showcase", then use ${publicUrl}/api/webhooks/<provider>?workflowId=<id>.`,

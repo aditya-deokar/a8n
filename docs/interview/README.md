@@ -22,6 +22,7 @@ Read the files in this order:
 7. `07-showcase-workflow.md`
 8. `08-showcase-workflow-script.md`
 9. `09-all-nodes-demo-workflow.md`
+10. `10-exam-result-workflow.md`
 
 ## What you should be able to explain after studying this
 

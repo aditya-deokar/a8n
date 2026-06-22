@@ -9,7 +9,7 @@ interface CardProps {
   title: string;
   description: string;
   className?: string;
-  variant?: 'emerald' | 'blue' | 'purple' | 'amber' | 'rose';
+  variant?: 'emerald' | 'blue' | 'purple' | 'amber' | 'rose' | 'primary';
   size?: 'sm' | 'md' | 'lg';
   glowEffect?: boolean;
   hoverScale?: number;
@@ -57,6 +57,14 @@ export const VARIANTS = {
       '205deg, transparent 0deg, hsl(340deg 95% 39%) 20deg, hsl(340deg 100% 85% / 0.3) 280deg',
     border: 'rose-500/20',
     color: 'rgb(244 63 94)',
+  },
+  primary: {
+    accent: 'primary',
+    gradient: 'from-primary/20 to-primary/0',
+    shine:
+      '205deg, transparent 0deg, var(--color-primary) 20deg, color-mix(in srgb, var(--color-primary) 30%, transparent) 280deg',
+    border: 'primary/20',
+    color: 'var(--color-primary)',
   },
 };
 

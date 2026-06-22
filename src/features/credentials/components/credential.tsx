@@ -61,6 +61,16 @@ const credentialTypeOptions = [
     label: "Gemini",
     logo: "/logos/gemini.svg",
   },
+  {
+    value: CredentialType.SMTP_EMAIL,
+    label: "SMTP Email",
+    logo: "/logos/email.svg",
+  },
+  {
+    value: CredentialType.GOOGLE_SHEETS,
+    label: "Google Sheets",
+    logo: "/logos/googlesheets.svg",
+  },
 ];
 
 interface CredentialFormProps {

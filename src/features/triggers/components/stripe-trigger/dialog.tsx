@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { NodeDialogContent } from "@/components/node-dialog";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -45,7 +45,7 @@ export const StripeTriggerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <NodeDialogContent>
         <DialogHeader>
           <DialogTitle>Stripe Trigger Configuration</DialogTitle>
           <DialogDescription>
@@ -98,7 +98,7 @@ export const StripeTriggerDialog = ({
             </ul>
           </div>
         </div>
-      </DialogContent>
+      </NodeDialogContent>
     </Dialog>
   );
 };

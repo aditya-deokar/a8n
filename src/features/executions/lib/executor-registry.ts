@@ -9,6 +9,8 @@ import { openAiExecutor } from "../components/openai/executor";
 import { anthropicExecutor } from "../components/anthropic/executor";
 import { discordExecutor } from "../components/discord/executor";
 import { slackExecutor } from "../components/slack/executor";
+import { emailExecutor } from "../components/email/executor";
+import { googleSheetsExecutor } from "../components/google-sheets/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.INITIAL]: manualTriggerExecutor,
@@ -21,6 +23,8 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.OPENAI]: openAiExecutor,
   [NodeType.DISCORD]: discordExecutor,
   [NodeType.SLACK]: slackExecutor,
+  [NodeType.EMAIL]: emailExecutor,
+  [NodeType.GOOGLE_SHEETS]: googleSheetsExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

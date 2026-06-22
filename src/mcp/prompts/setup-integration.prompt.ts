@@ -64,16 +64,37 @@ const INTEGRATION_GUIDES: Record<string, string> = {
    - \`body\`: Optional request body (for POST/PUT/PATCH)
 2. **Connect**: Wire your trigger → HTTP_REQUEST node
 3. **No credential needed**: HTTP_REQUEST uses direct configuration`,
+
+  email: `## Email Integration Setup
+
+1. **Create credential**: Use \`create_credential\` with type "SMTP_EMAIL" and an SMTP JSON value
+2. **Add to workflow**: Create or update a workflow with an EMAIL node, setting:
+   - \`credentialId\`: The SMTP credential id
+   - \`to\`: Recipient email, for example "{{googleForm.respondentEmail}}"
+   - \`subject\`: Email subject
+   - \`body\`: Email body
+3. **Connect**: Wire your source node â†’ EMAIL node`,
+
+  google_sheets: `## Google Sheets Integration Setup
+
+1. **Create credential**: Use \`create_credential\` with type "GOOGLE_SHEETS" and a Google service-account JSON value
+2. **Share the sheet**: Share the target Google Sheet with the service account client_email
+3. **Add to workflow**: Create or update a workflow with a GOOGLE_SHEETS node, setting:
+   - \`credentialId\`: The Google Sheets credential id
+   - \`spreadsheetId\`: The ID from the Sheet URL
+   - \`sheetName\`: Target tab name
+   - \`rowJson\`: A JSON array that renders to one row
+4. **Connect**: Wire your source node â†’ GOOGLE_SHEETS node`,
 };
 
 export function registerSetupIntegrationPrompt(server: McpServer) {
   server.prompt(
     "setup_integration",
-    "Step-by-step guide for setting up a specific integration (OpenAI, Anthropic, Gemini, Slack, Discord, HTTP). Includes credential creation and workflow configuration.",
+    "Step-by-step guide for setting up a specific integration (OpenAI, Anthropic, Gemini, Slack, Discord, HTTP, Email, Google Sheets). Includes credential creation and workflow configuration.",
     {
       service: z
         .string()
-        .describe("The service to integrate: openai, anthropic, gemini, slack, discord, or http"),
+        .describe("The service to integrate: openai, anthropic, gemini, slack, discord, http, email, or google_sheets"),
     },
     async (args) => {
       const serviceKey = args.service.toLowerCase().trim();

@@ -253,7 +253,7 @@ export default function UseCasesSection() {
   const currentTheme = mounted ? (resolvedTheme || 'dark') : 'dark';
 
   return (
-    <section className="w-full bg-background py-32 relative ">
+    <section className="w-full bg-transparent py-24 relative ">
       {/* Immersive Background Glows */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />

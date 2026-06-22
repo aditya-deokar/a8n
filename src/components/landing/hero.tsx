@@ -56,33 +56,33 @@ export default function Hero() {
       title: 'Workflow Automation',
       description: 'Connect your apps and automate repetitive tasks visually.',
       icon: <CloudLightning className="h-full w-full" />,
-      variant: 'rose',
+      variant: 'primary',
       showGridLines: true,
     },
     {
       title: 'AI Native',
       description: 'Built-in AI nodes to power your workflows with LLMs.',
       icon: <Sparkles className="h-full w-full" />,
-      variant: 'rose',
+      variant: 'primary',
       showGridLines: true,
     },
   ] as const;
 
   const cardConfigurations = [
     {
-      color: 'rose',
+      color: 'primary',
       icon: 'Blocks',
       label: 'Nodes',
-      canvasProps: { gap: 3, speed: 80, colors: '#fff, #fda4af, #e11d48' },
-      number: 400,
+      canvasProps: { gap: 3, speed: 80, colors: '#fff, #9187ce, #5c54a4' },
+      number: 12,
       desc: 'Integrations available',
     },
     {
-      color: 'rose',
+      color: 'primary',
       icon: 'f',
       label: 'Templates',
-      canvasProps: { gap: 3, speed: 80, colors: '#fff, #fda4af, #e11d48' },
-      number: 1000,
+      canvasProps: { gap: 3, speed: 80, colors: '#fff, #9187ce, #5c54a4' },
+      number: 2,
       desc: 'Automation templates',
     },
   ];
@@ -90,11 +90,8 @@ export default function Hero() {
   return (
     <div
       id="hero-section"
-      className="bg-background relative min-h-screen w-full overflow-x-hidden py-32 md:px-6"
+      className="bg-transparent relative min-h-screen w-full overflow-x-hidden pt-32 pb-16 md:px-6"
     >
-      <div className="fixed top-6 right-6 z-50">
-        <ThemeToggle />
-      </div>
 
       <Image
         unoptimized
@@ -104,7 +101,7 @@ export default function Hero() {
         height={300}
         draggable={false}
         className="absolute top-0 right-0 z-[1] object-cover object-center select-none pointer-events-none opacity-20"
-        style={{ width: 'auto', height: 'auto' }}
+        style={{ width: 'auto', height: 'auto', filter: 'hue-rotate(-90deg)' }}
       />
       <Image
         unoptimized
@@ -115,7 +112,7 @@ export default function Hero() {
         draggable={false}
         priority
         className="absolute top-0 left-0 z-[1] object-cover object-center select-none pointer-events-none opacity-20"
-        style={{ width: 'auto', height: 'auto' }}
+        style={{ width: 'auto', height: 'auto', filter: 'hue-rotate(-90deg)' }}
       />
       
       <div className="container mx-auto px-4 2xl:max-w-[1400px] relative z-10">
@@ -141,16 +138,33 @@ export default function Hero() {
             transition={{ duration: 0.75, delay: 0.2 }}
           >
             Automate without
-            <Image
-              unoptimized
-              src="https://i.postimg.cc/Bb5yKkFF/rose.webp"
-              alt="Logo"
-              width={500}
-              height={500}
-              draggable={false}
-              className="mx-6 mb-3 inline-block h-14 w-14 md:h-20 md:w-20"
-              style={{ width: 'auto', height: 'auto' }}
-            />
+            <svg
+              viewBox="0 0 100 100"
+              className="mx-2 md:mx-4 mb-2 inline-block h-14 w-14 md:h-20 md:w-20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <linearGradient id="heroWg1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#5c54a4" />
+                  <stop offset="100%" stopColor="#9187ce" />
+                </linearGradient>
+                <filter id="heroGlowIcon" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <g filter="url(#heroGlowIcon)">
+                <path d="M 20 50 L 50 20 L 80 50 L 50 80 Z" stroke="url(#heroWg1)" strokeWidth="2" strokeDasharray="4 4" className="animate-[pulse_3s_ease-in-out_infinite]" />
+                <path d="M 20 50 L 80 50 M 50 20 L 50 80" stroke="url(#heroWg1)" strokeWidth="2" opacity="0.6" />
+                <circle cx="20" cy="50" r="6" fill="#9187ce" />
+                <circle cx="80" cy="50" r="6" fill="#9187ce" />
+                <circle cx="50" cy="20" r="6" fill="#5c54a4" />
+                <circle cx="50" cy="80" r="6" fill="#5c54a4" />
+                <rect x="38" y="38" width="24" height="24" rx="4" fill="url(#heroWg1)" className="animate-[spin_8s_linear_infinite]" style={{ transformOrigin: '50px 50px' }} />
+                <circle cx="50" cy="50" r="4" fill="#ffffff" />
+              </g>
+            </svg>
             limits.
           </motion.h1>
         </div>
@@ -172,7 +186,7 @@ export default function Hero() {
           transition={{ duration: 0.75, delay: 0.4 }}
         >
           <Link prefetch={false} href="/workflows">
-            <Button size="lg" className="bg-gradient-to-b from-rose-500 to-rose-700 text-base text-white shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] px-8">
+            <Button size="lg" className="bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-base text-primary-foreground shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] px-8 border-0">
               Launch App
             </Button>
           </Link>
@@ -253,7 +267,7 @@ export default function Hero() {
         height={300}
         draggable={false}
         className="absolute bottom-0 -left-44 z-[1] -rotate-90 object-cover object-center select-none pointer-events-none opacity-10"
-        style={{ width: 'auto', height: 'auto' }}
+        style={{ width: 'auto', height: 'auto', filter: 'hue-rotate(-90deg)' }}
       />
       <Image
         unoptimized
@@ -263,7 +277,7 @@ export default function Hero() {
         height={300}
         draggable={false}
         className="absolute -right-44 bottom-0 z-[1] rotate-90 object-cover object-center select-none pointer-events-none opacity-10"
-        style={{ width: 'auto', height: 'auto' }}
+        style={{ width: 'auto', height: 'auto', filter: 'hue-rotate(-90deg)' }}
       />
     </div>
   );

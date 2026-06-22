@@ -57,6 +57,14 @@ const NODE_TYPE_METADATA: Record<
     category: "action",
     description: "Send messages to Slack channels via webhooks.",
   },
+  EMAIL: {
+    category: "action",
+    description: "Send email through an SMTP credential.",
+  },
+  GOOGLE_SHEETS: {
+    category: "action",
+    description: "Append rows to Google Sheets using a service account credential.",
+  },
 };
 
 export function registerListNodeTypes(server: McpServer) {

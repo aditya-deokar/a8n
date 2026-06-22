@@ -2,7 +2,6 @@
 
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -18,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { NodeDialogContent } from "@/components/node-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -86,7 +86,7 @@ export const DiscordDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <NodeDialogContent>
         <DialogHeader>
           <DialogTitle>Discord Configuration</DialogTitle>
           <DialogDescription>
@@ -184,7 +184,7 @@ export const DiscordDialog = ({
             </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
+      </NodeDialogContent>
     </Dialog>
   );
 };

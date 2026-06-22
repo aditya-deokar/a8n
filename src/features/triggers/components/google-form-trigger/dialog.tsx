@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { NodeDialogContent } from "@/components/node-dialog";
 import {
   Dialog,
-  DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
@@ -46,7 +46,7 @@ export const GoogleFormTriggerDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <NodeDialogContent>
         <DialogHeader>
           <DialogTitle>Google Form Trigger Configuration</DialogTitle>
           <DialogDescription>
@@ -136,7 +136,7 @@ export const GoogleFormTriggerDialog = ({
             </ul>
           </div>
         </div>
-      </DialogContent>
+      </NodeDialogContent>
     </Dialog>
   );
 };

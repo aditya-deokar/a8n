@@ -60,7 +60,7 @@ export const PixelCard: React.FC<CardProps> = ({
   desc,
   canvasProps = {},
 }) => {
-  const variantConfig = VARIANTS['rose'];
+  const variantConfig = VARIANTS[(color as keyof typeof VARIANTS)] || VARIANTS['primary'];
   const hoverTransition = {
     duration: 0.8,
     ease: 'easeInOut' as const,

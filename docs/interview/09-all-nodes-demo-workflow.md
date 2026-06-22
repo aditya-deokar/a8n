@@ -6,7 +6,7 @@
 **Owner:** `adityadeokar80@gmail.com`  
 **Seed command:** `pnpm seed:showcase`
 
-This is the broad showcase workflow for the platform. It is designed to prove that a8n can accept external events, normalize data, call AI providers, and deliver team alerts through messaging integrations.
+This is the broad showcase workflow for the platform. It is designed to prove that a8n can accept external events, normalize data, call AI providers, deliver team alerts, send email, and store records in Google Sheets.
 
 ## Demo Story
 
@@ -16,13 +16,13 @@ An operations team can receive three kinds of work:
 - a Google Form support request
 - a Stripe payment event
 
-The workflow normalizes whichever event arrives, sends the normalized event through OpenAI, Anthropic, and Gemini, then posts the final operational alert to Discord and Slack.
+The workflow normalizes whichever event arrives, sends the normalized event through OpenAI, Anthropic, and Gemini, posts operational alerts to Discord and Slack, sends an email summary, and stores a row in Google Sheets.
 
 ## Seeded Graph
 
 ```text
 Manual Trigger -------\
-Google Form Trigger ----> HTTP Request -> OpenAI -> Anthropic -> Gemini -> Discord -> Slack
+Google Form Trigger ----> HTTP Request -> OpenAI -> Anthropic -> Gemini -> Discord -> Slack -> Email -> Google Sheets
 Stripe Trigger -------/
 ```
 
@@ -41,6 +41,8 @@ The three trigger nodes all connect into the same HTTP Request node. The executi
 | Gemini | Creates final executive summary | `geminiSummary` |
 | Discord | Posts support alert | `discordAlert` |
 | Slack | Posts operations alert | `slackAlert` |
+| Email | Sends operations email summary | `emailAlert` |
+| Google Sheets | Stores demo run in a sheet | `sheetsLog` |
 
 ## Demo Enrichment Endpoint
 
@@ -71,6 +73,8 @@ The seed script creates placeholder credential records if missing. Replace their
 | `Demo OpenAI Credential - replace` | Real OpenAI API key |
 | `Demo Anthropic Credential - replace` | Real Anthropic API key |
 | `Demo Gemini Credential - replace` | Real Google Gemini API key |
+| `Demo SMTP Email Credential - replace` | Real SMTP JSON |
+| `Demo Google Sheets Credential - replace` | Real Google service-account JSON |
 
 The seed script does not overwrite existing placeholder credential values on reseed. If you replace a placeholder value once, it stays intact.
 
@@ -84,6 +88,8 @@ Replace these node-level placeholder URLs before a successful live run:
 | Slack Operations Alert | `https://example.com/replace-slack-content-webhook` | Slack workflow/webhook URL that accepts a `content` JSON field |
 
 The reseed script preserves non-placeholder Discord and Slack webhook URLs.
+
+Also replace the Google Sheets node `spreadsheetId` and share the target sheet with the service account `client_email`.
 
 ## Local ngrok Setup
 
@@ -101,6 +107,7 @@ pnpm demo:ngrok
 ```text
 https://<ngrok-url>/api/webhooks/google-form?workflowId=<workflow-id>
 https://<ngrok-url>/api/webhooks/stripe?workflowId=<workflow-id>
+https://<ngrok-url>/api/webhooks/google-form?workflowId=<exam-workflow-id>
 ```
 
 If `pnpm dev` was already running before `.env` changed, restart it so `NEXT_PUBLIC_WEBHOOK_BASE_URL` is reflected in trigger dialogs. Keep `BETTER_AUTH_URL` and `NEXT_PUBLIC_APP_URL` on `http://localhost:3000` for normal local login.
