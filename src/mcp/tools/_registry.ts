@@ -17,25 +17,41 @@ import { registerExecutionTools } from "./executions";
 import { registerNodeTools } from "./nodes";
 import { registerSystemTools } from "./system";
 import { registerApiKeyTools } from "./api-keys";
+import { registerIntegrationTools } from "./integrations";
+import type { McpToolContext } from "@/mcp/shared/auth-context";
+import { isChatGptAppProfile } from "@/mcp/app-profile";
+import { CHATGPT_APP_TOOL_COUNT } from "@/mcp/safety/app-tool-policy";
+import { registerChatGptAppTools } from "./chatgpt-profile";
 
 /**
  * Register all MCP tools from all domains.
  *
- * Tool count: 22
- *   - Workflows:   7 (list, get, create, update, rename, delete, execute)
+ * Tool count: 53
+ *   - Workflows:   23 (CRUD, execution, drafts, safe partial edits, versions)
  *   - Credentials: 6 (list, get, create, update, delete, list-by-type)
- *   - Executions:  2 (list, get)
- *   - Nodes:       1 (list-node-types)
- *   - System:      3 (whoami, server-info, health-check)
+ *   - Executions:  8 (list, get, wait, tests, timeline, diagnosis, repair)
+ *   - Nodes:       2 (list-node-types, search-capabilities)
+ *   - System:      5 (whoami, server-info, health-check, security, audit)
  *   - API Keys:    3 (create, list, revoke)
+ *   - Integrations: 6 (setup checklists, guides, webhooks, credential tests)
  */
-export function registerAllTools(server: McpServer): void {
-  registerWorkflowTools(server);
-  registerCredentialTools(server);
-  registerExecutionTools(server);
-  registerNodeTools(server);
-  registerSystemTools(server);
-  registerApiKeyTools(server);
+export function registerAllTools(
+  server: McpServer,
+  context: McpToolContext = {},
+): void {
+  if (isChatGptAppProfile(context.appProfile)) {
+    registerChatGptAppTools(server, context);
+    console.log(`[MCP] ${CHATGPT_APP_TOOL_COUNT} ChatGPT app tools registered`);
+    return;
+  }
 
-  console.log("[MCP] 22 tools registered across 6 domains");
+  registerWorkflowTools(server, context);
+  registerCredentialTools(server, context);
+  registerExecutionTools(server, context);
+  registerNodeTools(server, context);
+  registerSystemTools(server, context);
+  registerApiKeyTools(server, context);
+  registerIntegrationTools(server, context);
+
+  console.log("[MCP] 53 tools registered across 7 domains");
 }

@@ -59,8 +59,8 @@ export const McpDashboardOverview = () => {
   const metrics = [
     {
       title: "Active Capabilities",
-      value: "29 Total",
-      desc: "22 Tools, 4 Resources, 3 Prompts",
+      value: "78 Total",
+      desc: "53 Tools, 17 Resources, 5 Templates, 3 Prompts",
       icon: LayersIcon,
     },
     {

@@ -2,7 +2,7 @@
 
 > **Audience:** Operators and security reviewers  
 > **Prerequisites:** [04 — Architecture](./04-architecture.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -29,7 +29,7 @@ flowchart TD
   Request[Incoming_Request]
   Extract[extractBearerToken]
   Prefix{Starts_with_a8n_mcp_?}
-  ApiKey[validateApiKey_SHA256]
+  ApiKey[validateApiKey_HMAC_or_SHA256]
   Session[better_auth_getSession]
   AuthInfo[McpAuthInfo]
   Deny[401_Response]
@@ -55,7 +55,7 @@ flowchart TD
 |---|---|
 | Prefix | `a8n_mcp_` |
 | Length | 48 random characters (base64url) |
-| Storage | SHA-256 hash only — raw key shown once at creation |
+| Storage | HMAC-SHA-256 when `MCP_API_KEY_HMAC_SECRET` is set; legacy SHA-256 lookup remains supported. Raw key shown once at creation |
 | Scopes | Configurable per key |
 | Tracking | `lastUsedAt` updated on each use |
 
@@ -161,11 +161,12 @@ All Prisma queries filter by `userId: auth.userId` — no cross-tenant access.
 
 ### Layer 6 — Audit logging
 
-Structured JSON logs per tool invocation (when `MCP_AUDIT_LOG_ENABLED` is true):
+Structured JSON logs per tool invocation (when `MCP_AUDIT_LOG_ENABLED` is true) and optional database persistence through `McpAuditLog` (when `MCP_AUDIT_DB_ENABLED` is not `false`):
 
 - User ID, API key ID, auth method
 - Tool name, duration, success/failure
 - Sanitized input (secrets redacted)
+- Query recent persisted entries with `list_mcp_audit_events`
 
 ---
 
@@ -181,27 +182,19 @@ Structured JSON logs per tool invocation (when `MCP_AUDIT_LOG_ENABLED` is true):
 ## API key hashing
 
 ```typescript
-hashApiKey(rawKey) = SHA-256(rawKey)  // hex digest stored in DB
+hashApiKey(rawKey) = HMAC-SHA-256(rawKey, MCP_API_KEY_HMAC_SECRET)
+// Falls back to SHA-256(rawKey) when no HMAC secret is configured.
+// Validation checks both preferred and legacy hashes for compatibility.
 ```
 
-**Note:** No per-key salt or server secret (HMAC) is used today. `MCP_API_KEY_SECRET` is documented in the implementation plan but not implemented. If the database is compromised, rainbow tables against SHA-256 are a concern — see [09 — Design Decisions](./09-design-decisions.md).
+**Recommendation:** Set `MCP_API_KEY_HMAC_SECRET` in production so newly created keys use a server-side pepper. Existing SHA-256 keys continue to validate during migration.
 
 ---
 
-## Known limitation: auth context injection
+## Auth context injection
 
-**Current behavior:** The HTTP route validates auth and holds `McpAuthInfo`, but `createMcpServer()` does not receive it. Tool handlers read:
+The HTTP route validates Bearer auth, passes the resulting `McpAuthInfo` into `createMcpServer(auth)`, and all tools/resources read it through shared auth-context helpers before enforcing scopes.
 
-```typescript
-const auth = (extra as any).authInfo as McpAuthInfo;
-requireScope(auth, "workflows:read");
-```
-
-Unless the MCP SDK injects `authInfo` from headers automatically, **`auth` may be `undefined`** after HTTP auth succeeds, causing scope checks to fail.
-
-**HTTP-level protection still works** — unauthenticated requests get `401`.
-
-**Planned fix:** Pass validated auth from `route.ts` into `createMcpServer(auth)` and wire it into the SDK request context so `extra.authInfo` is populated.
 
 ---
 
@@ -220,7 +213,7 @@ Unless the MCP SDK injects `authInfo` from headers automatically, **`auth` may b
 
 ## CORS
 
-`MCP_CORS_ORIGINS` is defined in `config.ts` but **not applied** in the route handler. Browser-based MCP clients connecting cross-origin may need CORS headers added to `route.ts`.
+`MCP_CORS_ORIGINS` is applied in the route handler for `GET`, `POST`, `DELETE`, and `OPTIONS`. Use explicit origins in production; `*` is convenient for local development but too broad for hosted deployments.
 
 ---
 

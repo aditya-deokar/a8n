@@ -13,9 +13,12 @@ import { requireScope } from "@/mcp/middleware/scope-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse } from "@/mcp/shared/sanitize";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 
-export function registerGetWorkflow(server: McpServer) {
+export function registerGetWorkflow(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "get_workflow",
     "Get a single workflow by ID, including all its nodes and connections. Returns the full workflow graph structure.",
@@ -23,7 +26,7 @@ export function registerGetWorkflow(server: McpServer) {
       id: z.string().describe("The workflow ID to retrieve"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:read");
 
       const audit = createAuditContext({

@@ -2,7 +2,7 @@
 
 > **Audience:** Developers implementing or debugging MCP integrations  
 > **Prerequisites:** [01 — Introduction to MCP](./01-introduction-to-mcp.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -63,7 +63,7 @@ MCP messages are **JSON-RPC 2.0** payloads sent over a transport (stdio, SSE, or
 }
 ```
 
-a8n tool handlers return results as **text content** containing JSON strings via `mcpJsonResponse()` in `src/mcp/shared/sanitize.ts`.
+a8n tool handlers return MCP `structuredContent` with a JSON text fallback via `mcpJsonResponse()` in `src/mcp/shared/sanitize.ts`.
 
 ---
 
@@ -147,7 +147,7 @@ When `tools/call` reaches the a8n server:
 
 1. **HTTP route** authenticates Bearer token and checks rate limits
 2. **Transport** parses JSON-RPC and routes to the MCP SDK
-3. **Tool handler** runs with `extra` context (intended: `authInfo`)
+3. **Tool handler** runs with request auth context injected by `createMcpServer(authInfo)`
 4. **Scope guard** validates the caller has the required permission
 5. **Audit logger** records the invocation
 6. **Error boundary** catches exceptions and returns user-safe messages
@@ -221,10 +221,15 @@ See [03 — Transports](./03-transports.md) for transport-level detail.
 
 ## Content types in tool results
 
-a8n returns tool results as MCP **content** blocks:
+a8n returns structured tool results for modern MCP clients and a text fallback for older clients:
 
 ```json
 {
+  "structuredContent": {
+    "workflows": [],
+    "page": 1,
+    "totalCount": 0
+  },
   "content": [
     {
       "type": "text",
@@ -234,7 +239,7 @@ a8n returns tool results as MCP **content** blocks:
 }
 ```
 
-This text-JSON pattern is universal across MCP clients but means large payloads are not structured at the protocol level. See [09 — Design Decisions](./09-design-decisions.md) for trade-offs.
+This keeps results machine-readable where supported while remaining compatible with text-only clients. See [09 — Design Decisions](./09-design-decisions.md) for trade-offs.
 
 ---
 
@@ -247,16 +252,16 @@ List tools (`list_workflows`, `list_credentials`, `list_executions`) use a share
 
 ---
 
-## Known implementation note
+## Current implementation note
 
-The HTTP route validates authentication before handing off to the MCP SDK, but **auth context injection into tool handlers** (`extra.authInfo`) is a known gap — tools expect `authInfo` from the SDK request context. See [05 — Security & Auth](./05-security-and-auth.md) for current behavior and planned fix.
+The HTTP route validates authentication before handing off to the MCP SDK, then passes the validated auth context into the per-request MCP server. Tool handlers read that context through `getMcpAuth()` and still enforce per-tool scopes.
 
 ---
 
 ## Next steps
 
 - [03 — Transports](./03-transports.md) — Streamable HTTP in detail
-- [06 — Tools Reference](./06-tools-reference.md) — all 22 tools
+- [06 — Tools Reference](./06-tools-reference.md) — all 53 tools
 - [04 — Architecture](./04-architecture.md) — module structure
 
 ---

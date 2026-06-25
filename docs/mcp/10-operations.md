@@ -2,7 +2,7 @@
 
 > **Audience:** Developers deploying and connecting MCP clients  
 > **Prerequisites:** [03 — Transports](./03-transports.md), [05 — Security & Auth](./05-security-and-auth.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -11,6 +11,7 @@
 - Local development setup
 - Client configuration for Cursor, Claude, and Inspector
 - Environment variables
+- Evaluation and release verification
 - Production deployment checklist
 - Troubleshooting common errors
 
@@ -148,12 +149,47 @@ In the Inspector UI:
 
 ---
 
+## Evaluation And Release Verification
+
+Run the local MCP quality gate before merging major MCP changes:
+
+```bash
+npm run eval:mcp
+```
+
+Current expected baseline:
+
+```text
+Cases: 50/50 passed (100%)
+Average score: 0.996
+Catalog: ok
+Redaction: ok
+```
+
+Recommended release checks:
+
+```bash
+npm run eval:mcp
+npx prisma validate
+npx tsc --noEmit --pretty false
+```
+
+See [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) for the full Phase 8 gate, limitations, and rollout checklist.
+
+---
+
 ## Environment variables
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `MCP_AUDIT_LOG_ENABLED` | No | `true` | Set to `"false"` to disable console audit lines |
-| `MCP_CORS_ORIGINS` | No | `"*"` | Defined in config; **not wired to route yet** |
+| `MCP_AUDIT_DB_ENABLED` | No | `true` | Set to `"false"` to disable persisted `mcp_audit_log` writes |
+| `MCP_API_KEY_HMAC_SECRET` | Recommended | unset | Adds a server-side HMAC secret for newly created API key hashes |
+| `MCP_CORS_ORIGINS` | No | `"*"` | Comma-separated allowed origins for browser-capable MCP clients |
+| `A8N_WEBHOOK_SHARED_SECRET` | Recommended | unset | Shared secret accepted by Google Form and Stripe webhook endpoints |
+| `GOOGLE_FORM_WEBHOOK_SECRET` | No | unset | Google Form-specific shared secret |
+| `STRIPE_WEBHOOK_SECRET` | Recommended for Stripe | unset | Stripe signing secret for standard `stripe-signature` verification |
+| `STRIPE_WEBHOOK_SHARED_SECRET` | No | unset | Stripe-specific shared secret fallback when no Stripe signing secret is set |
 | `NODE_ENV` | No | — | Affects error message verbosity |
 
 ### Planned (not implemented)
@@ -161,7 +197,6 @@ In the Inspector UI:
 | Variable | Purpose |
 |---|---|
 | `MCP_SERVER_ENABLED` | Feature flag to disable MCP endpoint |
-| `MCP_API_KEY_SECRET` | Server secret for HMAC key hashing |
 | `MCP_RATE_LIMIT_ENABLED` | Toggle rate limiting |
 
 See [CONFIGURATION.md](../CONFIGURATION.md) for full app environment reference.
@@ -185,6 +220,9 @@ Replace `localhost:3000` in all client configs with your production origin.
 - [ ] Key expiration set (`expiresInDays`)
 - [ ] `ENCRYPTION_KEY` set and backed up securely
 - [ ] Audit logging enabled (`MCP_AUDIT_LOG_ENABLED` not `false`)
+- [ ] Database audit persistence enabled and migration applied (`MCP_AUDIT_DB_ENABLED` not `false`)
+- [ ] `MCP_API_KEY_HMAC_SECRET` set before issuing production API keys
+- [ ] Webhook secrets configured (`STRIPE_WEBHOOK_SECRET`, `GOOGLE_FORM_WEBHOOK_SECRET`, or `A8N_WEBHOOK_SHARED_SECRET`)
 - [ ] Rate limits appropriate for expected traffic
 - [ ] Log aggregation configured for `[MCP:*]` console output
 - [ ] Keys rotated on schedule; revoked keys audited
@@ -207,8 +245,8 @@ Replace `localhost:3000` in all client configs with your production origin.
 | `429 Rate limit exceeded` | Too many requests | Wait for `Retry-After`; reduce call frequency |
 | `Permission denied: requires "X" scope` | Key lacks scope | Create key with required scope or `*` |
 | Connection refused | Dev server not running | `pnpm dev` |
-| Tools return errors after 401 passes | Auth context not injected | See [05 — Security](./05-security-and-auth.md) known limitation |
-| CORS error in browser | CORS not configured on route | Add CORS headers or use non-browser client |
+| Tools return permission errors after 401 passes | API key lacks the tool scope | Create a key with the required scope or use a session token while debugging |
+| CORS error in browser | Origin not allowed | Add the client origin to `MCP_CORS_ORIGINS` |
 | Empty workflow after update | Malformed nodes/edges | Read `a8n://schema/workflow` resource first |
 
 ### Debug with server_info

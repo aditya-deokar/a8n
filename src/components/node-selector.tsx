@@ -15,6 +15,7 @@ import { useAtom } from "jotai";
 import { nodeSelectorOpenAtom } from "@/features/editor/store/atoms";
 import { NodeType } from "@/generated/prisma";
 import { cn } from "@/lib/utils";
+import { NODE_MANIFESTS } from "@/features/workflows/node-manifest";
 
 export type NodeTypeOption = {
   type: NodeType;
@@ -23,77 +24,40 @@ export type NodeTypeOption = {
   icon: React.ComponentType<{ className?: string }> | string;
 };
 
-const triggerNodes: NodeTypeOption[] = [
-  {
-    type: NodeType.MANUAL_TRIGGER,
-    label: "Trigger manually",
-    description: "Runs the flow on clicking a button. Good for getting started quickly",
-    icon: MousePointerIcon,
-  },
-  {
-    type: NodeType.GOOGLE_FORM_TRIGGER,
-    label: "Google Form",
-    description: "Runs the flow when a Google Form is submitted",
-    icon: "/logos/googleform.svg",
-  },
-  {
-    type: NodeType.STRIPE_TRIGGER,
-    label: "Stripe Event",
-    description: "Runs the flow when a Stripe Event is captured",
-    icon: "/logos/stripe.svg",
-  },
-];
+const nodeIcons: Partial<Record<NodeType, NodeTypeOption["icon"]>> = {
+  [NodeType.MANUAL_TRIGGER]: MousePointerIcon,
+  [NodeType.GOOGLE_FORM_TRIGGER]: "/logos/googleform.svg",
+  [NodeType.STRIPE_TRIGGER]: "/logos/stripe.svg",
+  [NodeType.HTTP_REQUEST]: GlobeIcon,
+  [NodeType.GEMINI]: "/logos/gemini.svg",
+  [NodeType.OPENAI]: "/logos/openai.svg",
+  [NodeType.ANTHROPIC]: "/logos/anthropic.svg",
+  [NodeType.DISCORD]: "/logos/discord.svg",
+  [NodeType.SLACK]: "/logos/slack.svg",
+  [NodeType.EMAIL]: MailIcon,
+  [NodeType.GOOGLE_SHEETS]: TableIcon,
+};
 
-const executionNodes: NodeTypeOption[] = [
-  {
-    type: NodeType.HTTP_REQUEST,
-    label: "HTTP Request",
-    description: "Makes an HTTP request",
-    icon: GlobeIcon,
-  },
-  {
-    type: NodeType.GEMINI,
-    label: "Gemini",
-    description: "Uses Google Gemini to generate text",
-    icon: "/logos/gemini.svg",
-  },
-  {
-    type: NodeType.OPENAI,
-    label: "OpenAI",
-    description: "Uses OpenAI to generate text",
-    icon: "/logos/openai.svg",
-  },
-  {
-    type: NodeType.ANTHROPIC,
-    label: "Anthropic",
-    description: "Uses Anthropic to generate text",
-    icon: "/logos/anthropic.svg",
-  },
-  {
-    type: NodeType.DISCORD,
-    label: "Discord",
-    description: "Send a message to Discord",
-    icon: "/logos/discord.svg",
-  },
-  {
-    type: NodeType.SLACK,
-    label: "Slack",
-    description: "Send a message to Slack",
-    icon: "/logos/slack.svg",
-  },
-  {
-    type: NodeType.EMAIL,
-    label: "Email",
-    description: "Send an email through SMTP",
-    icon: MailIcon,
-  },
-  {
-    type: NodeType.GOOGLE_SHEETS,
-    label: "Google Sheets",
-    description: "Append a row to a Google Sheet",
-    icon: TableIcon,
-  },
-];
+const nodeOptions: NodeTypeOption[] = NODE_MANIFESTS.filter(
+  (node) => node.type !== NodeType.INITIAL,
+).map((node) => ({
+  type: node.type,
+  label: node.label,
+  description: node.beginnerDescription,
+  icon: nodeIcons[node.type] || GlobeIcon,
+}));
+
+const triggerNodeTypes = new Set<NodeType>([
+  NodeType.MANUAL_TRIGGER,
+  NodeType.GOOGLE_FORM_TRIGGER,
+  NodeType.STRIPE_TRIGGER,
+]);
+
+const triggerNodes = nodeOptions.filter((node) => triggerNodeTypes.has(node.type));
+
+const executionNodes = nodeOptions.filter(
+  (node) => !triggerNodes.some((triggerNode) => triggerNode.type === node.type),
+);
 
 export function NodeSelector() {
   const { setNodes, getNodes, screenToFlowPosition } = useReactFlow();

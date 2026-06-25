@@ -13,9 +13,13 @@ import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse, mcpTextResponse } from "@/mcp/shared/sanitize";
 import { sendWorkflowExecution } from "@/inngest/utils";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import { createWorkflowVersion } from "./workflow-graph-utils";
 
-export function registerRenameWorkflow(server: McpServer) {
+export function registerRenameWorkflow(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "rename_workflow",
     "Rename a workflow by its ID.",
@@ -24,7 +28,7 @@ export function registerRenameWorkflow(server: McpServer) {
       name: z.string().min(1).describe("The new name for the workflow"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:write");
 
       const audit = createAuditContext({
@@ -33,6 +37,13 @@ export function registerRenameWorkflow(server: McpServer) {
       });
 
       return withErrorBoundary("rename_workflow", async () => {
+        await createWorkflowVersion({
+          workflowId: args.id,
+          userId: auth.userId,
+          createdByTool: "rename_workflow",
+          summary: `Before rename to "${args.name}"`,
+        });
+
         const workflow = await prisma.workflow.update({
           where: { id: args.id, userId: auth.userId },
           data: { name: args.name },
@@ -45,7 +56,10 @@ export function registerRenameWorkflow(server: McpServer) {
   );
 }
 
-export function registerDeleteWorkflow(server: McpServer) {
+export function registerDeleteWorkflow(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "delete_workflow",
     "Permanently delete a workflow and all its nodes, connections, and execution history.",
@@ -53,7 +67,7 @@ export function registerDeleteWorkflow(server: McpServer) {
       id: z.string().describe("The workflow ID to delete"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:write");
 
       const audit = createAuditContext({
@@ -73,15 +87,18 @@ export function registerDeleteWorkflow(server: McpServer) {
   );
 }
 
-export function registerExecuteWorkflow(server: McpServer) {
+export function registerExecuteWorkflow(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "execute_workflow",
-    "Trigger the execution of a workflow. The execution runs asynchronously via Inngest. Returns the workflow info — use get_execution to poll for results.",
+    "Trigger a workflow asynchronously via Inngest. Returns an event correlation ID; use execute_workflow_and_wait or get_execution_timeline with inngestEventId for follow-up.",
     {
       id: z.string().describe("The workflow ID to execute"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:execute");
 
       const audit = createAuditContext({
@@ -96,13 +113,18 @@ export function registerExecuteWorkflow(server: McpServer) {
         });
 
         // Send execution event to Inngest
-        await sendWorkflowExecution({ workflowId: args.id });
+        const executionEvent = await sendWorkflowExecution({ workflowId: args.id });
 
         audit.success();
         return mcpJsonResponse({
-          message: `Workflow "${workflow.name}" execution triggered. Use list_executions or get_execution to check status.`,
+          message: `Workflow "${workflow.name}" execution triggered. Use execute_workflow_and_wait for synchronous chat UX or get_execution_timeline with the returned inngestEventId.`,
           workflowId: workflow.id,
           workflowName: workflow.name,
+          inngestEventId: executionEvent.eventId,
+          executionLookup: {
+            by: "inngestEventId",
+            value: executionEvent.eventId,
+          },
         });
       });
     },

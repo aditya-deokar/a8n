@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MCP_SCOPES, type McpScope } from "@/mcp/auth/scopes";
+import { DEFAULT_SCOPES, MCP_SCOPES } from "@/mcp/auth/scopes";
 import { useCreateMcpKey } from "../hooks/use-mcp-keys";
 import { CheckIcon, CopyIcon, KeyIcon, PlusIcon, SparklesIcon, XIcon } from "lucide-react";
 
 export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
   const [name, setName] = useState("");
-  const [scopes, setScopes] = useState<string[]>(["*"]);
+  const [scopes, setScopes] = useState<string[]>([...DEFAULT_SCOPES]);
   const [expiresInDays, setExpiresInDays] = useState<number>(0); // 0 means never
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -31,9 +31,7 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
       nextScopes.push(scope);
     }
 
-    if (nextScopes.length === 0) {
-      nextScopes.push("*");
-    }
+    if (nextScopes.length === 0) nextScopes = [...DEFAULT_SCOPES];
     setScopes(nextScopes);
   };
 
@@ -64,7 +62,7 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
     onClose();
     setTimeout(() => {
       setName("");
-      setScopes(["*"]);
+      setScopes([...DEFAULT_SCOPES]);
       setExpiresInDays(0);
       setCreatedKey(null);
       setCopied(false);

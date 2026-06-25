@@ -14,9 +14,12 @@ import {
   normalizePagination,
   buildPaginationOutput,
 } from "@/mcp/shared/pagination";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 
-export function registerListExecutions(server: McpServer) {
+export function registerListExecutions(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "list_executions",
     "List workflow execution history with pagination. Shows execution status (RUNNING, SUCCESS, FAILED), timestamps, and associated workflow.",
@@ -25,7 +28,7 @@ export function registerListExecutions(server: McpServer) {
       pageSize: z.number().min(1).max(100).default(10).describe("Results per page"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "executions:read");
 
       const audit = createAuditContext({
@@ -66,7 +69,10 @@ export function registerListExecutions(server: McpServer) {
   );
 }
 
-export function registerGetExecution(server: McpServer) {
+export function registerGetExecution(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "get_execution",
     "Get a single execution's full details by ID, including status, output, errors, and the associated workflow.",
@@ -74,7 +80,7 @@ export function registerGetExecution(server: McpServer) {
       id: z.string().describe("The execution ID"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "executions:read");
 
       const audit = createAuditContext({

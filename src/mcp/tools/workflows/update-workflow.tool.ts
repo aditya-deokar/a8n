@@ -14,9 +14,13 @@ import { requireScope } from "@/mcp/middleware/scope-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse } from "@/mcp/shared/sanitize";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import { createWorkflowVersion } from "./workflow-graph-utils";
 
-export function registerUpdateWorkflow(server: McpServer) {
+export function registerUpdateWorkflow(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "update_workflow",
     "Update a workflow's nodes and connections. This replaces ALL existing nodes and connections with the ones provided (full replacement, not partial patch).",
@@ -59,7 +63,7 @@ export function registerUpdateWorkflow(server: McpServer) {
         .describe("Array of connections between nodes"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:write");
 
       const audit = createAuditContext({
@@ -74,6 +78,12 @@ export function registerUpdateWorkflow(server: McpServer) {
         // Verify ownership
         await prisma.workflow.findUniqueOrThrow({
           where: { id: args.id, userId: auth.userId },
+        });
+        await createWorkflowVersion({
+          workflowId: args.id,
+          userId: auth.userId,
+          createdByTool: "update_workflow",
+          summary: "Before raw full-replacement update_workflow",
         });
 
         // Transaction for atomic update (matches tRPC update procedure)
@@ -90,6 +100,10 @@ export function registerUpdateWorkflow(server: McpServer) {
               type: (node.type as NodeType) || NodeType.INITIAL,
               position: node.position,
               data: node.data || {},
+              credentialId:
+                typeof node.data?.credentialId === "string" && node.data.credentialId
+                  ? node.data.credentialId
+                  : null,
             })),
           });
 

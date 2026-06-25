@@ -2,7 +2,7 @@
 
 > **Audience:** Contributors adding tools, resources, or prompts  
 > **Prerequisites:** [04 — Architecture](./04-architecture.md), [06 — Tools Reference](./06-tools-reference.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 

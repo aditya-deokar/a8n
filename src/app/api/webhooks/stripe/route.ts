@@ -1,5 +1,10 @@
 import { sendWorkflowExecution } from "@/inngest/utils";
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  verifySharedWebhookSecret,
+  verifyStripeSignature,
+  webhookAuthError,
+} from "../_security";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +18,21 @@ export async function POST(request: NextRequest) {
       );
     };
 
-    const body = await request.json();
+    const rawBody = await request.text();
+    const stripeVerification = verifyStripeSignature(
+      rawBody,
+      request.headers.get("stripe-signature"),
+      process.env.STRIPE_WEBHOOK_SECRET,
+    );
+    const sharedVerification = process.env.STRIPE_WEBHOOK_SECRET
+      ? stripeVerification
+      : verifySharedWebhookSecret(request, url, [
+          "STRIPE_WEBHOOK_SHARED_SECRET",
+          "A8N_WEBHOOK_SHARED_SECRET",
+        ]);
+    if (!sharedVerification.ok) return webhookAuthError(sharedVerification);
+
+    const body = JSON.parse(rawBody);
 
     const stripeData = {
       // Event metadata
@@ -25,7 +44,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Trigger an Inngest job
-    await sendWorkflowExecution({
+    const event = await sendWorkflowExecution({
       workflowId,
       initialData: {
         stripe: stripeData,
@@ -33,7 +52,14 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true },
+      {
+        success: true,
+        inngestEventId: event.eventId,
+        webhookSecurity: {
+          verified: sharedVerification.enforced,
+          mode: sharedVerification.mode,
+        },
+      },
       { status: 200 },
     );
   } catch (error) {

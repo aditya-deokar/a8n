@@ -32,7 +32,11 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export function RegisterForm() {
+export function RegisterForm({
+  callbackURL = "/workflows",
+}: {
+  callbackURL?: string;
+}) {
   const router = useRouter();
 
   const form = useForm<RegisterFormValues>({
@@ -47,9 +51,10 @@ export function RegisterForm() {
   const signInGithub = async () => {
     await authClient.signIn.social({
       provider: "github",
+      callbackURL,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(callbackURL);
       },
       onError: () => {
         toast.error("Something went wrong");
@@ -60,9 +65,10 @@ export function RegisterForm() {
   const signInGoogle = async () => {
     await authClient.signIn.social({
       provider: "google",
+      callbackURL,
     }, {
       onSuccess: () => {
-        router.push("/workflows");
+        router.push(callbackURL);
       },
       onError: () => {
         toast.error("Something went wrong");
@@ -76,11 +82,11 @@ export function RegisterForm() {
         name: values.email,
         email: values.email,
         password: values.password,
-        callbackURL: "/workflows",
+        callbackURL,
       },
       {
         onSuccess: () => {
-          router.push("/workflows");
+          router.push(callbackURL);
         },
         onError: (ctx) => {
           toast.error(ctx.error.message);
@@ -185,7 +191,7 @@ export function RegisterForm() {
                 </div>
                 <div className="text-center text-sm">
                   Already have an account?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link href={`/login?callbackURL=${encodeURIComponent(callbackURL)}`} className="underline underline-offset-4">
                     Login
                   </Link>
                 </div>

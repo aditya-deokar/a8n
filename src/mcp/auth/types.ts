@@ -25,7 +25,16 @@ export interface McpAuthInfo {
   apiKeyId?: string;
 
   /** Authentication method used */
-  method: "api_key" | "session";
+  method: "api_key" | "session" | "oauth";
+
+  /** OAuth access token row ID, when authenticated via ChatGPT account linking */
+  oauthTokenId?: string;
+
+  /** OAuth client ID, when authenticated via ChatGPT account linking */
+  oauthClientId?: string;
+
+  /** OAuth resource/audience, when authenticated via ChatGPT account linking */
+  oauthResource?: string;
 }
 
 /** Result of bearer token validation */

@@ -7,14 +7,14 @@ const updates = [
   {
     file: 'card.tsx',
     regex: /"bg-card text-card-foreground flex flex-col gap-[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       return match.replace('bg-card', '').replace('border', '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES}`;
     }
   },
   {
     file: 'dialog.tsx',
     regex: /"bg-background data-\[state=open\]:animate-in data-\[state=closed\]:animate-out[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       // Remove bg-background, border, shadow-lg, rounded-lg
       return match.replace('bg-background', '').replace(/\bborder\b/, '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES}`;
     }
@@ -22,35 +22,35 @@ const updates = [
   {
     file: 'popover.tsx',
     regex: /"bg-popover text-popover-foreground data-\[state=open\]:animate-in data-\[state=closed\]:animate-out[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       return match.replace('bg-popover', '').replace(/\bborder\b/, '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES}`;
     }
   },
   {
     file: 'dropdown-menu.tsx',
     regex: /"bg-popover text-popover-foreground data-\[state=open\]:animate-in data-\[state=closed\]:animate-out[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       return match.replace('bg-popover', '').replace(/\bborder\b/, '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES}`;
     }
   },
   {
     file: 'sheet.tsx',
     regex: /"bg-background data-\[state=open\]:animate-in data-\[state=closed\]:animate-out[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       return match.replace('bg-background', '').replace(/\bborder\b/, '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES.replace('rounded-[1.5rem]', '')}`; // Sheets usually have their own rounding based on side
     }
   },
   {
     file: 'command.tsx',
     regex: /"bg-popover text-popover-foreground flex h-full w-full flex-col overflow-hidden rounded-md[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       return match.replace('bg-popover', '').replace(/\bborder\b/, '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES}`;
     }
   },
   {
     file: 'alert-dialog.tsx',
     regex: /"bg-background data-\[state=open\]:animate-in data-\[state=closed\]:animate-out[^"]*"/g,
-    replace: (match) => {
+    replace: (match: string) => {
       return match.replace('bg-background', '').replace(/\bborder\b/, '').replace(/rounded-\w+/, '').replace(/shadow-\w+/, '') + ` ${THEME_CLASSES}`;
     }
   }

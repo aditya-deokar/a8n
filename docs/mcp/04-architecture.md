@@ -2,7 +2,7 @@
 
 > **Audience:** Contributors working on or debugging the MCP module  
 > **Prerequisites:** [02 — Protocol Deep Dive](./02-protocol-deep-dive.md), [03 — Transports](./03-transports.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -227,7 +227,9 @@ Users manage keys in the browser; AI clients use keys via Bearer auth on `/api/m
 | `RATE_LIMIT.FREE_TIER` | 30 req/min |
 | `RATE_LIMIT.PRO_TIER` | 120 req/min |
 | `AUDIT_LOG_ENABLED` | env `MCP_AUDIT_LOG_ENABLED` |
-| `CORS_ORIGINS` | env `MCP_CORS_ORIGINS` (defined, not wired to route) |
+| `AUDIT_DB_ENABLED` | env `MCP_AUDIT_DB_ENABLED` |
+| `API_KEY_HMAC_ENABLED` | env `MCP_API_KEY_HMAC_SECRET` |
+| `CORS_ORIGINS` | env `MCP_CORS_ORIGINS` |
 
 ---
 

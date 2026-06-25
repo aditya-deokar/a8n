@@ -1,10 +1,15 @@
 import { sendWorkflowExecution } from "@/inngest/utils";
 import { type NextRequest, NextResponse } from "next/server";
+import { verifySharedWebhookSecret, webhookAuthError } from "../_security";
 
 export async function POST(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const workflowId = url.searchParams.get("workflowId");
+    const verification = verifySharedWebhookSecret(request, url, [
+      "GOOGLE_FORM_WEBHOOK_SECRET",
+      "A8N_WEBHOOK_SHARED_SECRET",
+    ]);
 
     if (!workflowId) {
       return NextResponse.json(
@@ -12,6 +17,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     };
+    if (!verification.ok) return webhookAuthError(verification);
 
     const body = await request.json();
 
@@ -26,7 +32,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Trigger an Inngest job
-    await sendWorkflowExecution({
+    const event = await sendWorkflowExecution({
       workflowId,
       initialData: {
         googleForm: formData,
@@ -34,7 +40,14 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { success: true },
+      {
+        success: true,
+        inngestEventId: event.eventId,
+        webhookSecurity: {
+          verified: verification.enforced,
+          mode: verification.mode,
+        },
+      },
       { status: 200 },
     );
   } catch (error) {

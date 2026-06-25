@@ -17,7 +17,7 @@ import {
   normalizePagination,
   buildPaginationOutput,
 } from "@/mcp/shared/pagination";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 
 const inputSchema = {
   page: z.number().min(1).default(1).describe("Page number (1-indexed)"),
@@ -33,13 +33,16 @@ const inputSchema = {
     .describe("Filter workflows by name (case-insensitive substring match)"),
 };
 
-export function registerListWorkflows(server: McpServer) {
+export function registerListWorkflows(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "list_workflows",
     "List all workflows for the authenticated user with pagination and search. Returns workflow id, name, and timestamps.",
     inputSchema,
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:read");
 
       const audit = createAuditContext({

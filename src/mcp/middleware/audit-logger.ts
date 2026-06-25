@@ -12,6 +12,7 @@
  */
 
 import { MCP_CONFIG } from "../config";
+import type { Prisma } from "@/generated/prisma";
 
 /** A single audit log entry */
 export interface AuditLogEntry {
@@ -19,7 +20,7 @@ export interface AuditLogEntry {
   correlationId: string;
   userId: string;
   apiKeyId?: string;
-  authMethod: "api_key" | "session";
+  authMethod: "api_key" | "session" | "oauth";
   tool: string;
   input: Record<string, unknown>;
   durationMs: number;
@@ -43,6 +44,34 @@ const SENSITIVE_KEYS = new Set([
   "rawKey",
 ]);
 
+const SENSITIVE_KEY_FRAGMENTS = [
+  "authorization",
+  "cookie",
+  "privatekey",
+  "private_key",
+  "clientsecret",
+  "client_secret",
+  "webhooksecret",
+  "webhook_secret",
+  "stripe-signature",
+];
+
+function isSensitiveKey(key: string): boolean {
+  const normalized = key.toLowerCase().replace(/[^a-z0-9_-]/g, "");
+  return (
+    SENSITIVE_KEYS.has(key) ||
+    SENSITIVE_KEYS.has(normalized) ||
+    SENSITIVE_KEY_FRAGMENTS.some((fragment) => normalized.includes(fragment))
+  );
+}
+
+function redactSensitiveString(value: string): string {
+  return value
+    .replace(/-----BEGIN [^-]+PRIVATE KEY-----[\s\S]*?-----END [^-]+PRIVATE KEY-----/g, "[REDACTED_PRIVATE_KEY]")
+    .replace(/\b(sk-[A-Za-z0-9_-]{12,}|sk-ant-[A-Za-z0-9_-]{12,})\b/g, "[REDACTED_API_KEY]")
+    .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]{12,}\b/gi, "$1[REDACTED_TOKEN]");
+}
+
 /**
  * Deep-sanitize an object by redacting values of sensitive keys.
  */
@@ -52,10 +81,20 @@ function sanitizeInput(
   const sanitized: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
-    if (SENSITIVE_KEYS.has(key)) {
+    if (isSensitiveKey(key)) {
       sanitized[key] = "[REDACTED]";
     } else if (typeof value === "object" && value !== null && !Array.isArray(value)) {
       sanitized[key] = sanitizeInput(value as Record<string, unknown>);
+    } else if (typeof value === "string") {
+      sanitized[key] = redactSensitiveString(value);
+    } else if (Array.isArray(value)) {
+      sanitized[key] = value.map((item) =>
+        typeof item === "string"
+          ? redactSensitiveString(item)
+          : typeof item === "object" && item !== null
+            ? sanitizeInput(item as Record<string, unknown>)
+            : item,
+      );
     } else {
       sanitized[key] = value;
     }
@@ -116,6 +155,61 @@ export function getRequestMetrics(): Readonly<RequestMetrics> {
   return { ...metrics };
 }
 
+export function isPersistentAuditEnabled(): boolean {
+  return MCP_CONFIG.AUDIT_DB_ENABLED;
+}
+
+async function persistAuditEntry(entry: AuditLogEntry) {
+  if (!MCP_CONFIG.AUDIT_DB_ENABLED) return;
+
+  try {
+    const prisma = (await import("@/lib/db")).default;
+    await prisma.mcpAuditLog.create({
+      data: {
+        timestamp: new Date(entry.timestamp),
+        correlationId: entry.correlationId,
+        userId: entry.userId || null,
+        apiKeyId: entry.apiKeyId || null,
+        authMethod: entry.authMethod,
+        tool: entry.tool,
+        input: entry.input as Prisma.InputJsonValue,
+        durationMs: entry.durationMs,
+        status: entry.status,
+        error: entry.error || null,
+        ip: entry.ip || null,
+        userAgent: entry.userAgent || null,
+      },
+    });
+  } catch (error) {
+    if (MCP_CONFIG.AUDIT_LOG_ENABLED) {
+      console.error(
+        "[MCP:AUDIT:PERSIST_FAILED]",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+    }
+  }
+}
+
+export async function listPersistedAuditEvents(params: {
+  userId: string;
+  limit: number;
+  tool?: string;
+  status?: "success" | "error";
+}) {
+  if (!MCP_CONFIG.AUDIT_DB_ENABLED) return [];
+
+  const prisma = (await import("@/lib/db")).default;
+  return prisma.mcpAuditLog.findMany({
+    where: {
+      userId: params.userId,
+      tool: params.tool,
+      status: params.status,
+    },
+    orderBy: { timestamp: "desc" },
+    take: params.limit,
+  });
+}
+
 // ─── Audit Context Factory ──────────────────────────────────
 
 /**
@@ -146,7 +240,7 @@ export function extractRequestMeta(request: Request): {
 export function createAuditContext(params: {
   userId: string;
   apiKeyId?: string;
-  authMethod: "api_key" | "session";
+  authMethod: "api_key" | "session" | "oauth";
   tool: string;
   input: Record<string, unknown>;
   ip?: string;
@@ -170,6 +264,7 @@ export function createAuditContext(params: {
   function logEntry(entry: AuditLogEntry) {
     // Always update metrics, regardless of logging setting
     updateMetrics(entry);
+    void persistAuditEntry(entry);
 
     if (!MCP_CONFIG.AUDIT_LOG_ENABLED) return;
 

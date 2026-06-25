@@ -13,15 +13,19 @@ import { mcpJsonResponse } from "@/mcp/shared/sanitize";
 import { MCP_CONFIG } from "@/mcp/config";
 import { MCP_SCOPES, type McpScope } from "@/mcp/auth/scopes";
 import { getRequestMetrics } from "@/mcp/middleware/audit-logger";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import { isChatGptAppProfile } from "@/mcp/app-profile";
 
-export function registerWhoami(server: McpServer) {
+export function registerWhoami(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "whoami",
     "Get information about the currently authenticated user, including user ID, name, email, authentication method, and granted permission scopes.",
     {},
     async (_args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "system:read");
 
       return withErrorBoundary("whoami", async () => {
@@ -42,17 +46,21 @@ export function registerWhoami(server: McpServer) {
   );
 }
 
-export function registerServerInfo(server: McpServer) {
+export function registerServerInfo(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "server_info",
     "Get information about this MCP server — name, version, available scopes, endpoint configuration, and live request metrics.",
     {},
     async (_args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "system:read");
 
       return withErrorBoundary("server_info", async () => {
         const metrics = getRequestMetrics();
+        const chatGptProfile = isChatGptAppProfile(context.appProfile);
 
         return mcpJsonResponse({
           name: MCP_CONFIG.SERVER_NAME,
@@ -60,6 +68,13 @@ export function registerServerInfo(server: McpServer) {
           description: MCP_CONFIG.SERVER_DESCRIPTION,
           endpoint: MCP_CONFIG.ENDPOINT_PATH,
           transport: "streamable-http (Web Standard)",
+          appProfile: chatGptProfile ? "chatgpt" : "default",
+          capabilities: {
+            tools: chatGptProfile ? 28 : 53,
+            resources: chatGptProfile ? 21 : 17,
+            resourceTemplates: 5,
+            prompts: 3,
+          },
           rateLimiting: {
             windowMs: MCP_CONFIG.RATE_LIMIT.WINDOW_MS,
             freeTierLimit: MCP_CONFIG.RATE_LIMIT.FREE_TIER,
@@ -86,13 +101,16 @@ export function registerServerInfo(server: McpServer) {
   );
 }
 
-export function registerHealthCheck(server: McpServer) {
+export function registerHealthCheck(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "health_check",
     "Server health check — verifies the MCP server, authentication, database, and all subsystems are operational. Use this to verify your connection is working.",
     {},
     async (_args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "system:read");
 
       return withErrorBoundary("health_check", async () => {

@@ -14,6 +14,7 @@ import prisma from "@/lib/db";
 import { CredentialType } from "@/generated/prisma";
 import { encrypt } from "@/lib/encryption";
 import { requireScope } from "@/mcp/middleware/scope-guard";
+import { requireActiveSubscription } from "@/mcp/middleware/subscription-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse, mcpTextResponse } from "@/mcp/shared/sanitize";
@@ -21,7 +22,7 @@ import {
   normalizePagination,
   buildPaginationOutput,
 } from "@/mcp/shared/pagination";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 
 /** Select only safe fields — never include `value` (encrypted secret) */
 const SAFE_CREDENTIAL_SELECT = {
@@ -34,7 +35,10 @@ const SAFE_CREDENTIAL_SELECT = {
 
 // ─── list_credentials ────────────────────────────────────────
 
-export function registerListCredentials(server: McpServer) {
+export function registerListCredentials(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "list_credentials",
     "List all credentials for the authenticated user with pagination and search. Secret values are never returned — only metadata.",
@@ -44,7 +48,7 @@ export function registerListCredentials(server: McpServer) {
       search: z.string().default("").describe("Filter by name (case-insensitive)"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "credentials:read");
 
       const audit = createAuditContext({
@@ -80,7 +84,10 @@ export function registerListCredentials(server: McpServer) {
 
 // ─── get_credential ──────────────────────────────────────────
 
-export function registerGetCredential(server: McpServer) {
+export function registerGetCredential(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "get_credential",
     "Get a single credential's metadata by ID. The secret value is never returned.",
@@ -88,7 +95,7 @@ export function registerGetCredential(server: McpServer) {
       id: z.string().describe("The credential ID"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "credentials:read");
 
       const audit = createAuditContext({
@@ -111,17 +118,20 @@ export function registerGetCredential(server: McpServer) {
 
 // ─── create_credential ───────────────────────────────────────
 
-export function registerCreateCredential(server: McpServer) {
+export function registerCreateCredential(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "create_credential",
-    "Create a new credential. The value is encrypted at rest. Available types: OPENAI, ANTHROPIC, GEMINI, SMTP_EMAIL, GOOGLE_SHEETS.",
+    "Advanced secret-handling tool for creating a credential when the user explicitly provides a secret. Prefer dashboard/OAuth-style setup for non-technical users. The value is encrypted at rest and never returned. Available types: OPENAI, ANTHROPIC, GEMINI, SMTP_EMAIL, GOOGLE_SHEETS.",
     {
       name: z.string().min(1).describe("Human-readable name for this credential"),
       type: z.enum(CredentialType).describe("Credential type"),
       value: z.string().min(1).describe("The secret value (e.g., API key). Will be encrypted."),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "credentials:write");
 
       const audit = createAuditContext({
@@ -131,6 +141,8 @@ export function registerCreateCredential(server: McpServer) {
       });
 
       return withErrorBoundary("create_credential", async () => {
+        await requireActiveSubscription(auth.userId);
+
         const credential = await prisma.credential.create({
           data: {
             name: args.name,
@@ -153,7 +165,10 @@ export function registerCreateCredential(server: McpServer) {
 
 // ─── update_credential ───────────────────────────────────────
 
-export function registerUpdateCredential(server: McpServer) {
+export function registerUpdateCredential(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "update_credential",
     "Update an existing credential's name, type, and/or value.",
@@ -164,7 +179,7 @@ export function registerUpdateCredential(server: McpServer) {
       value: z.string().min(1).describe("New secret value (will be encrypted)"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "credentials:write");
 
       const audit = createAuditContext({
@@ -196,7 +211,10 @@ export function registerUpdateCredential(server: McpServer) {
 
 // ─── delete_credential ───────────────────────────────────────
 
-export function registerDeleteCredential(server: McpServer) {
+export function registerDeleteCredential(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "delete_credential",
     "Permanently delete a credential. Any nodes using it will lose their credential reference.",
@@ -204,7 +222,7 @@ export function registerDeleteCredential(server: McpServer) {
       id: z.string().describe("The credential ID to delete"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "credentials:write");
 
       const audit = createAuditContext({
@@ -226,7 +244,10 @@ export function registerDeleteCredential(server: McpServer) {
 
 // ─── list_credentials_by_type ────────────────────────────────
 
-export function registerListCredentialsByType(server: McpServer) {
+export function registerListCredentialsByType(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "list_credentials_by_type",
     "List all credentials of a specific type. Useful for finding credentials to attach to workflow nodes.",
@@ -234,7 +255,7 @@ export function registerListCredentialsByType(server: McpServer) {
       type: z.enum(CredentialType).describe("Credential type to filter by"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "credentials:read");
 
       const audit = createAuditContext({

@@ -24,8 +24,8 @@ export function requireScope(
   if (!hasScope(auth.scopes, requiredScope)) {
     throw new Error(
       `Permission denied: this operation requires the "${requiredScope}" scope. ` +
-        `Your API key has scopes: [${auth.scopes.join(", ")}]. ` +
-        `Create a new API key with the required scope or use a wildcard ("*") key.`,
+        `Your connection has scopes: [${auth.scopes.join(", ")}]. ` +
+        "Reconnect with the required scope or use a credential with broader access.",
     );
   }
 }
