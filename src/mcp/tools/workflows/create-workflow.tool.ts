@@ -12,12 +12,16 @@ import { generateSlug } from "random-word-slugs";
 import prisma from "@/lib/db";
 import { NodeType } from "@/generated/prisma";
 import { requireScope } from "@/mcp/middleware/scope-guard";
+import { requireActiveSubscription } from "@/mcp/middleware/subscription-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse } from "@/mcp/shared/sanitize";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 
-export function registerCreateWorkflow(server: McpServer) {
+export function registerCreateWorkflow(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "create_workflow",
     "Create a new workflow. A random 3-word slug name is auto-generated, and an INITIAL node is created at position (0,0). Returns the created workflow.",
@@ -30,7 +34,7 @@ export function registerCreateWorkflow(server: McpServer) {
         ),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:write");
 
       const audit = createAuditContext({
@@ -42,6 +46,8 @@ export function registerCreateWorkflow(server: McpServer) {
       });
 
       return withErrorBoundary("create_workflow", async () => {
+        await requireActiveSubscription(auth.userId);
+
         const workflow = await prisma.workflow.create({
           data: {
             name: args.name || generateSlug(3),

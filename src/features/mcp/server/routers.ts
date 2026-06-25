@@ -1,14 +1,14 @@
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import z from "zod";
 import { createApiKey, listApiKeys, revokeApiKey } from "@/mcp/auth/api-key.service";
-import { ALL_SCOPES, type McpScope } from "@/mcp/auth/scopes";
+import { DEFAULT_SCOPES, type McpScope } from "@/mcp/auth/scopes";
 
 export const mcpRouter = createTRPCRouter({
   createKey: protectedProcedure
     .input(
       z.object({
         name: z.string().min(1, "Name is required"),
-        scopes: z.array(z.string()).default(["*"]),
+        scopes: z.array(z.string()).default(DEFAULT_SCOPES),
         expiresInDays: z.number().optional(),
       })
     )

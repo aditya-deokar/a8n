@@ -135,15 +135,22 @@ POLAR_SUCCESS_URL=http://localhost:3000/success?checkout_id={CHECKOUT_ID}
 | Variable | Required | Default | Description |
 |---|---|---|---|
 | `MCP_AUDIT_LOG_ENABLED` | No | `true` | Set to `"false"` to disable MCP audit console output |
-| `MCP_CORS_ORIGINS` | No | `"*"` | Allowed CORS origins (defined in config; not wired to route yet) |
+| `MCP_AUDIT_DB_ENABLED` | No | `true` | Set to `"false"` to disable persisted MCP audit logs |
+| `MCP_API_KEY_HMAC_SECRET` | Recommended | unset | Server-side HMAC secret for newly created API key hashes |
+| `MCP_CORS_ORIGINS` | No | `"*"` | Allowed CORS origins for the MCP route |
+| `A8N_WEBHOOK_SHARED_SECRET` | Recommended | unset | Shared secret accepted by Google Form and Stripe webhooks |
+| `GOOGLE_FORM_WEBHOOK_SECRET` | No | unset | Google Form-specific webhook secret |
+| `STRIPE_WEBHOOK_SECRET` | Recommended for Stripe | unset | Stripe signing secret for `stripe-signature` verification |
+| `STRIPE_WEBHOOK_SHARED_SECRET` | No | unset | Stripe-specific shared secret fallback |
 
 **Where Used:**
 - `src/mcp/config.ts` — `MCP_CONFIG.AUDIT_LOG_ENABLED`, `MCP_CONFIG.CORS_ORIGINS`
-- `src/mcp/middleware/audit-logger.ts` — structured request logging
+- `src/mcp/middleware/audit-logger.ts` — structured request logging and optional persistence
+- `src/mcp/auth/api-key.service.ts` — HMAC-compatible API key hashing
+- `src/app/api/webhooks/*` — webhook shared-secret/signature verification
 
 **Planned (not implemented):**
 - `MCP_SERVER_ENABLED` — feature flag to disable the endpoint
-- `MCP_API_KEY_SECRET` — server secret for HMAC API key hashing
 - `MCP_RATE_LIMIT_ENABLED` — toggle rate limiting
 
 > Full MCP operations guide: [mcp/10-operations.md](./mcp/10-operations.md)

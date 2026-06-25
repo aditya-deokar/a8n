@@ -1,13 +1,13 @@
 # a8n MCP Server — Documentation Hub
 
-> **Last Updated:** May 2026  
+> **Last Updated:** June 24, 2026  
 > **Status:** Living documentation for the a8n Model Context Protocol server
 
 ---
 
 ## What is this?
 
-The **a8n MCP Server** exposes workflow automation operations to AI-powered clients (Cursor, Claude Desktop, MCP Inspector, and others) through the [Model Context Protocol](https://modelcontextprotocol.io/). It runs as a Streamable HTTP endpoint at `/api/mcp` and provides **22 tools**, **4 resources**, and **3 prompts** for managing workflows, credentials, executions, and API keys.
+The **a8n MCP Server** exposes workflow automation operations to AI-powered clients (Cursor, Claude Desktop, MCP Inspector, and others) through the [Model Context Protocol](https://modelcontextprotocol.io/). It runs as a Streamable HTTP endpoint at `/api/mcp` and provides **53 tools**, **17 resources**, **5 resource templates**, and **3 prompts** for managing workflows, drafts, safe edits, credentials, executions, app-style previews, integration setup, API keys, audit events, and capability discovery.
 
 **Endpoint:** `POST /api/mcp` (Streamable HTTP)  
 **Source:** [`src/mcp/`](../../src/mcp/)  
@@ -19,10 +19,11 @@ The **a8n MCP Server** exposes workflow automation operations to AI-powered clie
 
 | Primitive | Count | Purpose |
 |---|---|---|
-| **Tools** | 22 | Actions: CRUD workflows, credentials, executions, API keys |
-| **Resources** | 4 | Read-only context: schemas and API reference |
+| **Tools** | 53 | Actions: workflows, drafts, safe edits, versions, credentials, executions, integration setup, security/audit, API keys, capability search |
+| **Resources** | 17 | Read-only context: schemas, catalogs, setup guides, app catalog, and API reference |
+| **Resource templates** | 5 | Completable integration setup and app-style preview/checklist/timeline/approval URI templates |
 | **Prompts** | 3 | Guided templates for workflow creation and debugging |
-| **Total capabilities** | 29 | 22 + 4 + 3 (matches dashboard count) |
+| **Total listed capabilities** | 78 | 53 + 17 + 5 + 3 |
 
 ---
 
@@ -40,16 +41,19 @@ Choose the path that matches your goal:
 
 1. [05 — Security & Auth](./05-security-and-auth.md) — API keys and scopes
 2. [10 — Operations](./10-operations.md) — client configs, troubleshooting, deployment
+3. [mcp-apps](./mcp-apps/) - phase-wise plan and implementation runbooks for turning the a8n MCP server into a ChatGPT App
 
 ### Understand this implementation
 
 1. [04 — Architecture](./04-architecture.md) — module layout, request lifecycle
 2. [08 — Platform Integration](./08-platform-integration.md) — MCP ↔ Prisma ↔ Inngest
 3. [09 — Design Decisions](./09-design-decisions.md) — trade-offs and risks
+4. [12 — Non-Technical Workflow Builder Plan](./12-non-technical-workflow-builder-plan.md) — roadmap for turning MCP into a beginner-friendly automation copilot
+5. [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) — quality gate and rollout checklist
 
 ### Build or extend tools
 
-1. [06 — Tools Reference](./06-tools-reference.md) — all 22 tools with examples
+1. [06 — Tools Reference](./06-tools-reference.md) — all 53 tools with examples
 2. [07 — Resources & Prompts](./07-resources-and-prompts.md) — URIs and guided prompts
 3. [11 — Extending the Server](./11-extending-the-server.md) — add new capabilities
 
@@ -57,6 +61,7 @@ Choose the path that matches your goal:
 
 1. [10 — Operations](./10-operations.md) — env vars, deployment, monitoring
 2. [05 — Security & Auth](./05-security-and-auth.md) — least privilege, key rotation
+3. [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) — pre-release verification
 
 ---
 
@@ -75,6 +80,9 @@ Choose the path that matches your goal:
 | [09-design-decisions.md](./09-design-decisions.md) | Trade-offs, alternatives, risk register |
 | [10-operations.md](./10-operations.md) | Dev setup, deployment, troubleshooting |
 | [11-extending-the-server.md](./11-extending-the-server.md) | Add tools, resources, prompts |
+| [12-non-technical-workflow-builder-plan.md](./12-non-technical-workflow-builder-plan.md) | Phase-wise roadmap for beginner-safe workflow building |
+| [13-evaluation-and-rollout.md](./13-evaluation-and-rollout.md) | Phase 8 eval suite, quality gates, and rollout checklist |
+| [mcp-apps/](./mcp-apps/) | ChatGPT Apps integration audit, implementation phases, UX, auth, security, and submission checklist |
 
 ---
 
@@ -84,6 +92,8 @@ Choose the path that matches your goal:
 |---|---|
 | MCP server factory | [`src/mcp/index.ts`](../../src/mcp/index.ts) |
 | HTTP route | [`src/app/api/mcp/route.ts`](../../src/app/api/mcp/route.ts) |
+| MCP evaluation script | [`scripts/mcp-eval.ts`](../../scripts/mcp-eval.ts) |
+| MCP evaluation dataset | [`src/mcp/evals/non-technical-goals.ts`](../../src/mcp/evals/non-technical-goals.ts) |
 | Dev API key seeder | [`scripts/mcp-seed-key.ts`](../../scripts/mcp-seed-key.ts) |
 | Dashboard UI | [`src/features/mcp/`](../../src/features/mcp/) |
 | ADR (architecture decision) | [adr/008-mcp-streamable-http-server.md](../adr/008-mcp-streamable-http-server.md) |

@@ -2,7 +2,7 @@
 
 > **Audience:** Architects and reviewers evaluating trade-offs  
 > **Prerequisites:** [04 — Architecture](./04-architecture.md), [08 — Platform Integration](./08-platform-integration.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -85,7 +85,7 @@ All tools return `mcpJsonResponse()` — a single text content block with string
 |---|---|
 | Universal client compatibility | Large payloads not structured at protocol level |
 | Simple debugging (readable JSON strings) | No native schema validation on responses |
-| Consistent pattern across 22 tools | LLM must parse JSON from text |
+| Consistent pattern across MCP tools | LLM must parse JSON from text when structured content is unavailable |
 
 ---
 
@@ -166,18 +166,18 @@ API keys must be stored hashed. Options include bcrypt, HMAC with server secret,
 
 ### Decision
 
-`SHA-256(rawKey)` stored as hex digest. Lookup by hash equality.
+`HMAC-SHA-256(rawKey, MCP_API_KEY_HMAC_SECRET)` is used for newly created keys when `MCP_API_KEY_HMAC_SECRET` is configured. Legacy `SHA-256(rawKey)` hashes remain valid during migration.
 
 ### Consequences
 
 | Positive | Negative |
 |---|---|
-| Simple, fast lookup | Weaker than salted/HMAC approach if DB leaks |
-| Deterministic hash for lookup | `MCP_API_KEY_SECRET` planned but not implemented |
+| Simple, fast lookup | Existing legacy SHA-256 keys should be rotated after enabling HMAC |
+| HMAC support adds a server-side pepper | Deterministic lookup is still required |
 
-### Planned improvement
+### Remaining improvement
 
-HMAC-SHA256 with server secret (`MCP_API_KEY_SECRET`) for defense in depth.
+Add automated key-rotation reminders and migration reporting for legacy SHA-256 keys.
 
 ---
 

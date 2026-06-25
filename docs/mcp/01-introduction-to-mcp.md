@@ -2,7 +2,7 @@
 
 > **Audience:** Developers new to MCP  
 > **Prerequisites:** Basic understanding of APIs and LLM applications  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -72,7 +72,7 @@ flowchart LR
 
 **When to use:** The model needs to *do something* — create a workflow, list credentials, trigger an execution.
 
-**a8n example:** 22 tools across workflows, credentials, executions, nodes, system, and API keys.
+**a8n example:** 53 tools across workflows, drafts, safe edits, versions, credentials, integrations, execution debugging, security/audit, nodes, system, API keys, and capability search.
 
 ### Resources — read-only context
 
@@ -83,7 +83,7 @@ flowchart LR
 
 **When to use:** The model needs to *understand structure* before acting — workflow JSON shape, node type fields, API reference.
 
-**a8n example:** 4 resources including workflow schema, node types, credential types, and full API docs.
+**a8n example:** 17 resources including workflow schema, node types, credential types, capability catalogs, integration setup guides, app-style resource catalog, and full API docs.
 
 ### Prompts — guided templates
 
@@ -173,8 +173,9 @@ See [02 — Protocol Deep Dive](./02-protocol-deep-dive.md) for message-level de
 | Endpoint | `POST /api/mcp` |
 | Transport | Streamable HTTP (stateless) |
 | Auth | Bearer token (API key or session) |
-| Tools | 22 |
-| Resources | 4 |
+| Tools | 53 |
+| Resources | 17 |
+| Resource templates | 5 |
 | Prompts | 3 |
 
 ---

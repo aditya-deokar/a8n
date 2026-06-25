@@ -1,6 +1,7 @@
 # a8n MCP Server — Production Implementation Plan
 
 > **Historical document** — This was the original build checklist used during implementation (May 2026).  
+> **Current status** — The Phase 0-8 non-technical workflow-builder baseline is documented in **[mcp/12-non-technical-workflow-builder-plan.md](./mcp/12-non-technical-workflow-builder-plan.md)** and verified through **[mcp/13-evaluation-and-rollout.md](./mcp/13-evaluation-and-rollout.md)**.  
 > **For knowledge base documentation**, see **[mcp/README.md](./mcp/README.md)**.
 
 > **Project**: a8n Workflow Automation Platform  
@@ -616,7 +617,7 @@ Standardized MCP error responses mapped from application errors:
 # Official MCP debugging tool
 npx @modelcontextprotocol/inspector
 # Connect to: http://localhost:3000/api/mcp
-# Verify: all 21 tools, 4 resources, 3 prompts discoverable
+# Verify: all 53 tools, 17 resources, 5 resource templates, and 3 prompts discoverable
 ```
 
 ### Hardening Checklist
@@ -694,7 +695,7 @@ Add to `.env`:
 ```env
 # MCP Server Configuration
 MCP_SERVER_ENABLED=true
-MCP_API_KEY_SECRET=<random-64-char-hex>    # For API key hashing salt
+MCP_API_KEY_HMAC_SECRET=<random-64-char-hex>    # For API key HMAC hashing
 MCP_RATE_LIMIT_ENABLED=true
 MCP_AUDIT_LOG_ENABLED=true
 MCP_CORS_ORIGINS=*                         # Restrict in production

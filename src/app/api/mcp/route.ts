@@ -20,12 +20,89 @@ import { validateBearerToken } from "@/mcp/auth/bearer-auth.middleware";
 import { checkRateLimit, rateLimitHeaders } from "@/mcp/middleware/rate-limiter";
 import { createAuditContext, extractRequestMeta } from "@/mcp/middleware/audit-logger";
 import { MCP_CONFIG } from "@/mcp/config";
+import { getMcpAppProfile, type McpAppProfile } from "@/mcp/app-profile";
+import { buildOAuthWwwAuthenticateHeader } from "@/mcp/auth/oauth.service";
 import type { McpAuthInfo } from "@/mcp/auth/types";
 import type { RateLimitResult } from "@/mcp/middleware/rate-limiter";
 
 type AuthGuardSuccess = { auth: McpAuthInfo; rateResult: RateLimitResult };
 type AuthGuardError = { error: Response };
 type AuthGuardResult = AuthGuardSuccess | AuthGuardError;
+
+const MCP_ALLOWED_METHODS = "GET, POST, DELETE, OPTIONS";
+const MCP_ALLOWED_HEADERS =
+  "Authorization, Content-Type, MCP-Protocol-Version, Mcp-Session-Id";
+const MCP_EXPOSED_HEADERS =
+  "Mcp-Session-Id, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After";
+
+function configuredCorsOrigins(): string[] {
+  return MCP_CONFIG.CORS_ORIGINS.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+function isOriginAllowed(request: Request): boolean {
+  const origin = request.headers.get("Origin");
+  if (!origin) return true;
+
+  const allowedOrigins = configuredCorsOrigins();
+  if (allowedOrigins.includes("*")) return true;
+
+  return allowedOrigins.includes(origin);
+}
+
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("Origin");
+  const allowedOrigins = configuredCorsOrigins();
+  const allowAnyOrigin = allowedOrigins.includes("*");
+  const allowOrigin = origin && !allowAnyOrigin ? origin : "*";
+
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": MCP_ALLOWED_METHODS,
+    "Access-Control-Allow-Headers": MCP_ALLOWED_HEADERS,
+    "Access-Control-Expose-Headers": MCP_EXPOSED_HEADERS,
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
+  };
+}
+
+function withCors(request: Request, response: Response): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(corsHeaders(request))) {
+    headers.set(key, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function appProfileFromRequest(request: Request): McpAppProfile {
+  const url = new URL(request.url);
+  return getMcpAppProfile(
+    url.searchParams.get("profile") || url.searchParams.get("mcp_app_profile"),
+  );
+}
+
+function rejectDisallowedOrigin(request: Request): Response | null {
+  if (isOriginAllowed(request)) return null;
+
+  return withCors(
+    request,
+    new Response(
+      JSON.stringify({
+        error: "Origin not allowed for MCP endpoint.",
+      }),
+      {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      },
+    ),
+  );
+}
 
 /**
  * Shared authentication + rate limiting guard.
@@ -40,13 +117,14 @@ async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
       error: new Response(
         JSON.stringify({
           error: authResult.error,
-          hint: "Provide a valid API key or session token in the Authorization header: Bearer <token>",
+          hint:
+            "Connect your a8n account through OAuth, or provide a valid API key/session token in the Authorization header: Bearer <token>",
         }),
         {
           status: authResult.status,
           headers: {
             "Content-Type": "application/json",
-            "WWW-Authenticate": `Bearer realm="${MCP_CONFIG.SERVER_NAME}"`,
+            "WWW-Authenticate": buildOAuthWwwAuthenticateHeader(request),
           },
         },
       ),
@@ -90,11 +168,15 @@ async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
  *   5. Handle the protocol request
  */
 export async function POST(request: Request): Promise<Response> {
+  const originError = rejectDisallowedOrigin(request);
+  if (originError) return originError;
+
   const guardResult = await authenticateRequest(request);
-  if ("error" in guardResult) return guardResult.error;
+  if ("error" in guardResult) return withCors(request, guardResult.error);
 
   const { auth, rateResult } = guardResult;
   const { ip, userAgent } = extractRequestMeta(request);
+  const appProfile = appProfileFromRequest(request);
 
   // ─── Audit Log ─────────────────────────────────────────────
   const audit = createAuditContext({
@@ -114,7 +196,7 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     // ─── Create & Connect Server ────────────────────────────
-    const server = createMcpServer();
+    const server = createMcpServer(auth, { appProfile });
     await server.connect(transport);
 
     // ─── Handle Protocol Request ────────────────────────────
@@ -133,10 +215,13 @@ export async function POST(request: Request): Promise<Response> {
       headers.set(key, value);
     }
 
-    return new Response(response.body, {
-      status: response.status,
-      headers,
-    });
+    return withCors(
+      request,
+      new Response(response.body, {
+        status: response.status,
+        headers,
+      }),
+    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
@@ -144,21 +229,24 @@ export async function POST(request: Request): Promise<Response> {
 
     console.error("[MCP:ROUTE] Request handling failed:", error);
 
-    return new Response(
-      JSON.stringify({
-        jsonrpc: "2.0",
-        error: {
-          code: -32603,
-          message:
-            process.env.NODE_ENV === "development"
-              ? errorMessage
-              : "Internal server error",
+    return withCors(
+      request,
+      new Response(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          error: {
+            code: -32603,
+            message:
+              process.env.NODE_ENV === "development"
+                ? errorMessage
+                : "Internal server error",
+          },
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
         },
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+      ),
     );
   }
 }
@@ -168,8 +256,13 @@ export async function POST(request: Request): Promise<Response> {
  * Some MCP clients use GET for SSE-based streaming.
  */
 export async function GET(request: Request): Promise<Response> {
+  const originError = rejectDisallowedOrigin(request);
+  if (originError) return originError;
+
   const guardResult = await authenticateRequest(request);
-  if ("error" in guardResult) return guardResult.error;
+  if ("error" in guardResult) return withCors(request, guardResult.error);
+  const { auth } = guardResult;
+  const appProfile = appProfileFromRequest(request);
 
   // Create transport and pass through the GET for SSE stream support
   try {
@@ -177,26 +270,30 @@ export async function GET(request: Request): Promise<Response> {
       sessionIdGenerator: undefined,
     });
 
-    const server = createMcpServer();
+    const server = createMcpServer(auth, { appProfile });
     await server.connect(transport);
 
     const response = await transport.handleRequest(request);
-    return response ?? new Response(null, { status: 204 });
+    return withCors(request, response ?? new Response(null, { status: 204 }));
   } catch {
     // Fallback: return server info as JSON
-    return new Response(
-      JSON.stringify({
-        name: MCP_CONFIG.SERVER_NAME,
-        version: MCP_CONFIG.SERVER_VERSION,
-        description: MCP_CONFIG.SERVER_DESCRIPTION,
-        endpoint: MCP_CONFIG.ENDPOINT_PATH,
-        transport: "streamable-http",
-        auth: "Bearer token (API key or session)",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
+    return withCors(
+      request,
+      new Response(
+        JSON.stringify({
+          name: MCP_CONFIG.SERVER_NAME,
+          version: MCP_CONFIG.SERVER_VERSION,
+          description: MCP_CONFIG.SERVER_DESCRIPTION,
+          endpoint: MCP_CONFIG.ENDPOINT_PATH,
+          transport: "streamable-http",
+          auth: "Bearer token (API key or session)",
+          appProfile,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
     );
   }
 }
@@ -205,20 +302,32 @@ export async function GET(request: Request): Promise<Response> {
  * Handle DELETE requests — session cleanup (stateless = no-op).
  */
 export async function DELETE(request: Request): Promise<Response> {
+  const originError = rejectDisallowedOrigin(request);
+  if (originError) return originError;
+
   const guardResult = await authenticateRequest(request);
-  if ("error" in guardResult) return guardResult.error;
+  if ("error" in guardResult) return withCors(request, guardResult.error);
+  const { auth } = guardResult;
+  const appProfile = appProfileFromRequest(request);
 
   try {
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
     });
 
-    const server = createMcpServer();
+    const server = createMcpServer(auth, { appProfile });
     await server.connect(transport);
 
     const response = await transport.handleRequest(request);
-    return response ?? new Response(null, { status: 204 });
+    return withCors(request, response ?? new Response(null, { status: 204 }));
   } catch {
-    return new Response(null, { status: 204 });
+    return withCors(request, new Response(null, { status: 204 }));
   }
+}
+
+export async function OPTIONS(request: Request): Promise<Response> {
+  const originError = rejectDisallowedOrigin(request);
+  if (originError) return originError;
+
+  return withCors(request, new Response(null, { status: 204 }));
 }

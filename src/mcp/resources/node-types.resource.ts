@@ -1,85 +1,81 @@
 /**
  * Resource: a8n://schema/node-types
  *
- * Provides LLMs with a comprehensive reference of all available
- * node types, their categories, descriptions, and configuration fields.
+ * Generated from the canonical node manifest so MCP context stays
+ * aligned with the editor and execution engine.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { NODE_MANIFESTS } from "@/features/workflows/node-manifest";
 
-const NODE_TYPES_DOC = `# a8n Node Types Reference
+function buildNodeTypesDoc(): string {
+  const byCategory = NODE_MANIFESTS.reduce<Record<string, typeof NODE_MANIFESTS>>(
+    (acc, node) => {
+      acc[node.category] ||= [];
+      acc[node.category].push(node);
+      return acc;
+    },
+    {},
+  );
 
-Nodes are the building blocks of workflows. Each node has a **type**, a **category**, and specific **data fields**.
+  const sections = Object.entries(byCategory)
+    .map(([category, nodes]) => {
+      const rows = nodes
+        .map((node) => {
+          const requiredFields = node.requiredFields.length
+            ? node.requiredFields.map((field) => field.name).join(", ")
+            : "none";
+          const credential = node.credentialType || "none";
+          const outputs = node.outputs.length
+            ? node.outputs.map((output) => output.variablePath).join(", ")
+            : "none";
 
-## Categories
+          return `| ${node.type} | ${node.label} | ${node.beginnerDescription} | ${requiredFields} | ${credential} | ${outputs} |`;
+        })
+        .join("\n");
 
-| Category | Description                                          |
-|----------|------------------------------------------------------|
-| trigger  | Entry points that start a workflow execution          |
-| action   | Perform operations (HTTP calls, send messages, etc.)  |
-| ai       | LLM-powered text generation nodes                     |
-| system   | Internal nodes (e.g., INITIAL placeholder)            |
+      return `## ${category}
 
-## Available Node Types
+| Type | Label | Description | Required fields | Credential | Outputs |
+|---|---|---|---|---|---|
+${rows}`;
+    })
+    .join("\n\n");
 
-### Triggers
+  return `# a8n Node Types Reference
 
-| Type                | Description                                           | Data Fields                      |
-|---------------------|-------------------------------------------------------|----------------------------------|
-| MANUAL_TRIGGER      | Manually triggered entry point                        | (none)                           |
-| GOOGLE_FORM_TRIGGER | Triggered by Google Form submissions                  | formId                           |
-| STRIPE_TRIGGER      | Triggered by Stripe webhook events                    | eventType                        |
+Nodes are the building blocks of workflows. Each node has a type, category, required fields, optional fields, outputs, and safety metadata.
 
-### Actions
+This resource is generated from the canonical node manifest used by MCP and the editor.
 
-| Type         | Description                                      | Data Fields                              |
-|--------------|--------------------------------------------------|------------------------------------------|
-| HTTP_REQUEST | Make HTTP requests to external APIs              | variableName, endpoint, method, body     |
-| DISCORD      | Send messages to Discord channels via webhooks   | variableName, webhookUrl, content, username |
-| SLACK        | Send messages to Slack/workflow webhooks         | variableName, webhookUrl, content        |
-| EMAIL        | Send email through SMTP                          | variableName, credentialId, to, subject, body, from, replyTo |
-| GOOGLE_SHEETS | Append a row to a Google Sheet                 | variableName, credentialId, spreadsheetId, sheetName, rowJson |
+Total node types: ${NODE_MANIFESTS.length}
 
-### AI Nodes
-
-| Type      | Description                              | Data Fields                         | Required Credential |
-|-----------|------------------------------------------|-------------------------------------|---------------------|
-| OPENAI    | Generate text using OpenAI GPT models    | variableName, credentialId, systemPrompt, userPrompt | OPENAI              |
-| ANTHROPIC | Generate text using Anthropic Claude     | variableName, credentialId, systemPrompt, userPrompt | ANTHROPIC           |
-| GEMINI    | Generate text using Google Gemini        | variableName, credentialId, systemPrompt, userPrompt | GEMINI              |
-
-### Action Credentials
-
-| Type          | Required Credential | Credential Value Format       |
-|---------------|---------------------|-------------------------------|
-| EMAIL         | SMTP_EMAIL          | SMTP JSON with host, port, user, pass |
-| GOOGLE_SHEETS | GOOGLE_SHEETS       | Google service-account JSON   |
-
-### System
-
-| Type    | Description                                    | Data Fields |
-|---------|------------------------------------------------|-------------|
-| INITIAL | Placeholder start node (auto-created)          | (none)      |
+${sections}
 
 ## Connecting Nodes
 
-- Every node has a default **"main"** input and output handle
-- Connect nodes by creating edges from a source node's output to a target node's input
-- Trigger nodes have no input — they are always the first node in a chain
-- AI nodes require a linked **credential** of the matching type
+- Every node has a default "main" input and output handle.
+- Connect nodes by creating edges from a source node's output to a target node's input.
+- Trigger nodes have no input; they are always the first node in a chain.
+- AI, Email, and Google Sheets nodes require linked credentials of the matching type.
+- Use \`a8n://catalog/nodes\` for machine-readable node metadata.
 `;
+}
 
 export function registerNodeTypesResource(server: McpServer) {
   server.resource(
     "node-types",
     "a8n://schema/node-types",
-    { description: "All available node types with categories, descriptions, data fields, and credential requirements." },
+    {
+      description:
+        "All available node types with categories, fields, outputs, credentials, and safety metadata.",
+    },
     async () => ({
       contents: [
         {
           uri: "a8n://schema/node-types",
           mimeType: "text/markdown",
-          text: NODE_TYPES_DOC,
+          text: buildNodeTypesDoc(),
         },
       ],
     }),

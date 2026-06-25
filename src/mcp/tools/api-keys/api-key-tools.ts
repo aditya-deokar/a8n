@@ -18,11 +18,14 @@ import {
   revokeApiKey,
 } from "@/mcp/auth/api-key.service";
 import { ALL_SCOPES, type McpScope } from "@/mcp/auth/scopes";
-import type { McpAuthInfo } from "@/mcp/auth/types";
+import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 
 // ─── create_api_key ──────────────────────────────────────────
 
-export function registerCreateApiKey(server: McpServer) {
+export function registerCreateApiKey(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "create_api_key",
     "Create a new MCP API key with scoped permissions. The raw key is returned ONLY ONCE — store it securely. Available scopes: workflows:read, workflows:write, workflows:execute, credentials:read, credentials:write, executions:read, system:read, api_keys:manage, * (wildcard).",
@@ -40,7 +43,7 @@ export function registerCreateApiKey(server: McpServer) {
         .describe("Number of days until expiry. Omit for a non-expiring key."),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "api_keys:manage");
 
       const audit = createAuditContext({
@@ -86,13 +89,16 @@ export function registerCreateApiKey(server: McpServer) {
 
 // ─── list_api_keys ───────────────────────────────────────────
 
-export function registerListApiKeys(server: McpServer) {
+export function registerListApiKeys(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "list_api_keys",
     "List all active (non-revoked) API keys for your account. Keys are shown with masked prefixes only — the full key is never retrievable after creation.",
     {},
     async (_args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "api_keys:manage");
 
       const audit = createAuditContext({
@@ -118,7 +124,10 @@ export function registerListApiKeys(server: McpServer) {
 
 // ─── revoke_api_key ──────────────────────────────────────────
 
-export function registerRevokeApiKey(server: McpServer) {
+export function registerRevokeApiKey(
+  server: McpServer,
+  context: McpToolContext = {},
+) {
   server.tool(
     "revoke_api_key",
     "Revoke an API key by its ID. The key is immediately invalidated and cannot be used for further requests.",
@@ -126,7 +135,7 @@ export function registerRevokeApiKey(server: McpServer) {
       keyId: z.string().describe("The API key ID to revoke (use list_api_keys to find IDs)"),
     },
     async (args, extra) => {
-      const auth = (extra as any).authInfo as McpAuthInfo;
+      const auth = getMcpAuth(extra, context);
       requireScope(auth, "api_keys:manage");
 
       const audit = createAuditContext({

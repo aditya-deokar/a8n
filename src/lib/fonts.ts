@@ -1,14 +1,17 @@
-import { Geist, Geist_Mono } from "next/font/google";
+export const geistSans = {
+  variable: "font-sans",
+  className: "font-sans",
+  style: {
+    fontFamily: "var(--font-geist-sans)",
+  },
+} as const;
 
-export const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+export const geistMono = {
+  variable: "font-mono",
+  className: "font-mono",
+  style: {
+    fontFamily: "var(--font-geist-mono)",
+  },
+} as const;
 
-export const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// For backward compatibility with the reference hero component
 export const geist = geistSans;

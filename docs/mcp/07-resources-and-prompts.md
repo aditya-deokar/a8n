@@ -2,13 +2,14 @@
 
 > **Audience:** AI client developers optimizing LLM context usage  
 > **Prerequisites:** [01 — Introduction to MCP](./01-introduction-to-mcp.md), [06 — Tools Reference](./06-tools-reference.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
 ## What you'll learn
 
-- All 4 MCP resources and when to read them
+- All 17 MCP resources and when to read them
+- The 5 resource templates for integration setup and app-style previews
 - All 3 MCP prompts and their arguments
 - Best practices: resources vs tools vs prompts
 
@@ -30,9 +31,9 @@
 
 ---
 
-## Resources (4)
+## Resources (17)
 
-Resources are static markdown content registered at server startup. Access via `resources/read` with the URI.
+Resources provide markdown or machine-readable JSON context. Some are generated from the canonical node manifest so they stay aligned with runtime behavior. Access via `resources/read` with the URI.
 
 ### a8n://schema/workflow
 
@@ -54,7 +55,7 @@ Resources are static markdown content registered at server startup. Access via `
 | **Name** | `node-types` |
 | **File** | `src/mcp/resources/node-types.resource.ts` |
 
-**Contents:** All 10 node types with categories (trigger vs executor), required `data` fields, and connection rules.
+**Contents:** All 12 node types with categories, beginner descriptions, required fields, credential requirements, outputs, and connection rules.
 
 **When to read:** When designing a new workflow graph or choosing node types.
 
@@ -67,7 +68,7 @@ Resources are static markdown content registered at server startup. Access via `
 | **Name** | `credential-types` |
 | **File** | `src/mcp/resources/credential-types.resource.ts` |
 
-**Contents:** Supported credential types (`OPENAI`, `ANTHROPIC`, `GEMINI`), security model (encryption, never returned in responses), and how nodes reference credentials.
+**Contents:** Supported credential types (`OPENAI`, `ANTHROPIC`, `GEMINI`, `SMTP_EMAIL`, `GOOGLE_SHEETS`), security model (encryption, never returned in responses), and how nodes reference credentials.
 
 **When to read:** Before `create_credential` or wiring AI nodes.
 
@@ -83,6 +84,54 @@ Resources are static markdown content registered at server startup. Access via `
 **Contents:** Embedded API reference — all tools, scopes, resources, and common multi-step workflows. Mirrors [06 — Tools Reference](./06-tools-reference.md) in compact form for LLM context.
 
 **When to read:** As a general reference when unsure which tool to call.
+
+---
+
+### a8n://catalog/nodes
+
+Machine-readable JSON catalog of node types, fields, outputs, setup steps, examples, credential requirements, and safety metadata.
+
+### a8n://catalog/credentials
+
+Machine-readable JSON catalog of credential types, value formats, setup steps, and node mappings.
+
+### a8n://integrations/{service}/setup
+
+Markdown setup guides for `openai`, `anthropic`, `gemini`, `slack`, `discord`, `http`, `email`, `google_sheets`, `google_form`, and `stripe`.
+
+---
+
+### a8n://apps/catalog
+
+Machine-readable catalog of app-style MCP resources. Each app resource returns `text/html` for clients that can render rich content and `text/markdown` fallback for plain chat clients.
+
+---
+
+## Resource Templates (5)
+
+### a8n://integrations/{service}/setup
+
+The server also registers this URI as a resource template with completion support for `service`.
+
+**Completion values:** `openai`, `anthropic`, `gemini`, `slack`, `discord`, `http`, `email`, `google_sheets`, `google_form`, `stripe`.
+
+Use the concrete resources when a client only supports `resources/list`; use the template when a client supports `resources/templates/list` or completion.
+
+### a8n://apps/workflow-drafts/{draftId}/preview
+
+Authenticated draft preview with beginner explanation, ordered steps, validation summary, HTML rendering, and markdown fallback.
+
+### a8n://apps/workflows/{workflowId}/setup-checklist
+
+Authenticated setup checklist for saved workflows: missing fields, credentials, webhook URLs, verification notes, and test steps.
+
+### a8n://apps/executions/{executionId}/timeline
+
+Authenticated execution timeline with status, duration, visible node config, output summary, HTML rendering, and markdown fallback.
+
+### a8n://apps/workflow-drafts/{draftId}/approval
+
+Authenticated approval preview with validation state, change summary, and the `confirmationHash` needed by `apply_workflow_draft`.
 
 ---
 
@@ -118,11 +167,13 @@ Prompts return `messages` arrays for the host to inject into the conversation. T
 **Guided steps in the prompt:**
 
 1. Break down requirements into nodes
-2. `list_node_types` — discover available types
-3. `list_credentials_by_type` or `create_credential` — set up secrets
-4. `create_workflow` — initialize
-5. `update_workflow` — add nodes (~300px horizontal spacing)
-6. `execute_workflow` + `get_execution` — test
+2. `plan_workflow_from_goal` and `search_capabilities` — discover likely nodes and setup needs
+3. `create_workflow_draft` — create a safe persisted draft
+4. `answer_workflow_draft_questions` — fill non-sensitive missing fields
+5. `validate_workflow_draft` — check graph, credentials, and safety
+6. `explain_workflow` + `preview_workflow_diff` — show the plan and approval hash
+7. `apply_workflow_draft` — save only after explicit approval
+8. `get_workflow_setup_checklist`, `test_credential`, and `run_workflow_test` — setup and test
 
 **Example invocation:**
 
@@ -151,11 +202,11 @@ Prompts return `messages` arrays for the host to inject into the conversation. T
 
 **Guided steps:**
 
-1. `get_execution` — status, error, stack, output
-2. `get_workflow` — inspect node configuration
-3. Analyze common failure patterns (credentials, config, HTTP errors, cycles)
-4. Suggest fixes via appropriate tools
-5. Offer `execute_workflow` to re-test
+1. `get_execution_timeline` — status, node order, output summary, and error context
+2. `diagnose_execution` — classify the failure in beginner language
+3. `suggest_workflow_fix` — create a repair draft when useful
+4. `apply_workflow_fix` — apply only after explicit approval
+5. `run_workflow_test` or `execute_workflow_and_wait` — re-test
 
 ---
 
@@ -163,7 +214,7 @@ Prompts return `messages` arrays for the host to inject into the conversation. T
 
 | Property | Value |
 |---|---|
-| **Argument** | `integration` (string) — e.g. `openai`, `anthropic`, `gemini`, `slack`, `discord` |
+| **Argument** | `service` (string) — e.g. `openai`, `anthropic`, `gemini`, `slack`, `discord` |
 | **File** | `src/mcp/prompts/setup-integration.prompt.ts` |
 
 **Purpose:** Integration-specific setup guide with credential and node wiring instructions.
@@ -177,6 +228,11 @@ Prompts return `messages` arrays for the host to inject into the conversation. T
 | `gemini` | GEMINI credential + node config |
 | `slack` | SLACK webhook node setup |
 | `discord` | DISCORD webhook node setup |
+| `http` | HTTP request setup |
+| `email` | SMTP credential + EMAIL node setup |
+| `google_sheets` | Google service-account credential + sheet setup |
+| `google_form` | Google Form webhook and Apps Script setup |
+| `stripe` | Stripe webhook setup |
 
 ---
 
@@ -205,7 +261,7 @@ Resources are static at build time but may change between deployments. Re-read w
 | Content | Source | Updates |
 |---|---|---|
 | Resources | Embedded TypeScript strings | Requires code deploy |
-| `list_node_types` tool | Prisma enum + hardcoded metadata | Requires code deploy |
+| `list_node_types` tool | Canonical node manifest | Requires code deploy |
 | Tool list | Runtime `tools/list` | Always current |
 
 If resources drift from actual behavior, prefer `list_node_types` and `server_info` for runtime truth.

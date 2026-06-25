@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">a8n app logo</title>
+  <desc id="desc">A workflow automation logo with connected nodes.</desc>
+  <rect width="512" height="512" rx="96" fill="#0F172A"/>
+  <path d="M128 256c0-70.7 57.3-128 128-128 51.9 0 96.6 30.9 116.7 75.3" fill="none" stroke="#38BDF8" stroke-width="28" stroke-linecap="round"/>
+  <path d="M384 256c0 70.7-57.3 128-128 128-51.9 0-96.6-30.9-116.7-75.3" fill="none" stroke="#A7F3D0" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="128" cy="256" r="44" fill="#F8FAFC"/>
+  <circle cx="256" cy="128" r="44" fill="#38BDF8"/>
+  <circle cx="384" cy="256" r="44" fill="#A7F3D0"/>
+  <circle cx="256" cy="384" r="44" fill="#F8FAFC"/>
+  <path d="M128 256h256M256 128v256" stroke="#0F172A" stroke-width="18" stroke-linecap="round" opacity=".72"/>
+</svg>

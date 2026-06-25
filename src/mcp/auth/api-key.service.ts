@@ -2,14 +2,15 @@
  * API Key Service
  *
  * Handles generation, hashing, validation, and lifecycle management
- * of MCP API keys. Keys are stored as SHA-256 hashes — the raw key
- * is returned only once at creation time.
+ * of MCP API keys. Keys are stored as HMAC-SHA-256 hashes when
+ * MCP_API_KEY_HMAC_SECRET is configured, with SHA-256 legacy lookup
+ * for older keys. The raw key is returned only once at creation time.
  *
  * Inspired by Cloudflare's approach: keys have scoped permissions,
  * expiration dates, and are tracked for last-used timestamps.
  */
 
-import { createHash, randomBytes } from "crypto";
+import { createHash, createHmac, randomBytes } from "crypto";
 import prisma from "@/lib/db";
 import { MCP_CONFIG } from "../config";
 import type { McpScope } from "./scopes";
@@ -17,12 +18,25 @@ import { DEFAULT_SCOPES } from "./scopes";
 
 // ─── Hashing ────────────────────────────────────────────────
 
+function hashApiKeyLegacy(rawKey: string): string {
+  return createHash("sha256").update(rawKey).digest("hex");
+}
+
 /**
- * Generate a SHA-256 hash of a raw API key.
- * This is the only form stored in the database.
+ * Generate the preferred hash of a raw API key.
+ * This is the only form stored in the database for newly created keys.
  */
 export function hashApiKey(rawKey: string): string {
-  return createHash("sha256").update(rawKey).digest("hex");
+  const hmacSecret = process.env.MCP_API_KEY_HMAC_SECRET;
+  if (hmacSecret) {
+    return createHmac("sha256", hmacSecret).update(rawKey).digest("hex");
+  }
+
+  return hashApiKeyLegacy(rawKey);
+}
+
+function apiKeyHashCandidates(rawKey: string): string[] {
+  return [...new Set([hashApiKey(rawKey), hashApiKeyLegacy(rawKey)])];
 }
 
 /**
@@ -101,10 +115,8 @@ export async function validateApiKey(rawKey: string) {
     return null;
   }
 
-  const keyHash = hashApiKey(rawKey);
-
-  const apiKey = await prisma.apiKey.findUnique({
-    where: { keyHash },
+  const apiKey = await prisma.apiKey.findFirst({
+    where: { keyHash: { in: apiKeyHashCandidates(rawKey) } },
     include: {
       user: {
         select: {

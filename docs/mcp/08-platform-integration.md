@@ -2,7 +2,7 @@
 
 > **Audience:** Developers understanding how MCP connects to a8n internals  
 > **Prerequisites:** [04 — Architecture](./04-architecture.md), [WORKFLOW_ENGINE.md](../WORKFLOW_ENGINE.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
@@ -50,13 +50,17 @@ MCP tools call **Prisma directly**, not tRPC routers. This avoids coupling to tR
 |---|---|---|---|
 | List workflows | `list_workflows` | `workflows.getMany` | Prisma |
 | Get workflow | `get_workflow` | `workflows.getOne` | Prisma + graph transform |
-| Create workflow | `create_workflow` | `workflows.create` | Prisma |
+| Create workflow | `create_workflow` | `workflows.create` | Prisma + active subscription check |
 | Update workflow | `update_workflow` | `workflows.update` | Prisma transaction |
 | Rename workflow | `rename_workflow` | `workflows.updateName` | Prisma |
 | Delete workflow | `delete_workflow` | `workflows.remove` | Prisma |
 | Execute workflow | `execute_workflow` | `workflows.execute` | Inngest |
+| Draft workflow | `create_workflow_draft` | None | Prisma `WorkflowDraft` |
+| Apply draft | `apply_workflow_draft` | None | Prisma transaction + version snapshot |
+| Partial graph edits | `add_workflow_node`, `update_node_config`, etc. | None | Prisma transaction + validation + approval hash |
+| Rollback | `rollback_workflow_version` | None | Prisma `WorkflowVersion` snapshot |
 | List credentials | `list_credentials` | `credentials.getMany` | Prisma |
-| Create credential | `create_credential` | `credentials.create` | Prisma + encrypt |
+| Create credential | `create_credential` | `credentials.create` | Prisma + encrypt + active subscription check |
 | List executions | `list_executions` | `executions.getMany` | Prisma |
 | Get execution | `get_execution` | `executions.getOne` | Prisma |
 
@@ -64,9 +68,9 @@ MCP tools call **Prisma directly**, not tRPC routers. This avoids coupling to tR
 
 | Behavior | tRPC | MCP |
 |---|---|---|
-| Create workflow | `premiumProcedure` (Pro subscription) | No premium check |
-| Create credential | `premiumProcedure` | No premium check |
-| Auth context | Session from tRPC context | Bearer + scopes (see auth gap in [05](./05-security-and-auth.md)) |
+| Create workflow | `premiumProcedure` (Pro subscription) | `requireActiveSubscription` |
+| Create credential | `premiumProcedure` | `requireActiveSubscription` |
+| Auth context | Session from tRPC context | Bearer auth passed into each request-scoped MCP server |
 
 ---
 
@@ -102,6 +106,17 @@ The database stores **nodes** and **connections** as separate Prisma models. MCP
 
 **`update_workflow`** performs a **full replacement**: deletes all existing nodes and connections, then recreates from the provided arrays. This matches the tRPC `workflows.update` transaction semantics.
 
+For beginner-safe creation, prefer the draft flow:
+
+1. `plan_workflow_from_goal`
+2. `create_workflow_draft`
+3. `answer_workflow_draft_questions`
+4. `validate_workflow_draft`
+5. `explain_workflow` and `preview_workflow_diff`
+6. `apply_workflow_draft` with explicit approval and confirmation hash
+
+Phase 3 partial edit tools follow the same safety model: they preview one change, validate the whole graph, create a `WorkflowVersion` snapshot, and save only after approval.
+
 ---
 
 ## Credential encryption
@@ -119,14 +134,14 @@ MCP **never returns** decrypted credential values in tool responses.
 
 ## Node types
 
-`list_node_types` returns the Prisma `NodeType` enum plus hardcoded metadata in `NODE_TYPE_METADATA`:
+`list_node_types` returns metadata generated from the canonical `NODE_MANIFESTS` catalog:
 
 | Category | Types |
 |---|---|
 | Triggers | `INITIAL`, `MANUAL_TRIGGER`, `GOOGLE_FORM_TRIGGER`, `STRIPE_TRIGGER` |
-| Executors | `HTTP_REQUEST`, `OPENAI`, `ANTHROPIC`, `GEMINI`, `DISCORD`, `SLACK` |
+| Executors | `HTTP_REQUEST`, `OPENAI`, `ANTHROPIC`, `GEMINI`, `DISCORD`, `SLACK`, `EMAIL`, `GOOGLE_SHEETS` |
 
-Supported credential types for `create_credential`: `OPENAI`, `ANTHROPIC`, `GEMINI`.
+Supported credential types for `create_credential`: `OPENAI`, `ANTHROPIC`, `GEMINI`, `SMTP_EMAIL`, `GOOGLE_SHEETS`.
 
 ---
 

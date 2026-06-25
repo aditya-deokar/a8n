@@ -16,6 +16,7 @@ import { validateApiKey } from "./api-key.service";
 import type { AuthResult, McpAuthInfo } from "./types";
 import type { McpScope } from "./scopes";
 import { ALL_SCOPES } from "./scopes";
+import { validateOAuthAccessToken } from "./oauth.service";
 
 /**
  * Extract the bearer token from the Authorization header.
@@ -127,6 +128,10 @@ export async function validateBearerToken(
   // Route to the appropriate authentication strategy
   if (token.startsWith(MCP_CONFIG.API_KEY_PREFIX)) {
     return authenticateWithApiKey(token);
+  }
+
+  if (token.startsWith(MCP_CONFIG.OAUTH_ACCESS_TOKEN_PREFIX)) {
+    return validateOAuthAccessToken(token, request);
   }
 
   return authenticateWithSession(token, request);

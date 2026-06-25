@@ -14,6 +14,12 @@ import { MCP_CONFIG } from "./config";
 import { registerAllTools } from "./tools/_registry";
 import { registerAllResources } from "./resources/_registry";
 import { registerAllPrompts } from "./prompts/_registry";
+import type { McpAuthInfo } from "./auth/types";
+import { getMcpAppProfile, type McpAppProfile } from "./app-profile";
+
+export interface CreateMcpServerOptions {
+  appProfile?: McpAppProfile;
+}
 
 /**
  * Create a fully configured MCP server instance.
@@ -26,15 +32,19 @@ import { registerAllPrompts } from "./prompts/_registry";
  *
  * @returns A ready-to-connect McpServer instance
  */
-export function createMcpServer(): McpServer {
+export function createMcpServer(
+  authInfo?: McpAuthInfo,
+  options: CreateMcpServerOptions = {},
+): McpServer {
   const server = new McpServer({
     name: MCP_CONFIG.SERVER_NAME,
     version: MCP_CONFIG.SERVER_VERSION,
   });
+  const appProfile = getMcpAppProfile(options.appProfile);
 
   // Register all capabilities
-  registerAllTools(server);
-  registerAllResources(server);
+  registerAllTools(server, { authInfo, appProfile });
+  registerAllResources(server, { authInfo, appProfile });
   registerAllPrompts(server);
 
   return server;

@@ -14,12 +14,12 @@ export const requireAuth = async () => {
   return session;
 };
 
-export const requireUnauth = async () => {
+export const requireUnauth = async (redirectTo = "/") => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
   if (session) {
-    redirect("/");
+    redirect(redirectTo);
   }
 };

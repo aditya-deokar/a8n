@@ -53,9 +53,15 @@ export const sendWorkflowExecution = async (data: {
   workflowId: string;
   [key: string]: any;
 }) => {
-  return inngest.send({
+  const eventId = createId();
+  const result = await inngest.send({
     name: "workflows/execute.workflow",
     data,
-    id: createId(),
+    id: eventId,
   });
+
+  return {
+    eventId,
+    result,
+  };
 };

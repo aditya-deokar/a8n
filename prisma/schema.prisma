@@ -26,6 +26,12 @@ model User {
   workflows     Workflow[]
   credentials   Credential[]
   apiKeys       ApiKey[]
+  workflowDrafts WorkflowDraft[]
+  workflowVersions WorkflowVersion[]
+  mcpAuditLogs McpAuditLog[]
+  mcpOAuthAuthorizationCodes McpOAuthAuthorizationCode[]
+  mcpOAuthAccessTokens McpOAuthAccessToken[]
+  mcpOAuthRefreshTokens McpOAuthRefreshToken[]
 
   @@unique([email])
   @@map("user")
@@ -107,6 +113,8 @@ model Workflow {
   nodes Node[]
   connections Connection[]
   executions Execution[]
+  drafts WorkflowDraft[]
+  versions WorkflowVersion[]
 
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -145,6 +153,72 @@ model Node {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum WorkflowDraftStatus {
+  DRAFT
+  READY
+  APPLIED
+  ARCHIVED
+}
+
+model WorkflowDraft {
+  id String @id @default(cuid())
+  name String
+  goal String @db.Text
+  status WorkflowDraftStatus @default(DRAFT)
+
+  plan Json @default("{}")
+  nodes Json @default("[]")
+  edges Json @default("[]")
+  missingFields Json @default("[]")
+  validation Json?
+
+  workflowId String?
+  workflow Workflow? @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  revisions WorkflowDraftRevision[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  appliedAt DateTime?
+
+  @@index([userId])
+  @@index([workflowId])
+}
+
+model WorkflowDraftRevision {
+  id String @id @default(cuid())
+  draftId String
+  draft WorkflowDraft @relation(fields: [draftId], references: [id], onDelete: Cascade)
+
+  snapshot Json
+  createdByTool String
+  createdAt DateTime @default(now())
+
+  @@index([draftId])
+}
+
+model WorkflowVersion {
+  id String @id @default(cuid())
+  workflowId String
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name String
+  nodes Json @default("[]")
+  edges Json @default("[]")
+  summary String?
+  createdByTool String
+  createdAt DateTime @default(now())
+
+  @@index([workflowId])
+  @@index([userId])
 }
 
 model Connection {
@@ -206,4 +280,110 @@ model ApiKey {
   @@index([keyHash])
   @@index([userId])
   @@map("api_key")
+}
+
+model McpAuditLog {
+  id            String   @id @default(cuid())
+  timestamp     DateTime @default(now())
+  correlationId String
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  apiKeyId      String?
+  authMethod    String
+  tool          String
+  input         Json     @default("{}")
+  durationMs    Int
+  status        String
+  error         String?  @db.Text
+  ip            String?
+  userAgent     String?
+
+  @@index([userId, timestamp])
+  @@index([tool])
+  @@index([status])
+  @@map("mcp_audit_log")
+}
+
+model McpOAuthClient {
+  id                      String   @id @default(cuid())
+  clientId                String   @unique
+  clientName              String?
+  redirectUris            String[] @default([])
+  grantTypes              String[] @default(["authorization_code", "refresh_token"])
+  responseTypes           String[] @default(["code"])
+  scope                   String?
+  tokenEndpointAuthMethod String   @default("none")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  authorizationCodes McpOAuthAuthorizationCode[]
+  accessTokens       McpOAuthAccessToken[]
+  refreshTokens      McpOAuthRefreshToken[]
+
+  @@index([clientId])
+  @@map("mcp_oauth_client")
+}
+
+model McpOAuthAuthorizationCode {
+  id                  String    @id @default(cuid())
+  codeHash            String    @unique
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId            String
+  client              McpOAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  redirectUri         String
+  resource            String
+  scopes              String[]  @default([])
+  codeChallenge       String
+  codeChallengeMethod String    @default("S256")
+  expiresAt           DateTime
+  consumedAt          DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([expiresAt])
+  @@map("mcp_oauth_authorization_code")
+}
+
+model McpOAuthAccessToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId   String
+  client     McpOAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  resource   String
+  scopes     String[]  @default([])
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([clientId])
+  @@index([expiresAt])
+  @@map("mcp_oauth_access_token")
+}
+
+model McpOAuthRefreshToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId   String
+  client     McpOAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  resource   String
+  scopes     String[]  @default([])
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([clientId])
+  @@index([expiresAt])
+  @@map("mcp_oauth_refresh_token")
 }

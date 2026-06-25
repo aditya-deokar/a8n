@@ -2,7 +2,7 @@
 
 > **Audience:** Developers choosing or debugging client connections  
 > **Prerequisites:** [01 — Introduction to MCP](./01-introduction-to-mcp.md)  
-> **Last Updated:** May 2026
+> **Last Updated:** June 24, 2026
 
 ---
 
