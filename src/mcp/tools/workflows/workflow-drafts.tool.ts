@@ -9,6 +9,7 @@ import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse } from "@/mcp/shared/sanitize";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import { requireToolApproval } from "@/mcp/safety/approval-guard";
 import {
   asGraphEdges,
   asGraphNodes,
@@ -660,17 +661,26 @@ export function registerApplyWorkflowDraft(
           diff,
           validationValid: validation.valid,
         };
-        const expectedHash = stableHash(confirmationSummary);
 
-        if (!args.approved || args.confirmationHash !== expectedHash) {
-          return mcpJsonResponse({
+        const approval = requireToolApproval({
+          toolName: "apply_workflow_draft",
+          auth,
+          approved: args.approved,
+          confirmationHash: args.confirmationHash,
+          requiresConfirmation: true,
+          confirmationPayload: confirmationSummary,
+          preview: {
             applied: false,
-            approvalRequired: true,
-            confirmationHash: expectedHash,
+            draftId: draft.id,
+            workflowId: targetWorkflowId || null,
             diff,
             validation,
-          });
-        }
+          },
+          warning:
+            "Applying a workflow draft mutates the saved workflow graph or creates a new workflow.",
+          auditInput: { draftId: draft.id, workflowId: targetWorkflowId || null },
+        });
+        if (!approval.approved) return approval.response;
 
         let workflowId = targetWorkflowId;
         if (!workflowId) {

@@ -23,6 +23,7 @@ import {
   buildPaginationOutput,
 } from "@/mcp/shared/pagination";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import { requireToolApproval } from "@/mcp/safety/approval-guard";
 
 /** Select only safe fields — never include `value` (encrypted secret) */
 const SAFE_CREDENTIAL_SELECT = {
@@ -220,6 +221,8 @@ export function registerDeleteCredential(
     "Permanently delete a credential. Any nodes using it will lose their credential reference.",
     {
       id: z.string().describe("The credential ID to delete"),
+      approved: z.boolean().default(false).describe("Must be true after explicit user approval."),
+      confirmationHash: z.string().optional().describe("Hash returned by the approval preview."),
     },
     async (args, extra) => {
       const auth = getMcpAuth(extra, context);
@@ -231,6 +234,34 @@ export function registerDeleteCredential(
       });
 
       return withErrorBoundary("delete_credential", async () => {
+        const credential = await prisma.credential.findUniqueOrThrow({
+          where: { id: args.id, userId: auth.userId },
+          select: SAFE_CREDENTIAL_SELECT,
+        });
+        const approval = requireToolApproval({
+          toolName: "delete_credential",
+          auth,
+          approved: args.approved,
+          confirmationHash: args.confirmationHash,
+          requiresConfirmation: true,
+          confirmationPayload: {
+            toolName: "delete_credential",
+            credentialId: credential.id,
+            credentialName: credential.name,
+            credentialType: credential.type,
+            irreversible: true,
+          },
+          preview: {
+            deleted: false,
+            credential,
+            irreversible: true,
+          },
+          warning:
+            "Deleting a credential permanently removes the saved secret. Workflows using it will lose access until reconfigured.",
+          auditInput: { credentialId: credential.id, credentialType: credential.type },
+        });
+        if (!approval.approved) return approval.response;
+
         await prisma.credential.delete({
           where: { id: args.id, userId: auth.userId },
         });

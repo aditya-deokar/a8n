@@ -62,6 +62,8 @@ Choose the path that matches your goal:
 1. [10 — Operations](./10-operations.md) — env vars, deployment, monitoring
 2. [05 — Security & Auth](./05-security-and-auth.md) — least privilege, key rotation
 3. [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) — pre-release verification
+4. [14 — Production Testing, Evals, and Security Hardening](./14-production-testing-evals-security-plan.md) — production-grade MCP assurance roadmap
+5. [security/](./security/) — threat model, stop-ship checklist, and MCP security governance
 
 ---
 
@@ -82,6 +84,8 @@ Choose the path that matches your goal:
 | [11-extending-the-server.md](./11-extending-the-server.md) | Add tools, resources, prompts |
 | [12-non-technical-workflow-builder-plan.md](./12-non-technical-workflow-builder-plan.md) | Phase-wise roadmap for beginner-safe workflow building |
 | [13-evaluation-and-rollout.md](./13-evaluation-and-rollout.md) | Phase 8 eval suite, quality gates, and rollout checklist |
+| [14-production-testing-evals-security-plan.md](./14-production-testing-evals-security-plan.md) | Production hardening plan for MCP testing, evals, prompt-injection defense, security, observability, and release gates |
+| [security/](./security/) | MCP threat model, stop-ship checklist, and security governance |
 | [mcp-apps/](./mcp-apps/) | ChatGPT Apps integration audit, implementation phases, UX, auth, security, and submission checklist |
 
 ---
