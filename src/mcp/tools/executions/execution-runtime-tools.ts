@@ -14,12 +14,12 @@ import {
   createWorkflowVersion,
   getWorkflowGraph,
   replaceWorkflowGraph,
-  stableHash,
   validateWorkflowGraph,
   type WorkflowGraphEdge,
   type WorkflowGraphNode,
 } from "@/mcp/tools/workflows/workflow-graph-utils";
 import { getNodeManifest } from "@/features/workflows/node-manifest";
+import { requireToolApproval } from "@/mcp/safety/approval-guard";
 
 const testTriggerSchema = z.enum(["manual", "google_form", "stripe"]);
 
@@ -303,6 +303,8 @@ export function registerExecuteWorkflowAndWait(
       timeoutMs: z.number().min(1000).max(120000).default(30000),
       pollMs: z.number().min(250).max(5000).default(1000),
       initialData: z.record(z.string(), z.unknown()).optional(),
+      approved: z.boolean().default(false),
+      confirmationHash: z.string().optional(),
     },
     async (args, extra) => {
       const auth = getMcpAuth(extra, context);
@@ -321,6 +323,25 @@ export function registerExecuteWorkflowAndWait(
         const workflow = await prisma.workflow.findUniqueOrThrow({
           where: { id: args.workflowId, userId: auth.userId },
         });
+        const approval = requireToolApproval({
+          toolName: "execute_workflow_and_wait",
+          auth,
+          approved: args.approved,
+          confirmationHash: args.confirmationHash,
+          requiresConfirmation: false,
+          preview: {
+            triggered: false,
+            workflowId: workflow.id,
+            workflowName: workflow.name,
+            timeoutMs: args.timeoutMs,
+            initialData: args.initialData || {},
+          },
+          warning:
+            "Executing a workflow may send messages, call external APIs, write to connected services, or create other side effects.",
+          auditInput: { workflowId: workflow.id, timeoutMs: args.timeoutMs },
+        });
+        if (!approval.approved) return approval.response;
+
         const event = await sendWorkflowExecution({
           workflowId: args.workflowId,
           initialData: args.initialData || {},
@@ -385,18 +406,23 @@ export function registerRunWorkflowTest(
         });
         const initialData = sampleInitialData(args.trigger, args.sampleData);
 
-        if (!args.approved) {
-          return mcpJsonResponse({
+        const approval = requireToolApproval({
+          toolName: "run_workflow_test",
+          auth,
+          approved: args.approved,
+          requiresConfirmation: false,
+          preview: {
             triggered: false,
-            approvalRequired: true,
             workflowId: args.workflowId,
             trigger: args.trigger,
             initialData,
-            warning:
-              "Running a workflow can trigger side effects such as email, Slack, Discord, HTTP requests, or Google Sheets writes.",
-            instruction: "Call again with approved: true after the user approves this test run.",
-          });
-        }
+          },
+          warning:
+            "Running a workflow can trigger side effects such as email, Slack, Discord, HTTP requests, or Google Sheets writes.",
+          instruction: "Call again with approved: true after the user approves this test run.",
+          auditInput: { workflowId: args.workflowId, trigger: args.trigger },
+        });
+        if (!approval.approved) return approval.response;
 
         const event = await sendWorkflowExecution({
           workflowId: args.workflowId,
@@ -656,7 +682,6 @@ export function registerApplyWorkflowFix(
           edges,
           validationValid: validation.valid,
         };
-        const expectedHash = stableHash(confirmationSummary);
 
         if (!validation.valid) {
           return mcpJsonResponse({
@@ -666,16 +691,32 @@ export function registerApplyWorkflowFix(
           });
         }
 
-        if (!args.approved || args.confirmationHash !== expectedHash) {
-          return mcpJsonResponse({
+        const approval = requireToolApproval({
+          toolName: "apply_workflow_fix",
+          auth,
+          approved: args.approved,
+          confirmationHash: args.confirmationHash,
+          requiresConfirmation: true,
+          confirmationPayload: confirmationSummary,
+          preview: {
             applied: false,
-            approvalRequired: true,
-            confirmationHash: expectedHash,
+            draftId: draft.id,
+            workflowId: draft.workflowId,
             validation,
-            instruction:
-              "Call again with approved: true and this confirmationHash after user approval.",
-          });
-        }
+          },
+          warning:
+            "Applying a workflow fix mutates the saved workflow graph after creating a version backup.",
+          auditInput: { draftId: draft.id, workflowId: draft.workflowId },
+        });
+        if (!approval.approved) return approval.response;
+
+        const audit = createAuditContext({
+          userId: auth.userId,
+          apiKeyId: auth.apiKeyId,
+          authMethod: auth.method,
+          tool: "apply_workflow_fix",
+          input: { draftId: draft.id, workflowId: draft.workflowId },
+        });
 
         await createWorkflowVersion({
           workflowId: draft.workflowId,
@@ -696,6 +737,7 @@ export function registerApplyWorkflowFix(
             validation: validation as unknown as Prisma.InputJsonValue,
           },
         });
+        audit.success();
 
         return mcpJsonResponse({
           applied: true,

@@ -23,7 +23,7 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 // Auto-cleanup stale entries
 if (typeof setInterval !== "undefined") {
-  setInterval(() => {
+  const cleanupTimer = setInterval(() => {
     const now = Date.now();
     const windowMs = MCP_CONFIG.RATE_LIMIT.WINDOW_MS;
 
@@ -36,6 +36,7 @@ if (typeof setInterval !== "undefined") {
       }
     }
   }, CLEANUP_INTERVAL_MS);
+  (cleanupTimer as unknown as { unref?: () => void }).unref?.();
 }
 
 /** Result of a rate limit check */

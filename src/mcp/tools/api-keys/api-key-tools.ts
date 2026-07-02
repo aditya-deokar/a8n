@@ -19,6 +19,7 @@ import {
 } from "@/mcp/auth/api-key.service";
 import { ALL_SCOPES, type McpScope } from "@/mcp/auth/scopes";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import { requireToolApproval } from "@/mcp/safety/approval-guard";
 
 // ─── create_api_key ──────────────────────────────────────────
 
@@ -133,6 +134,8 @@ export function registerRevokeApiKey(
     "Revoke an API key by its ID. The key is immediately invalidated and cannot be used for further requests.",
     {
       keyId: z.string().describe("The API key ID to revoke (use list_api_keys to find IDs)"),
+      approved: z.boolean().default(false).describe("Must be true after explicit user approval."),
+      confirmationHash: z.string().optional().describe("Hash returned by the approval preview."),
     },
     async (args, extra) => {
       const auth = getMcpAuth(extra, context);
@@ -144,6 +147,42 @@ export function registerRevokeApiKey(
       });
 
       return withErrorBoundary("revoke_api_key", async () => {
+        const key = (await listApiKeys(auth.userId)).find((item) => item.id === args.keyId);
+        if (!key) {
+          throw new Error(
+            "API key not found, already revoked, or you don't have permission to revoke it.",
+          );
+        }
+
+        const approval = requireToolApproval({
+          toolName: "revoke_api_key",
+          auth,
+          approved: args.approved,
+          confirmationHash: args.confirmationHash,
+          requiresConfirmation: true,
+          confirmationPayload: {
+            toolName: "revoke_api_key",
+            keyId: key.id,
+            keyPrefix: key.keyPrefix,
+            scopes: key.scopes,
+            irreversible: true,
+          },
+          preview: {
+            revoked: false,
+            apiKey: {
+              id: key.id,
+              name: key.name,
+              keyPrefix: key.keyPrefix,
+              scopes: key.scopes,
+            },
+            irreversible: true,
+          },
+          warning:
+            "Revoking an API key immediately invalidates it. Existing clients using that key will stop working.",
+          auditInput: { keyId: key.id, keyPrefix: key.keyPrefix },
+        });
+        if (!approval.approved) return approval.response;
+
         const revoked = await revokeApiKey({
           keyId: args.keyId,
           userId: auth.userId,

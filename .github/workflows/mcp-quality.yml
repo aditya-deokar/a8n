@@ -1,0 +1,71 @@
+name: MCP Quality
+
+on:
+  pull_request:
+    paths:
+      - "src/mcp/**"
+      - "src/app/api/mcp/**"
+      - "src/app/api/oauth/**"
+      - "src/app/api/webhooks/**"
+      - "scripts/mcp-*.ts"
+      - "docs/mcp/**"
+      - "tests/mcp/**"
+      - "tests/e2e/mcp/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "vitest.config.mjs"
+      - "playwright.config.mjs"
+  push:
+    branches:
+      - main
+      - "codex/**"
+  workflow_dispatch:
+
+jobs:
+  mcp-quality:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      MCP_AUDIT_DB_ENABLED: "false"
+      MCP_AUDIT_LOG_ENABLED: "false"
+      MCP_API_KEY_HMAC_SECRET: "ci-mcp-api-key-hmac-secret-32"
+      MCP_OAUTH_TOKEN_HMAC_SECRET: "ci-mcp-oauth-token-hmac-secret-32"
+      APP_URL: "http://127.0.0.1:3000"
+      NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3000"
+      NEXT_PUBLIC_WEBHOOK_BASE_URL: "http://127.0.0.1:3000"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: MCP offline evals
+        run: pnpm test:mcp:offline
+
+      - name: MCP contract check
+        run: pnpm mcp:contract:check
+
+      - name: MCP unit tests
+        run: pnpm test:mcp

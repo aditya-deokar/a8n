@@ -55,16 +55,22 @@ function corsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get("Origin");
   const allowedOrigins = configuredCorsOrigins();
   const allowAnyOrigin = allowedOrigins.includes("*");
-  const allowOrigin = origin && !allowAnyOrigin ? origin : "*";
-
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
+  const originAllowed = origin ? allowedOrigins.includes(origin) : false;
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": MCP_ALLOWED_METHODS,
     "Access-Control-Allow-Headers": MCP_ALLOWED_HEADERS,
     "Access-Control-Expose-Headers": MCP_EXPOSED_HEADERS,
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
+
+  if (!origin || allowAnyOrigin) {
+    headers["Access-Control-Allow-Origin"] = "*";
+  } else if (originAllowed) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
 }
 
 function withCors(request: Request, response: Response): Response {
@@ -88,6 +94,21 @@ function appProfileFromRequest(request: Request): McpAppProfile {
 }
 
 function rejectDisallowedOrigin(request: Request): Response | null {
+  if (
+    process.env.NODE_ENV === "production" &&
+    configuredCorsOrigins().includes("*")
+  ) {
+    return new Response(
+      JSON.stringify({
+        error: "MCP_CORS_ORIGINS must list explicit origins in production.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
   if (isOriginAllowed(request)) return null;
 
   return withCors(

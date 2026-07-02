@@ -24,6 +24,7 @@ import {
   validateWorkflowGraph,
   type WorkflowGraphNode,
 } from "@/mcp/tools/workflows/workflow-graph-utils";
+import { requireToolApproval } from "@/mcp/safety/approval-guard";
 
 const webhookTriggerSchema = z.enum(["google_form", "stripe"]);
 const integrationServiceSchema = z.enum(INTEGRATION_SERVICE_KEYS);
@@ -364,19 +365,26 @@ export function registerTestWebhookSetup(
           args.trigger === "google_form" ? sampleGoogleFormPayload() : sampleStripePayload();
         const initialData = webhookInitialData(args.trigger);
 
-        if (!args.approved) {
-          return mcpJsonResponse({
+        const approval = requireToolApproval({
+          toolName: "test_webhook_setup",
+          auth,
+          approved: args.approved,
+          requiresConfirmation: false,
+          preview: {
             triggered: false,
-            approvalRequired: true,
             workflowId: args.workflowId,
             trigger: args.trigger,
             webhookUrl: getWebhookUrl(args.workflowId, args.trigger),
             samplePayload,
             initialData,
-            instruction:
-              "Call again with approved: true to run the workflow using this generated sample data.",
-          });
-        }
+          },
+          warning:
+            "Testing a webhook setup triggers a workflow run with sample data and may execute connected workflow steps.",
+          instruction:
+            "Call again with approved: true to run the workflow using this generated sample data.",
+          auditInput: { workflowId: args.workflowId, trigger: args.trigger },
+        });
+        if (!approval.approved) return approval.response;
 
         const event = await sendWorkflowExecution({
           workflowId: args.workflowId,
@@ -411,6 +419,7 @@ export function registerTestCredential(
       live: z.boolean().default(false).describe("Whether to call the provider. Dry-run is safer and default."),
       spreadsheetId: z.string().optional().describe("Google Sheets live test spreadsheet ID."),
       sheetName: z.string().optional().describe("Google Sheets live test sheet name."),
+      approved: z.boolean().default(false).describe("Required only when live=true."),
     },
     async (args, extra) => {
       const auth = getMcpAuth(extra, context);
@@ -429,6 +438,26 @@ export function registerTestCredential(
           checks: [],
         };
         const checks: Array<{ name: string; status: string; detail?: string }> = [];
+
+        if (args.live) {
+          const approval = requireToolApproval({
+            toolName: "test_credential",
+            auth,
+            approved: args.approved,
+            requiresConfirmation: false,
+            preview: {
+              ...result,
+              credentialType: credential.type,
+              providerCall: true,
+            },
+            warning:
+              "Live credential testing contacts the external provider using the saved credential. Dry-run mode does not contact providers.",
+            instruction:
+              "Call again with live: true and approved: true after explicit user approval.",
+            auditInput: { credentialId: credential.id, credentialType: credential.type, live: true },
+          });
+          if (!approval.approved) return approval.response;
+        }
 
         try {
           if (credential.type === CredentialType.SMTP_EMAIL) {

@@ -9,13 +9,14 @@ import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse } from "@/mcp/shared/sanitize";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
+import type { McpAuthInfo } from "@/mcp/auth/types";
+import { requireToolApproval } from "@/mcp/safety/approval-guard";
 import {
   asGraphEdges,
   asGraphNodes,
   createWorkflowVersion,
   getWorkflowGraph,
   replaceWorkflowGraph,
-  stableHash,
   validateWorkflowGraph,
   type WorkflowGraphEdge,
   type WorkflowGraphNode,
@@ -50,7 +51,7 @@ function graphDiff(
 }
 
 async function previewOrApplyMutation(params: {
-  userId: string;
+  auth: McpAuthInfo;
   workflowId: string;
   toolName: string;
   approval: ApprovalArgs;
@@ -60,10 +61,10 @@ async function previewOrApplyMutation(params: {
     edges: WorkflowGraphEdge[],
   ) => { nodes: WorkflowGraphNode[]; edges: WorkflowGraphEdge[] };
 }) {
-  const before = await getWorkflowGraph(params.workflowId, params.userId);
+  const before = await getWorkflowGraph(params.workflowId, params.auth.userId);
   const after = params.mutate(before.nodes, before.edges);
   const validation = await validateWorkflowGraph({
-    userId: params.userId,
+    userId: params.auth.userId,
     nodes: after.nodes,
     edges: after.edges,
   });
@@ -75,8 +76,6 @@ async function previewOrApplyMutation(params: {
     diff,
     validationValid: validation.valid,
   };
-  const confirmationHash = stableHash(confirmationSummary);
-
   if (!validation.valid) {
     return mcpJsonResponse({
       applied: false,
@@ -86,21 +85,38 @@ async function previewOrApplyMutation(params: {
     });
   }
 
-  if (!params.approval.approved || params.approval.confirmationHash !== confirmationHash) {
-    return mcpJsonResponse({
+  const approval = requireToolApproval({
+    toolName: params.toolName,
+    auth: params.auth,
+    approved: params.approval.approved,
+    confirmationHash: params.approval.confirmationHash,
+    requiresConfirmation: true,
+    confirmationPayload: confirmationSummary,
+    preview: {
       applied: false,
-      approvalRequired: true,
-      confirmationHash,
+      workflowId: params.workflowId,
       diff,
       validation,
-      instruction:
-        "After user approval, call the same tool with approved: true and this confirmationHash.",
-    });
-  }
+    },
+    warning:
+      "This workflow graph edit mutates the saved workflow after creating a version backup.",
+    instruction:
+      "After user approval, call the same tool with approved: true and this confirmationHash.",
+    auditInput: { workflowId: params.workflowId, input: params.input },
+  });
+  if (!approval.approved) return approval.response;
+
+  const audit = createAuditContext({
+    userId: params.auth.userId,
+    apiKeyId: params.auth.apiKeyId,
+    authMethod: params.auth.method,
+    tool: params.toolName,
+    input: params.input,
+  });
 
   await createWorkflowVersion({
     workflowId: params.workflowId,
-    userId: params.userId,
+    userId: params.auth.userId,
     createdByTool: params.toolName,
     summary: `Before ${params.toolName}`,
   });
@@ -113,6 +129,7 @@ async function previewOrApplyMutation(params: {
       tx,
     });
   });
+  audit.success();
 
   return mcpJsonResponse({
     applied: true,
@@ -260,7 +277,6 @@ export function registerRollbackWorkflowVersion(
           diff,
           validationValid: validation.valid,
         };
-        const expectedHash = stableHash(confirmationSummary);
 
         if (!validation.valid) {
           return mcpJsonResponse({
@@ -270,15 +286,33 @@ export function registerRollbackWorkflowVersion(
           });
         }
 
-        if (!args.approved || args.confirmationHash !== expectedHash) {
-          return mcpJsonResponse({
+        const approval = requireToolApproval({
+          toolName: "rollback_workflow_version",
+          auth,
+          approved: args.approved,
+          confirmationHash: args.confirmationHash,
+          requiresConfirmation: true,
+          confirmationPayload: confirmationSummary,
+          preview: {
             applied: false,
-            approvalRequired: true,
-            confirmationHash: expectedHash,
+            workflowId: args.workflowId,
+            restoredVersionId: args.versionId,
             diff,
             validation,
-          });
-        }
+          },
+          warning:
+            "Rolling back a workflow mutates the saved graph after creating a version backup.",
+          auditInput: { workflowId: args.workflowId, versionId: args.versionId },
+        });
+        if (!approval.approved) return approval.response;
+
+        const audit = createAuditContext({
+          userId: auth.userId,
+          apiKeyId: auth.apiKeyId,
+          authMethod: auth.method,
+          tool: "rollback_workflow_version",
+          input: { workflowId: args.workflowId, versionId: args.versionId },
+        });
 
         await createWorkflowVersion({
           workflowId: args.workflowId,
@@ -291,6 +325,7 @@ export function registerRollbackWorkflowVersion(
           nodes: versionNodes,
           edges: versionEdges,
         });
+        audit.success();
 
         return mcpJsonResponse({
           applied: true,
@@ -327,7 +362,7 @@ export function registerAddWorkflowNode(
 
       return withErrorBoundary("add_workflow_node", async () =>
         previewOrApplyMutation({
-          userId: auth.userId,
+          auth,
           workflowId: args.workflowId,
           toolName: "add_workflow_node",
           approval: args,
@@ -385,7 +420,7 @@ export function registerUpdateNodeConfig(
 
       return withErrorBoundary("update_node_config", async () =>
         previewOrApplyMutation({
-          userId: auth.userId,
+          auth,
           workflowId: args.workflowId,
           toolName: "update_node_config",
           approval: args,
@@ -426,7 +461,7 @@ export function registerConnectWorkflowNodes(
 
       return withErrorBoundary("connect_workflow_nodes", async () =>
         previewOrApplyMutation({
-          userId: auth.userId,
+          auth,
           workflowId: args.workflowId,
           toolName: "connect_workflow_nodes",
           approval: args,
@@ -469,7 +504,7 @@ export function registerDisconnectWorkflowNodes(
 
       return withErrorBoundary("disconnect_workflow_nodes", async () =>
         previewOrApplyMutation({
-          userId: auth.userId,
+          auth,
           workflowId: args.workflowId,
           toolName: "disconnect_workflow_nodes",
           approval: args,
@@ -505,7 +540,7 @@ export function registerRemoveWorkflowNode(
 
       return withErrorBoundary("remove_workflow_node", async () =>
         previewOrApplyMutation({
-          userId: auth.userId,
+          auth,
           workflowId: args.workflowId,
           toolName: "remove_workflow_node",
           approval: args,
@@ -542,7 +577,7 @@ export function registerMoveWorkflowNode(
 
       return withErrorBoundary("move_workflow_node", async () =>
         previewOrApplyMutation({
-          userId: auth.userId,
+          auth,
           workflowId: args.workflowId,
           toolName: "move_workflow_node",
           approval: args,

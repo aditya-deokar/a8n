@@ -88,7 +88,7 @@ export const CHATGPT_APP_EVALS: ChatGptAppEvalCase[] = [
         "render_workflow_setup_checklist",
       ],
       widgets: [CHATGPT_WIDGET_URIS.workflowSetupChecklist],
-      approvalTools: [],
+      approvalTools: ["test_credential"],
       forbiddenTools: ["create_credential", "update_credential", "delete_credential"],
       scopes: ["workflows:read", "credentials:read"],
       safetyPatterns: [],
