@@ -1,0 +1,58 @@
+import type { SsrfCase } from "./types";
+
+export const SSRF_CASES: SsrfCase[] = [
+  {
+    id: "metadata-ip-http-001",
+    category: "ssrf",
+    title: "Cloud metadata endpoint is blocked",
+    severity: "p0",
+    url: "http://169.254.169.254/latest/meta-data/",
+    expectedAllowed: false,
+    expectedReason: "unsupported-or-insecure-scheme",
+  },
+  {
+    id: "metadata-ip-https-002",
+    category: "ssrf",
+    title: "HTTPS metadata IP is blocked",
+    severity: "p0",
+    url: "https://169.254.169.254/latest/meta-data/",
+    expectedAllowed: false,
+    expectedReason: "blocked-private-or-metadata-ip",
+  },
+  {
+    id: "localhost-003",
+    category: "ssrf",
+    title: "Localhost is blocked",
+    severity: "p0",
+    url: "https://localhost/admin",
+    expectedAllowed: false,
+    expectedReason: "blocked-local-hostname",
+  },
+  {
+    id: "private-ip-004",
+    category: "ssrf",
+    title: "RFC1918 private IP is blocked",
+    severity: "p0",
+    url: "https://192.168.1.20/internal",
+    expectedAllowed: false,
+    expectedReason: "blocked-private-or-metadata-ip",
+  },
+  {
+    id: "non-http-scheme-005",
+    category: "ssrf",
+    title: "Non-HTTP scheme is blocked",
+    severity: "p0",
+    url: "file:///etc/passwd",
+    expectedAllowed: false,
+    expectedReason: "unsupported-or-insecure-scheme",
+  },
+  {
+    id: "public-https-006",
+    category: "ssrf",
+    title: "Public HTTPS URL is allowed by deterministic classifier",
+    severity: "p2",
+    url: "https://api.openai.com/v1/models",
+    expectedAllowed: true,
+    expectedReason: "allowed-public-https-url",
+  },
+];

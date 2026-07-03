@@ -2,6 +2,10 @@ import {
   exchangeAuthorizationCode,
   refreshAccessToken,
 } from "@/mcp/auth/oauth.service";
+import {
+  checkOAuthRouteRateLimit,
+  oauthRateLimitResponse,
+} from "@/mcp/auth/oauth-route-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +48,9 @@ function tokenError(
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const rateResult = checkOAuthRouteRateLimit(request, "token");
+  if (!rateResult.allowed) return oauthRateLimitResponse(rateResult, corsHeaders());
+
   const params = await bodyParams(request);
   const grantType = params.get("grant_type");
   const clientId = params.get("client_id") || "";

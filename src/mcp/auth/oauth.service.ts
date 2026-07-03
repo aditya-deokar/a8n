@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import prisma from "@/lib/db";
+import { Prisma } from "@/generated/prisma";
 import { MCP_CONFIG } from "@/mcp/config";
 import {
   MCP_SCOPES,
@@ -22,6 +23,10 @@ const DEFAULT_REDIRECT_HOSTS = new Set([
   "localhost",
   "127.0.0.1",
 ]);
+
+const LOCAL_REDIRECT_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+const ALLOWED_GRANT_TYPES = new Set(["authorization_code", "refresh_token"]);
+const ALLOWED_RESPONSE_TYPES = new Set(["code"]);
 
 type OAuthClientInput = {
   client_name?: unknown;
@@ -59,6 +64,12 @@ type RefreshAccessTokenParams = {
   refreshToken: string;
   clientId: string;
   resource?: string;
+};
+
+type OAuthRedirectValidation = {
+  ok: boolean;
+  reason: string;
+  match: "exact" | "development-host" | "none";
 };
 
 function randomToken(prefix: string): string {
@@ -127,6 +138,85 @@ function configuredRedirectHosts(): Set<string> {
   return hosts;
 }
 
+function hasWildcard(value: string): boolean {
+  return value.includes("*") || value.includes("{") || value.includes("}");
+}
+
+function parseRedirectUri(value: string): URL {
+  if (hasWildcard(value)) {
+    throw new Error("redirect_uri cannot contain wildcards or template placeholders.");
+  }
+
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("redirect_uri must be a valid absolute URL.");
+  }
+
+  if (!["https:", "http:"].includes(url.protocol)) {
+    throw new Error("redirect_uri must use http or https.");
+  }
+
+  return url;
+}
+
+function isLocalRedirectUrl(url: URL): boolean {
+  return LOCAL_REDIRECT_HOSTS.has(url.hostname.toLowerCase());
+}
+
+function isAllowedRegistrationRedirectUrl(url: URL): boolean {
+  const hostname = url.hostname.toLowerCase();
+  if (url.protocol === "https:" && configuredRedirectHosts().has(hostname)) {
+    return true;
+  }
+
+  return process.env.NODE_ENV !== "production" && isLocalRedirectUrl(url);
+}
+
+function exactRedirectRequired(): boolean {
+  return MCP_CONFIG.OAUTH_EXACT_REDIRECT_URIS;
+}
+
+export function validateOAuthRedirectUri(
+  redirectUri: string,
+  allowedUris: string[],
+  options: {
+    exactOnly?: boolean;
+    configuredUris?: string[];
+    allowDevelopmentHostFallback?: boolean;
+  } = {},
+): OAuthRedirectValidation {
+  const exactAllowed = [...new Set([...(options.configuredUris || configuredRedirectUris()), ...allowedUris])];
+
+  for (const uri of exactAllowed) {
+    if (hasWildcard(uri)) {
+      return { ok: false, reason: "configured redirect_uri contains a wildcard", match: "none" };
+    }
+  }
+
+  const url = parseRedirectUri(redirectUri);
+  if (exactAllowed.includes(redirectUri)) {
+    return { ok: true, reason: "exact redirect_uri match", match: "exact" };
+  }
+
+  const exactOnly = options.exactOnly ?? exactRedirectRequired();
+  if (exactOnly) {
+    return { ok: false, reason: "redirect_uri must exactly match a registered URI", match: "none" };
+  }
+
+  const allowDevelopmentHostFallback = options.allowDevelopmentHostFallback ?? process.env.NODE_ENV !== "production";
+  if (!allowDevelopmentHostFallback) {
+    return { ok: false, reason: "redirect_uri host fallback is disabled", match: "none" };
+  }
+
+  if (configuredRedirectHosts().has(url.hostname) && (url.protocol === "https:" || isLocalRedirectUrl(url))) {
+    return { ok: true, reason: "development redirect host match", match: "development-host" };
+  }
+
+  return { ok: false, reason: "redirect_uri host is not allowed", match: "none" };
+}
+
 function allowedResourceCandidates(request?: Request): Set<string> {
   const resource = getOAuthResource(request);
   const issuer = getOAuthIssuer(request);
@@ -173,17 +263,78 @@ export function scopeString(scopes: string[]): string {
 }
 
 function isAllowedRedirectUri(redirectUri: string, allowedUris: string[]): boolean {
-  if (allowedUris.includes(redirectUri)) return true;
+  return validateOAuthRedirectUri(redirectUri, allowedUris).ok;
+}
 
-  const configured = configuredRedirectUris();
-  if (configured.includes(redirectUri)) return true;
-
-  try {
-    const url = new URL(redirectUri);
-    return configuredRedirectHosts().has(url.hostname);
-  } catch {
-    return false;
+export function validateOAuthClientMetadata(input: OAuthClientInput): {
+  clientName: string | null;
+  redirectUris: string[];
+  grantTypes: string[];
+  responseTypes: string[];
+  tokenEndpointAuthMethod: "none";
+  scope: string;
+} {
+  const redirectUris = Array.isArray(input.redirect_uris)
+    ? [...new Set(input.redirect_uris.filter((uri): uri is string => typeof uri === "string"))]
+    : [];
+  if (redirectUris.length === 0) {
+    throw new Error("redirect_uris must contain at least one URI.");
   }
+  if (redirectUris.length > 10) {
+    throw new Error("redirect_uris cannot contain more than 10 entries.");
+  }
+
+  for (const uri of redirectUris) {
+    const url = parseRedirectUri(uri);
+    if (exactRedirectRequired() && url.protocol !== "https:") {
+      throw new Error("Production redirect_uris must use https.");
+    }
+    if (!isAllowedRegistrationRedirectUrl(url) && !configuredRedirectUris().includes(uri)) {
+      throw new Error(`redirect_uri is not allowed: ${uri}`);
+    }
+  }
+
+  const grantTypes = Array.isArray(input.grant_types)
+    ? input.grant_types.filter((grant): grant is string => typeof grant === "string")
+    : ["authorization_code", "refresh_token"];
+  const invalidGrantTypes = grantTypes.filter((grant) => !ALLOWED_GRANT_TYPES.has(grant));
+  if (invalidGrantTypes.length > 0) {
+    throw new Error(`Unsupported grant_types: ${invalidGrantTypes.join(", ")}`);
+  }
+
+  const responseTypes = Array.isArray(input.response_types)
+    ? input.response_types.filter((type): type is string => typeof type === "string")
+    : ["code"];
+  const invalidResponseTypes = responseTypes.filter((type) => !ALLOWED_RESPONSE_TYPES.has(type));
+  if (invalidResponseTypes.length > 0) {
+    throw new Error(`Unsupported response_types: ${invalidResponseTypes.join(", ")}`);
+  }
+
+  const tokenEndpointAuthMethod =
+    typeof input.token_endpoint_auth_method === "string"
+      ? input.token_endpoint_auth_method
+      : "none";
+  if (tokenEndpointAuthMethod !== "none") {
+    throw new Error("Only token_endpoint_auth_method=none is supported.");
+  }
+
+  const rawClientName =
+    typeof input.client_name === "string" ? input.client_name.trim() : "";
+  if (/[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(rawClientName)) {
+    throw new Error("client_name cannot contain control characters.");
+  }
+
+  return {
+    clientName: rawClientName ? rawClientName.slice(0, 120) : null,
+    redirectUris,
+    grantTypes: [...new Set(grantTypes)],
+    responseTypes: [...new Set(responseTypes)],
+    tokenEndpointAuthMethod: "none",
+    scope:
+      typeof input.scope === "string"
+        ? scopeString(parseOAuthScopes(input.scope))
+        : scopeString(CHATGPT_APP_SCOPES),
+  };
 }
 
 export async function getOAuthClient(clientId: string) {
@@ -223,8 +374,9 @@ export async function validateOAuthClient(params: {
     throw new Error("Only public OAuth clients with token_endpoint_auth_method=none are supported.");
   }
 
-  if (!isAllowedRedirectUri(params.redirectUri, client.redirectUris)) {
-    throw new Error("redirect_uri is not allowed for this OAuth client.");
+  const redirectValidation = validateOAuthRedirectUri(params.redirectUri, client.redirectUris);
+  if (!redirectValidation.ok) {
+    throw new Error(`redirect_uri is not allowed for this OAuth client: ${redirectValidation.reason}.`);
   }
 
   return client;
@@ -274,44 +426,17 @@ export async function registerOAuthClient(input: OAuthClientInput) {
     throw new Error("Dynamic OAuth client registration is disabled.");
   }
 
-  const redirectUris = Array.isArray(input.redirect_uris)
-    ? input.redirect_uris.filter((uri): uri is string => typeof uri === "string")
-    : [];
-  if (redirectUris.length === 0) {
-    throw new Error("redirect_uris must contain at least one URI.");
-  }
-
-  for (const uri of redirectUris) {
-    if (!isAllowedRedirectUri(uri, [])) {
-      throw new Error(`redirect_uri is not allowed: ${uri}`);
-    }
-  }
-
-  const tokenEndpointAuthMethod =
-    typeof input.token_endpoint_auth_method === "string"
-      ? input.token_endpoint_auth_method
-      : "none";
-  if (tokenEndpointAuthMethod !== "none") {
-    throw new Error("Only token_endpoint_auth_method=none is supported.");
-  }
-
-  const grantTypes = Array.isArray(input.grant_types)
-    ? input.grant_types.filter((grant): grant is string => typeof grant === "string")
-    : ["authorization_code", "refresh_token"];
-  const responseTypes = Array.isArray(input.response_types)
-    ? input.response_types.filter((type): type is string => typeof type === "string")
-    : ["code"];
+  const metadata = validateOAuthClientMetadata(input);
 
   const client = await prisma.mcpOAuthClient.create({
     data: {
       clientId: `a8n_oauth_client_${randomBytes(18).toString("base64url")}`,
-      clientName:
-        typeof input.client_name === "string" ? input.client_name.slice(0, 120) : null,
-      redirectUris,
-      grantTypes,
-      responseTypes,
-      tokenEndpointAuthMethod,
-      scope: typeof input.scope === "string" ? scopeString(parseOAuthScopes(input.scope)) : scopeString(CHATGPT_APP_SCOPES),
+      clientName: metadata.clientName,
+      redirectUris: metadata.redirectUris,
+      grantTypes: metadata.grantTypes,
+      responseTypes: metadata.responseTypes,
+      tokenEndpointAuthMethod: metadata.tokenEndpointAuthMethod,
+      scope: metadata.scope,
     },
   });
 
@@ -349,6 +474,38 @@ export async function issueAuthorizationCode(params: IssueAuthorizationCodeParam
   });
 
   return code;
+}
+
+export async function recordOAuthConsent(params: {
+  userId: string;
+  clientId: string;
+  scopes: string[];
+  redirectUri: string;
+  resource: string;
+}) {
+  await prisma.$transaction([
+    prisma.$executeRaw`
+      UPDATE "mcp_oauth_consent"
+      SET "revokedAt" = CURRENT_TIMESTAMP
+      WHERE "userId" = ${params.userId}
+        AND "clientId" = ${params.clientId}
+        AND "revokedAt" IS NULL
+    `,
+    prisma.$executeRaw`
+      INSERT INTO "mcp_oauth_consent"
+        ("id", "userId", "clientId", "scopes", "redirectUri", "resource", "createdAt")
+      VALUES
+        (
+          ${`mcp_oauth_consent_${randomBytes(18).toString("base64url")}`},
+          ${params.userId},
+          ${params.clientId},
+          ARRAY[${Prisma.join(params.scopes)}]::TEXT[],
+          ${params.redirectUri},
+          ${params.resource},
+          CURRENT_TIMESTAMP
+        )
+    `,
+  ]);
 }
 
 async function issueTokenPair(params: {
@@ -460,12 +617,18 @@ export async function refreshAccessToken(params: RefreshAccessTokenParams) {
   }
 
   const accessToken = randomToken(MCP_CONFIG.OAUTH_ACCESS_TOKEN_PREFIX);
-  await prisma.$transaction([
-    prisma.mcpOAuthRefreshToken.update({
+  const rotatedRefreshToken = MCP_CONFIG.OAUTH_ROTATE_REFRESH_TOKENS
+    ? randomToken(MCP_CONFIG.OAUTH_REFRESH_TOKEN_PREFIX)
+    : undefined;
+  await prisma.$transaction(async (tx) => {
+    await tx.mcpOAuthRefreshToken.update({
       where: { id: refreshToken.id },
-      data: { lastUsedAt: new Date() },
-    }),
-    prisma.mcpOAuthAccessToken.create({
+      data: {
+        lastUsedAt: new Date(),
+        ...(rotatedRefreshToken ? { revokedAt: new Date() } : {}),
+      },
+    });
+    await tx.mcpOAuthAccessToken.create({
       data: {
         tokenHash: hashOAuthSecret(accessToken),
         userId: refreshToken.userId,
@@ -474,13 +637,31 @@ export async function refreshAccessToken(params: RefreshAccessTokenParams) {
         scopes: refreshToken.scopes,
         expiresAt: new Date(Date.now() + MCP_CONFIG.OAUTH_ACCESS_TOKEN_TTL_SECONDS * 1000),
       },
-    }),
-  ]);
+    });
+    if (rotatedRefreshToken) {
+      await tx.mcpOAuthRefreshToken.create({
+        data: {
+          tokenHash: hashOAuthSecret(rotatedRefreshToken),
+          userId: refreshToken.userId,
+          clientId: refreshToken.clientId,
+          resource: refreshToken.resource,
+          scopes: refreshToken.scopes,
+          expiresAt: new Date(Date.now() + MCP_CONFIG.OAUTH_REFRESH_TOKEN_TTL_SECONDS * 1000),
+        },
+      });
+    }
+  });
 
   return {
     token_type: "Bearer",
     access_token: accessToken,
     expires_in: MCP_CONFIG.OAUTH_ACCESS_TOKEN_TTL_SECONDS,
+    ...(rotatedRefreshToken
+      ? {
+          refresh_token: rotatedRefreshToken,
+          refresh_token_expires_in: MCP_CONFIG.OAUTH_REFRESH_TOKEN_TTL_SECONDS,
+        }
+      : {}),
     scope: scopeString(refreshToken.scopes),
     resource: refreshToken.resource,
   };
@@ -500,6 +681,55 @@ export async function revokeOAuthToken(token: string) {
   ]);
 
   return access.count + refresh.count;
+}
+
+export async function revokeOAuthClientUserTokens(params: {
+  userId: string;
+  clientId: string;
+}) {
+  const [access, refresh, consent] = await prisma.$transaction([
+    prisma.mcpOAuthAccessToken.updateMany({
+      where: { userId: params.userId, clientId: params.clientId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+    prisma.mcpOAuthRefreshToken.updateMany({
+      where: { userId: params.userId, clientId: params.clientId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    }),
+    prisma.$executeRaw`
+      UPDATE "mcp_oauth_consent"
+      SET "revokedAt" = CURRENT_TIMESTAMP
+      WHERE "userId" = ${params.userId}
+        AND "clientId" = ${params.clientId}
+        AND "revokedAt" IS NULL
+    `,
+  ]);
+
+  return {
+    accessTokensRevoked: access.count,
+    refreshTokensRevoked: refresh.count,
+    consentsRevoked: Number(consent),
+  };
+}
+
+export async function cleanupExpiredOAuthArtifacts(now = new Date()) {
+  const [authorizationCodes, accessTokens, refreshTokens] = await prisma.$transaction([
+    prisma.mcpOAuthAuthorizationCode.deleteMany({
+      where: { expiresAt: { lt: now } },
+    }),
+    prisma.mcpOAuthAccessToken.deleteMany({
+      where: { expiresAt: { lt: now } },
+    }),
+    prisma.mcpOAuthRefreshToken.deleteMany({
+      where: { expiresAt: { lt: now } },
+    }),
+  ]);
+
+  return {
+    authorizationCodesDeleted: authorizationCodes.count,
+    accessTokensDeleted: accessTokens.count,
+    refreshTokensDeleted: refreshTokens.count,
+  };
 }
 
 export async function validateOAuthAccessToken(

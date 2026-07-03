@@ -57,7 +57,12 @@ export const workflowsRouter = createTRPCRouter({
         nodes: z.array(
           z.object({
             id: z.string(),
-            type: z.string().nullish(),
+            type: z
+              .string()
+              .refine(
+                (value) => Object.values(NodeType).includes(value as NodeType),
+                "Invalid node type",
+              ),
             position: z.object({ x: z.number(), y: z.number() }),
             data: z.record(z.string(), z.any()).optional(),
           }),
@@ -91,7 +96,7 @@ export const workflowsRouter = createTRPCRouter({
           data: nodes.map((node) => ({
             id: node.id,
             workflowId: id,
-            name: node.type || "unknown",
+            name: node.type,
             type: node.type as NodeType,
             position: node.position,
             data: node.data || {},

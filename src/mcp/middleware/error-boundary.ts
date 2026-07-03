@@ -6,6 +6,8 @@
  * clean MCP-compatible error responses without leaking internals.
  */
 
+import { assertMcpRuntimeGuardrailForTool } from "@/mcp/observability/runtime-guardrails";
+
 /**
  * Known error categories with user-friendly messages
  */
@@ -47,6 +49,13 @@ const ERROR_MAP: Array<{
     message: (e) => (e as Error).message,
   },
 
+  // Runtime guardrail kill switches
+  {
+    match: (e) =>
+      e instanceof Error && e.message.includes("MCP runtime guardrail blocked"),
+    message: (e) => (e as Error).message,
+  },
+
   // Auth errors
   {
     match: (e) =>
@@ -80,6 +89,7 @@ export async function withErrorBoundary<T>(
   handler: () => Promise<T>,
 ): Promise<T> {
   try {
+    assertMcpRuntimeGuardrailForTool(toolName);
     return await handler();
   } catch (error) {
     // Find the first matching error handler

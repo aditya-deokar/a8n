@@ -8,6 +8,7 @@
 
 import { hasScope, type McpScope } from "../auth/scopes";
 import type { McpAuthInfo } from "../auth/types";
+import { recordMcpRuntimeEvent } from "@/mcp/observability/runtime-guardrails";
 
 /**
  * Check if the authenticated user has the required scope.
@@ -22,6 +23,14 @@ export function requireScope(
   requiredScope: McpScope,
 ): void {
   if (!hasScope(auth.scopes, requiredScope)) {
+    recordMcpRuntimeEvent({
+      type: "scope_denial",
+      userId: auth.userId,
+      authMethod: auth.method,
+      oauthClientId: auth.oauthClientId,
+      status: "denied",
+      error: `Missing scope: ${requiredScope}`,
+    });
     throw new Error(
       `Permission denied: this operation requires the "${requiredScope}" scope. ` +
         `Your connection has scopes: [${auth.scopes.join(", ")}]. ` +

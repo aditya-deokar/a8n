@@ -19,6 +19,9 @@ Phase 2 adds the MCP contract manifest and contract checks.
 Phase 3 adds starter unit coverage for shared security controls.
 Phase 4 adds route-level integration coverage for MCP auth failures, CORS, profile exposure, route rate-limit headers, production error shape, SDK-client helper scaffolding, and tenant-isolation source guards.
 Phase 5 adds central approval-guard coverage and mocked handler integration tests for high-risk MCP side effects and destructive actions.
+Phase 6 adds deterministic adversarial evals for prompt injection, exfiltration, tool poisoning, excessive agency, SSRF, authorization, and widget payload handling.
+Phase 7 adds OAuth redirect-policy, CSRF, route-rate-limit, consent, and token-lifecycle hardening coverage.
+Phase 8 adds safe-fetch and egress-policy coverage for SSRF, redirects, allowlists, and response-size limits.
 
 ## Commands
 
@@ -26,6 +29,7 @@ Phase 5 adds central approval-guard coverage and mocked handler integration test
 pnpm test:mcp
 pnpm test:mcp:coverage
 pnpm test:mcp:offline
+pnpm mcp:adversarial:eval
 ```
 
 `test:mcp:offline` runs the existing deterministic MCP quality scripts and does not need Vitest.

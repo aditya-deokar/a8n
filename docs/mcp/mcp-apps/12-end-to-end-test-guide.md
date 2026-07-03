@@ -58,7 +58,20 @@ pnpm mcp:chatgpt:release-check -- --allow-dev-hosts --allow-missing-evidence
 
 Expected result: every command prints `PASS`.
 
-## 4. Create A Test MCP Token
+## 4. Run Widget Browser Checks
+
+```powershell
+pnpm test:mcp:e2e
+```
+
+Expected:
+
+- Draft preview, setup checklist, execution timeline, and approval widgets render in Playwright.
+- Malicious HTML is displayed as text and does not execute.
+- Widget HTML has the exact CSP meta tag and no external script loads.
+- Widget screenshots are attached to the Playwright report.
+
+## 5. Create A Test MCP Token
 
 Seed or create a scoped MCP key:
 
@@ -72,7 +85,7 @@ Set the returned token:
 $env:MCP_CHATGPT_DEV_TOKEN="a8n_mcp_..."
 ```
 
-## 5. Test Local MCP Endpoint
+## 6. Test Local MCP Endpoint
 
 Use the ChatGPT profile endpoint:
 
@@ -89,7 +102,45 @@ Expected:
 - Widget resources can be listed and read.
 - Read-only smoke tool calls pass.
 
-## 6. Test OAuth Metadata Locally
+## 7. Run The MCP Live Eval Harness
+
+Safe local contract mode:
+
+```powershell
+pnpm mcp:live:eval
+```
+
+Staging read-only mode:
+
+```powershell
+$env:MCP_LIVE_EVAL_URL="https://<staging-domain>/api/mcp?profile=chatgpt"
+$env:MCP_LIVE_EVAL_TOKEN="a8n_mcp_..."
+pnpm mcp:live:eval -- --require-live
+```
+
+Staging mutating mode:
+
+```powershell
+$env:MCP_LIVE_EVAL_EXECUTION_ID="<failed-adversarial-execution-id>"
+pnpm mcp:live:eval -- --require-live --mutating
+```
+
+Trace output:
+
+```txt
+docs/mcp/evidence/live-evals/YYYY-MM-DD/mcp-live-eval.json
+```
+
+Expected:
+
+- Live server initializes through the MCP SDK client.
+- Required tools and widget resources are present.
+- Forbidden ChatGPT-profile tools are absent.
+- Read-only tool calls pass.
+- Golden prompt policy blocks unintended negative-prompt tool calls.
+- Mutating mode rejects unapproved apply and applies only with the confirmation hash.
+
+## 8. Test OAuth Metadata Locally
 
 ```powershell
 $env:MCP_CHATGPT_DEV_URL="http://localhost:3000/api/mcp?profile=chatgpt"
@@ -104,7 +155,7 @@ Expected:
 - JWKS endpoint exists.
 - Unauthenticated MCP requests return a `WWW-Authenticate` OAuth challenge.
 
-## 7. Expose A Public HTTPS Dev URL
+## 9. Expose A Public HTTPS Dev URL
 
 ChatGPT developer mode needs HTTPS. Use your preferred tunnel, then set:
 
@@ -125,7 +176,7 @@ Run:
 pnpm mcp:chatgpt:full-check -- --live
 ```
 
-## 8. Connect In ChatGPT Developer Mode
+## 10. Connect In ChatGPT Developer Mode
 
 In ChatGPT:
 
@@ -143,7 +194,7 @@ In ChatGPT:
 7. Connect your a8n account.
 8. Start a new chat and enable the a8n connector.
 
-## 9. Run Golden Prompts In ChatGPT
+## 11. Run Golden Prompts In ChatGPT
 
 Use:
 
@@ -168,7 +219,13 @@ Save them in:
 docs/mcp/mcp-apps/evidence/phase-8/
 ```
 
-## 10. Production Readiness
+For widget-specific evidence, also use:
+
+```txt
+docs/mcp/mcp-apps/evidence/golden-prompts/phase-9-widget-developer-mode.md
+```
+
+## 12. Production Readiness
 
 Set production values:
 
@@ -189,7 +246,7 @@ pnpm mcp:submission:check
 pnpm mcp:chatgpt:release-check
 ```
 
-## 11. Submit The App
+## 13. Submit The App
 
 Use:
 
@@ -208,7 +265,7 @@ Submission checklist:
 - Golden prompts and expected behavior included.
 - No localhost, tunnel, staging, or placeholder URL remains.
 
-## 12. After Launch
+## 14. After Launch
 
 Weekly:
 

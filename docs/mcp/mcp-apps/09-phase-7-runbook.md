@@ -80,7 +80,7 @@ The checker validates:
 - CORS is explicit and includes `https://chatgpt.com` and `https://chat.openai.com`.
 - OAuth issuer and resource match the app origin.
 - OAuth redirect URIs include the ChatGPT connector callback shape.
-- Dynamic client registration is enabled, unless a fixed ChatGPT client is configured.
+- Dynamic client registration is disabled in production unless an owner explicitly enables and approves it.
 - API key and OAuth token hashing secrets are configured.
 - MCP audit logging and database audit persistence are enabled.
 - `/privacy` and `/support` routes exist.

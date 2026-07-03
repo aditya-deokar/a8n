@@ -7,6 +7,7 @@
 
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { safetyMetaForOutput } from "./safety";
+import { recordMcpRuntimeEvent } from "@/mcp/observability/runtime-guardrails";
 
 /** Keys whose values should be redacted from any MCP response */
 const REDACTED_KEYS = new Set([
@@ -44,9 +45,22 @@ function isRedactedKey(key: string): boolean {
 
 function redactSensitiveString(value: string): string {
   return value
+    .replace(/<script\b[\s\S]*?<\/script>/gi, "[REDACTED_SCRIPT]")
+    .replace(/\bjavascript\s*:/gi, "[REDACTED_JAVASCRIPT_SCHEME]:")
     .replace(/-----BEGIN [^-]+PRIVATE KEY-----[\s\S]*?-----END [^-]+PRIVATE KEY-----/g, "[REDACTED_PRIVATE_KEY]")
     .replace(/\b(sk-[A-Za-z0-9_-]{12,}|sk-ant-[A-Za-z0-9_-]{12,})\b/g, "[REDACTED_API_KEY]")
     .replace(/\b(Bearer\s+)[A-Za-z0-9._~+/=-]{12,}\b/gi, "$1[REDACTED_TOKEN]");
+}
+
+function promptInjectionWarningPatterns(safety: Record<string, unknown>): string[] {
+  const warnings = Array.isArray(safety.promptInjectionWarnings)
+    ? safety.promptInjectionWarnings
+    : [];
+  return warnings.flatMap((warning) => {
+    if (!warning || typeof warning !== "object") return [];
+    const pattern = (warning as { pattern?: unknown }).pattern;
+    return typeof pattern === "string" ? [pattern] : [];
+  });
 }
 
 /**
@@ -101,6 +115,15 @@ export function mcpJsonResponse(data: unknown): CallToolResult {
       : { result: sanitized };
 
   const safety = safetyMetaForOutput(sanitized);
+  if (safety?.untrustedContentDetected) {
+    const patterns = promptInjectionWarningPatterns(safety);
+    recordMcpRuntimeEvent({
+      type: "prompt_injection_warning",
+      status: "warning",
+      count: patterns.length || 1,
+      error: patterns.join(", "),
+    });
+  }
 
   return {
     structuredContent,
@@ -119,6 +142,15 @@ export function mcpJsonResponse(data: unknown): CallToolResult {
  */
 export function mcpTextResponse(message: string): CallToolResult {
   const safety = safetyMetaForOutput(message);
+  if (safety?.untrustedContentDetected) {
+    const patterns = promptInjectionWarningPatterns(safety);
+    recordMcpRuntimeEvent({
+      type: "prompt_injection_warning",
+      status: "warning",
+      count: patterns.length || 1,
+      error: patterns.join(", "),
+    });
+  }
 
   return {
     content: [

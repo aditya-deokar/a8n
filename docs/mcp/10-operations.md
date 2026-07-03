@@ -169,12 +169,21 @@ Redaction: ok
 Recommended release checks:
 
 ```bash
-npm run eval:mcp
-npx prisma validate
-npx tsc --noEmit --pretty false
+pnpm mcp:release:gate -- --profile=chatgpt --strict
 ```
 
-See [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) for the full Phase 8 gate, limitations, and rollout checklist.
+Useful focused checks while developing:
+
+```bash
+pnpm test:mcp
+pnpm mcp:infrastructure:check
+pnpm mcp:continuous:check
+pnpm mcp:eval:trends -- --json
+pnpm mcp:production:check -- --allow-dev-hosts
+pnpm mcp:maintenance -- --dry-run --json
+```
+
+See [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) and [14 — Production Testing, Evals, And Security Plan](./14-production-testing-evals-security-plan.md) for the full gate, limitations, and rollout checklist.
 
 ---
 
@@ -184,7 +193,22 @@ See [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) for the full
 |---|---|---|---|
 | `MCP_AUDIT_LOG_ENABLED` | No | `true` | Set to `"false"` to disable console audit lines |
 | `MCP_AUDIT_DB_ENABLED` | No | `true` | Set to `"false"` to disable persisted `mcp_audit_log` writes |
+| `MCP_AUDIT_RETENTION_DAYS` | No | `90` | Retention window used by MCP production maintenance |
+| `MCP_RATE_LIMIT_BACKEND` | No | production: `database`, dev: `memory` | Use `database` for multi-instance production and `memory` for local development |
+| `MCP_MAINTENANCE_SECRET` | Production | unset | Bearer secret for `/api/cron/mcp-maintenance`; falls back to `CRON_SECRET` |
+| `MCP_OBSERVABILITY_LOG_ENABLED` | No | `true` | Emits structured `[MCP:OBSERVABILITY]` JSON events |
+| `MCP_DISABLE_SIDE_EFFECT_TOOLS` | Emergency | `false` | Blocks MCP tools with external side effects |
+| `MCP_DISABLE_CREDENTIAL_MUTATION` | Emergency | `false` | Blocks credential create/update/delete paths |
+| `MCP_FORCE_READ_ONLY_CHATGPT_PROFILE` | Emergency | `false` | Blocks non-read-only ChatGPT-profile tools |
+| `MCP_SAFETY_STRICT_MODE` | No | `false` | Enables stricter safety-mode flag for policy checks |
+| `MCP_ALERT_WINDOW_MS` | No | `300000` | Alert evaluation window |
 | `MCP_API_KEY_HMAC_SECRET` | Recommended | unset | Adds a server-side HMAC secret for newly created API key hashes |
+| `MCP_OAUTH_EXACT_REDIRECT_URIS` | Recommended | production: `true` | Set exact redirect matching explicitly for OAuth account linking |
+| `MCP_OAUTH_ALLOW_DYNAMIC_CLIENT_REGISTRATION` | No | production: `false` | Enable only when dynamic public-client registration is intentionally supported |
+| `MCP_OAUTH_DYNAMIC_CLIENT_REGISTRATION_APPROVED` | Required if DCR enabled | unset | Production readiness approval flag for dynamic client registration |
+| `MCP_OAUTH_ROTATE_REFRESH_TOKENS` | No | `true` | Set to `"false"` to keep refresh tokens stable across refresh grants |
+| `MCP_SAFE_FETCH_ALLOWLIST_MODE` | Production | `false` | Set to `"true"` so outbound MCP provider calls must match the safe-fetch allowlist |
+| `MCP_SAFE_FETCH_ALLOWLIST_DOMAINS` | No | unset | Additional comma-separated public domains allowed by safe-fetch allowlist mode |
 | `MCP_CORS_ORIGINS` | No | `"*"` | Comma-separated allowed origins for browser-capable MCP clients |
 | `A8N_WEBHOOK_SHARED_SECRET` | Recommended | unset | Shared secret accepted by Google Form and Stripe webhook endpoints |
 | `GOOGLE_FORM_WEBHOOK_SECRET` | No | unset | Google Form-specific shared secret |
@@ -197,7 +221,7 @@ See [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) for the full
 | Variable | Purpose |
 |---|---|
 | `MCP_SERVER_ENABLED` | Feature flag to disable MCP endpoint |
-| `MCP_RATE_LIMIT_ENABLED` | Toggle rate limiting |
+| `MCP_RATE_LIMIT_ENABLED` | Toggle rate limiting entirely |
 
 See [CONFIGURATION.md](../CONFIGURATION.md) for full app environment reference.
 
@@ -221,11 +245,36 @@ Replace `localhost:3000` in all client configs with your production origin.
 - [ ] `ENCRYPTION_KEY` set and backed up securely
 - [ ] Audit logging enabled (`MCP_AUDIT_LOG_ENABLED` not `false`)
 - [ ] Database audit persistence enabled and migration applied (`MCP_AUDIT_DB_ENABLED` not `false`)
+- [ ] Distributed rate limiting enabled (`MCP_RATE_LIMIT_BACKEND=database`)
+- [ ] MCP maintenance route scheduled with `MCP_MAINTENANCE_SECRET` or `CRON_SECRET`
+- [ ] Audit retention window agreed and configured (`MCP_AUDIT_RETENTION_DAYS`)
 - [ ] `MCP_API_KEY_HMAC_SECRET` set before issuing production API keys
 - [ ] Webhook secrets configured (`STRIPE_WEBHOOK_SECRET`, `GOOGLE_FORM_WEBHOOK_SECRET`, or `A8N_WEBHOOK_SHARED_SECRET`)
 - [ ] Rate limits appropriate for expected traffic
 - [ ] Log aggregation configured for `[MCP:*]` console output
+- [ ] Observability gate passes (`pnpm mcp:observability:check`)
+- [ ] Infrastructure gate passes (`pnpm mcp:infrastructure:check -- --strict`)
+- [ ] Continuous improvement gate passes (`pnpm mcp:continuous:check`)
+- [ ] Eval trend report refreshed (`pnpm mcp:eval:trends -- --json`)
+- [ ] Release gate report stored (`pnpm mcp:release:gate -- --profile=chatgpt --strict`)
 - [ ] Keys rotated on schedule; revoked keys audited
+
+### Scheduled maintenance
+
+Run MCP production maintenance at least daily from the hosting scheduler:
+
+```bash
+pnpm mcp:maintenance -- --json
+```
+
+For HTTP cron integrations, call:
+
+```text
+POST /api/cron/mcp-maintenance
+Authorization: Bearer <MCP_MAINTENANCE_SECRET>
+```
+
+The job cleans expired OAuth authorization codes/tokens, deletes audit logs older than `MCP_AUDIT_RETENTION_DAYS`, removes expired distributed rate-limit buckets, and returns audit health.
 
 ### Security recommendations
 
@@ -233,6 +282,9 @@ Replace `localhost:3000` in all client configs with your production origin.
 - Use separate keys per client (Cursor, CI, staging)
 - Prefer read-only scopes for monitoring clients
 - Monitor `server_info` metrics for unusual `topTools` patterns
+- Use `MCP_DISABLE_SIDE_EFFECT_TOOLS=true` or `MCP_FORCE_READ_ONLY_CHATGPT_PROFILE=true` during unsafe rollout windows
+- Review `/mcp` Security Center for API key, OAuth connection, audit, and runtime guardrail posture
+- Publish `/security` and route vulnerability reports to `security@flownode.com`
 
 ---
 
@@ -256,6 +308,7 @@ Replace `localhost:3000` in all client configs with your production origin.
 ```
 
 Returns live metrics: `totalRequests`, `errorCount`, `topTools`, rate limit config.
+It also returns active MCP observability alerts and runtime feature flags.
 
 ---
 

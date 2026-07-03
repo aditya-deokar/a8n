@@ -7,5 +7,10 @@ const handler = (req: Request) =>
     req,
     router: appRouter,
     createContext: createTRPCContext,
+    onError({ path, error }) {
+      if (process.env.NODE_ENV !== "test") {
+        console.error(`[trpc] ${path ?? "<unknown>"} failed`, error);
+      }
+    },
   });
 export { handler as GET, handler as POST };

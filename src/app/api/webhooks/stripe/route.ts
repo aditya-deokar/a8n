@@ -6,6 +6,10 @@ import {
   webhookAuthError,
 } from "../_security";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const url = new URL(request.url);
@@ -32,7 +36,23 @@ export async function POST(request: NextRequest) {
         ]);
     if (!sharedVerification.ok) return webhookAuthError(sharedVerification);
 
-    const body = JSON.parse(rawBody);
+    let body: Record<string, unknown>;
+    try {
+      const parsed = JSON.parse(rawBody) as unknown;
+      if (!isRecord(parsed)) {
+        return NextResponse.json(
+          { success: false, error: "Malformed Stripe payload" },
+          { status: 400 },
+        );
+      }
+      body = parsed;
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Malformed Stripe payload" },
+        { status: 400 },
+      );
+    }
+    const data = isRecord(body.data) ? body.data : undefined;
 
     const stripeData = {
       // Event metadata
@@ -40,7 +60,7 @@ export async function POST(request: NextRequest) {
       eventType: body.type,
       timestamp: body.created,
       livemode: body.livemode,
-      raw: body.data?.object,
+      raw: data?.object,
     };
 
     // Trigger an Inngest job

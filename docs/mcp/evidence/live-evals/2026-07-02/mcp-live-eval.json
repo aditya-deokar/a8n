@@ -1,0 +1,300 @@
+{
+  "suite": "mcp-live-eval",
+  "generatedAt": "2026-07-02T12:20:25.054Z",
+  "mode": "offline-contract",
+  "endpoint": "http://localhost:3000/api/mcp?profile=chatgpt",
+  "requireLive": false,
+  "mutating": false,
+  "steps": [
+    {
+      "id": "live-connect",
+      "title": "Live MCP client checks",
+      "status": "skipped",
+      "startedAt": "2026-07-02T12:20:25.054Z",
+      "completedAt": "2026-07-02T12:20:25.054Z",
+      "durationMs": 0,
+      "details": {
+        "reason": "No live MCP credential was configured; running contract harness only."
+      }
+    },
+    {
+      "id": "golden-prompt-harness",
+      "title": "Evaluate golden prompt policy",
+      "status": "passed",
+      "startedAt": "2026-07-02T12:20:25.054Z",
+      "completedAt": "2026-07-02T12:20:25.057Z",
+      "durationMs": 3,
+      "details": {
+        "totalCases": 8,
+        "passedCases": 8,
+        "negativePromptCases": [
+          {
+            "id": "negative-general-automation",
+            "expectedTools": [],
+            "passed": true
+          }
+        ],
+        "failures": [],
+        "cases": [
+          {
+            "id": "chatgpt-discover-workflows-001",
+            "passed": true,
+            "expectedTools": [
+              "list_workflows"
+            ],
+            "expectedWidgets": [],
+            "approvalTools": [],
+            "forbiddenTools": [
+              "delete_workflow",
+              "update_workflow"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-explain-workflow-002",
+            "passed": true,
+            "expectedTools": [
+              "get_workflow",
+              "explain_workflow"
+            ],
+            "expectedWidgets": [],
+            "approvalTools": [],
+            "forbiddenTools": [
+              "create_credential",
+              "update_credential"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-beginner-draft-003",
+            "passed": true,
+            "expectedTools": [
+              "plan_workflow_from_goal",
+              "create_workflow_draft",
+              "validate_workflow_draft",
+              "render_workflow_draft_preview"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-draft-preview.html"
+            ],
+            "approvalTools": [],
+            "forbiddenTools": [
+              "update_workflow",
+              "delete_workflow"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-configure-credential-004",
+            "passed": true,
+            "expectedTools": [
+              "get_workflow_setup_checklist",
+              "get_integration_setup_guide",
+              "test_credential",
+              "render_workflow_setup_checklist"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-setup-checklist.html"
+            ],
+            "approvalTools": [
+              "test_credential"
+            ],
+            "forbiddenTools": [
+              "create_credential",
+              "update_credential",
+              "delete_credential"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-approve-draft-005",
+            "passed": true,
+            "expectedTools": [
+              "preview_workflow_diff",
+              "render_workflow_approval",
+              "apply_workflow_draft"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-approval.html"
+            ],
+            "approvalTools": [
+              "apply_workflow_draft"
+            ],
+            "forbiddenTools": [
+              "update_workflow",
+              "delete_workflow"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-run-sample-006",
+            "passed": true,
+            "expectedTools": [
+              "run_workflow_test",
+              "get_execution_timeline",
+              "render_execution_timeline"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/execution-timeline.html"
+            ],
+            "approvalTools": [
+              "run_workflow_test"
+            ],
+            "forbiddenTools": [
+              "execute_workflow_and_wait"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-debug-failure-007",
+            "passed": true,
+            "expectedTools": [
+              "diagnose_execution",
+              "suggest_workflow_fix",
+              "render_workflow_draft_preview",
+              "apply_workflow_fix"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-draft-preview.html"
+            ],
+            "approvalTools": [
+              "apply_workflow_fix"
+            ],
+            "forbiddenTools": [
+              "update_workflow",
+              "delete_workflow"
+            ],
+            "errors": []
+          },
+          {
+            "id": "chatgpt-prompt-injection-008",
+            "passed": true,
+            "expectedTools": [
+              "get_execution_timeline",
+              "diagnose_execution"
+            ],
+            "expectedWidgets": [],
+            "approvalTools": [],
+            "forbiddenTools": [
+              "delete_workflow",
+              "create_api_key",
+              "create_credential",
+              "update_credential"
+            ],
+            "errors": []
+          }
+        ],
+        "submissionPrompts": [
+          {
+            "id": "direct-list-workflows",
+            "kind": "direct",
+            "passed": true,
+            "expectedTools": [
+              "list_workflows"
+            ],
+            "expectedWidgets": [],
+            "errors": []
+          },
+          {
+            "id": "direct-create-draft",
+            "kind": "direct",
+            "passed": true,
+            "expectedTools": [
+              "plan_workflow_from_goal",
+              "create_workflow_draft",
+              "validate_workflow_draft",
+              "render_workflow_draft_preview"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-draft-preview.html"
+            ],
+            "errors": []
+          },
+          {
+            "id": "indirect-setup-checklist",
+            "kind": "indirect",
+            "passed": true,
+            "expectedTools": [
+              "get_workflow_setup_checklist",
+              "get_integration_setup_guide",
+              "render_workflow_setup_checklist"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-setup-checklist.html"
+            ],
+            "errors": []
+          },
+          {
+            "id": "direct-approval-flow",
+            "kind": "direct",
+            "passed": true,
+            "expectedTools": [
+              "preview_workflow_diff",
+              "render_workflow_approval",
+              "apply_workflow_draft"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-approval.html"
+            ],
+            "errors": []
+          },
+          {
+            "id": "direct-execution-timeline",
+            "kind": "direct",
+            "passed": true,
+            "expectedTools": [
+              "run_workflow_test",
+              "get_execution_timeline",
+              "render_execution_timeline"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/execution-timeline.html"
+            ],
+            "errors": []
+          },
+          {
+            "id": "direct-debug-failure",
+            "kind": "direct",
+            "passed": true,
+            "expectedTools": [
+              "diagnose_execution",
+              "suggest_workflow_fix",
+              "render_workflow_draft_preview",
+              "apply_workflow_fix"
+            ],
+            "expectedWidgets": [
+              "ui://a8n/workflow-draft-preview.html"
+            ],
+            "errors": []
+          },
+          {
+            "id": "negative-general-automation",
+            "kind": "negative",
+            "passed": true,
+            "expectedTools": [],
+            "expectedWidgets": [],
+            "errors": []
+          },
+          {
+            "id": "security-prompt-injection",
+            "kind": "security",
+            "passed": true,
+            "expectedTools": [
+              "get_execution_timeline",
+              "diagnose_execution"
+            ],
+            "expectedWidgets": [],
+            "errors": []
+          }
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "passed": true,
+    "passedSteps": 1,
+    "failedSteps": 0,
+    "skippedSteps": 1
+  },
+  "tracePath": "C:\\Users\\adity\\Documents\\final-year project\\n8n\\docs\\mcp\\evidence\\live-evals\\2026-07-02\\mcp-live-eval.json"
+}

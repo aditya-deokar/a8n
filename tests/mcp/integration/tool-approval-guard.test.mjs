@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { mcpAuthForUser } from "../helpers/auth-fixtures.mjs";
+import { mcpAuthForUser, WRITE_SCOPES } from "../helpers/auth-fixtures.mjs";
 
 function captureServer() {
   const tools = new Map();
@@ -139,7 +139,11 @@ describe("MCP high-risk tool handler approval gates", () => {
       "@/mcp/tools/api-keys/api-key-tools"
     );
     const { server, tools } = captureServer();
-    registerRevokeApiKey(server, { authInfo: mcpAuthForUser() });
+    registerRevokeApiKey(server, {
+      authInfo: mcpAuthForUser(undefined, {
+        scopes: [...WRITE_SCOPES, "api_keys:manage"],
+      }),
+    });
 
     const handler = tools.get("revoke_api_key");
     const preview = await handler({ keyId: "key-1", approved: false }, {});

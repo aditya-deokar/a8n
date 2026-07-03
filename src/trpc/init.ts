@@ -4,6 +4,21 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { headers } from 'next/headers';
 import { cache } from 'react';
 import superjson from "superjson"
+import { isE2EMode } from '@/lib/e2e-safety';
+import { throwIfE2EFault } from '@/lib/e2e-faults';
+
+const useMockedExternalServices =
+  isE2EMode() && process.env.E2E_EXTERNAL_SERVICES === "mock";
+
+function createE2ECustomerState(user: { id?: string; email?: string }) {
+  const identity = `${user.id ?? ""} ${user.email ?? ""}`.toLowerCase();
+  const activeSubscriptions = identity.includes("pro")
+    ? [{ id: "e2e_subscription_pro", status: "active" }]
+    : [];
+
+  return { activeSubscriptions };
+}
+
 export const createTRPCContext = cache(async () => {
   /**
    * @see: https://trpc.io/docs/server/context
@@ -40,9 +55,13 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
 });
 export const premiumProcedure = protectedProcedure.use(
   async ({ ctx, next }) => {
-    const customer = await polarClient.customers.getStateExternal({
-      externalId: ctx.auth.user.id,
-    });
+    throwIfE2EFault("polar", "Simulated E2E Polar failure.");
+
+    const customer = useMockedExternalServices
+      ? createE2ECustomerState(ctx.auth.user)
+      : await polarClient.customers.getStateExternal({
+          externalId: ctx.auth.user.id,
+        });
 
     if (
       !customer.activeSubscriptions ||

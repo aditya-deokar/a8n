@@ -1,0 +1,87 @@
+name: Internal API Nightly
+
+on:
+  schedule:
+    - cron: "30 19 * * *"
+  workflow_dispatch:
+
+jobs:
+  api-nightly:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: a8n_test
+          POSTGRES_PASSWORD: a8n_test
+          POSTGRES_DB: a8n_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CI: "true"
+      NODE_ENV: test
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      E2E_TESTS: "true"
+      E2E_EXTERNAL_SERVICES: mock
+      DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
+      BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+      ENCRYPTION_KEY: test-api-encryption-key-32-characters
+      POLAR_ACCESS_TOKEN: test-polar-token
+      MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32
+      MCP_OAUTH_TOKEN_HMAC_SECRET: ci-mcp-oauth-token-hmac-secret-32
+      A8N_WEBHOOK_SHARED_SECRET: test-a8n-shared-webhook-secret
+      GOOGLE_FORM_WEBHOOK_SECRET: test-google-form-webhook-secret
+      STRIPE_WEBHOOK_SECRET: test-stripe-webhook-secret
+      STRIPE_WEBHOOK_SHARED_SECRET: test-stripe-shared-webhook-secret
+      API_DATABASE_TESTS: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply migrations
+        run: pnpm exec prisma migrate deploy
+
+      - name: Full API coverage
+        run: pnpm test:api:coverage
+
+      - name: Database integrity tests
+        run: pnpm test:api:db
+
+      - name: API release gate with DB checks
+        run: pnpm api:release:gate -- --strict --db --json
+
+      - name: API E2E release gate
+        run: pnpm api:e2e:release:gate -- --json
+
+      - name: Upload nightly API artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-nightly-artifacts
+          path: |
+            coverage/api
+            docs/api/evidence/release-gates
+            docs/api/evidence/e2e
+            playwright-report/api-e2e
+            test-results/api-e2e

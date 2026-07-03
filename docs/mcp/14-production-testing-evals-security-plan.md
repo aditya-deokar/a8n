@@ -449,6 +449,8 @@ This roadmap follows current guidance from:
 
 **Purpose:** test behavior under attack, not just happy paths.
 
+**Implementation status:** implemented in deterministic mode. Added the adversarial corpus under `src/mcp/evals/adversarial/`, `scripts/mcp-adversarial-eval.ts`, safety detector normalization for obfuscated inputs, script-tag output redaction, and a deterministic SSRF URL classifier. Model-in-the-loop judging remains intentionally outside CI.
+
 ### Attack Corpus
 
 Create:
@@ -544,6 +546,8 @@ Track:
 
 **Purpose:** make account linking safe under public internet traffic.
 
+**Implementation status:** implemented. Production OAuth now uses exact redirect URI matching by default, validates dynamic client metadata, rate-limits OAuth routes, protects authorization POSTs with one-time CSRF nonces, records revocable consent rows, audits consent approval/denial, rotates refresh tokens by default, and includes token cleanup/unlink service helpers. The production checker now fails when dynamic client registration is enabled without explicit approval.
+
 ### Tasks
 
 1. Production redirect URI policy:
@@ -591,6 +595,8 @@ Track:
 
 **Purpose:** prevent workflows and credential tests from becoming network attack tools.
 
+**Implementation status:** implemented for MCP-controlled provider calls. Added `src/lib/safe-fetch.ts`, expanded SSRF egress classification, routed live AI credential checks through `safeFetch`, added deterministic unit/eval coverage, and added production readiness gates for safe-fetch usage and `MCP_SAFE_FETCH_ALLOWLIST_MODE=true`. Workflow runtime HTTP-node execution should keep using this wrapper when live HTTP execution is introduced.
+
 ### Tasks
 
 1. Create central outbound fetch wrapper:
@@ -627,6 +633,8 @@ Track:
 ## Phase 9: Widget and UI E2E Testing
 
 **Purpose:** ensure MCP Apps widgets are reliable and safe.
+
+**Implementation status:** implemented as browser-driven widget coverage. Added exported widget render helpers, exact widget CSP metadata, browser-side redaction fallback, Playwright tests under `tests/e2e/mcp/widgets.spec.ts`, screenshot attachments, and manual ChatGPT developer-mode evidence guidance under `docs/mcp/mcp-apps/evidence/golden-prompts/`.
 
 ### Tasks
 
@@ -668,6 +676,8 @@ Track:
 
 **Purpose:** test a real MCP client against a running staging app.
 
+**Implementation status:** implemented as a sanitized MCP SDK live-eval harness. Added `scripts/mcp-live-eval.ts`, `pnpm mcp:live:eval`, trace output under `docs/mcp/evidence/live-evals/YYYY-MM-DD/`, read-only live checks, optional staging mutating checks, golden prompt policy validation, and documentation in `docs/mcp/evidence/live-evals/README.md`. Strict live execution requires staging env vars and a seeded test database.
+
 ### Tasks
 
 1. Create `scripts/mcp-live-eval.ts`.
@@ -707,6 +717,8 @@ Track:
 ## Phase 11: Observability, Alerting, and Runtime Guardrails
 
 **Purpose:** detect failures and attacks in production quickly.
+
+**Implementation status:** implemented as a vendor-neutral runtime observability and guardrail scaffold. Added `src/mcp/observability/runtime-guardrails.ts`, structured `[MCP:OBSERVABILITY]` events, alert-rule evaluation, dashboard specs, central kill-switch enforcement in `withErrorBoundary`, auth/scope/rate-limit/safety event hooks, operator summaries in `server_info` and `security_status`, `pnpm mcp:observability:check`, unit coverage, and docs under `docs/mcp/observability/`.
 
 ### Tasks
 
@@ -764,6 +776,8 @@ Track:
 
 **Purpose:** remove single-instance assumptions.
 
+**Implementation status:** implemented as the Phase 12 baseline. The MCP route now uses an async rate-limit adapter that defaults to the database backend in production and keeps the in-memory limiter for development. A `mcp_rate_limit_bucket` table and migration provide shared counters across app instances. Production maintenance now covers expired OAuth artifacts, audit retention, rate-limit bucket cleanup, audit health, and a backup/restore manifest. The infrastructure gate verifies migration presence, rollback docs, supply-chain policy, lockfile integrity, offline secret scanning, license metadata coverage, and SBOM evidence location.
+
 ### Tasks
 
 1. Replace in-memory rate limiter with Redis/Upstash/Postgres adapter.
@@ -800,6 +814,8 @@ Track:
 ## Phase 13: Release Gates and Rollout Process
 
 **Purpose:** make production readiness repeatable.
+
+**Implementation status:** implemented as the Phase 13 baseline. `scripts/mcp-release-gate.ts` composes Prisma validation, typecheck, lint, MCP tests, contract checks, offline evals, safety checks, ChatGPT app evals, adversarial evals, observability, distributed infrastructure, production readiness, rollout, and optional live staging evals. Reports are written under `docs/mcp/evidence/release-gates/<date>/mcp-release-gate.json` by default.
 
 ### Release Gate Command
 
@@ -869,6 +885,8 @@ Release must stop if any of these are true:
 ## Phase 14: Roadmap for Continuous Improvement
 
 **Purpose:** keep the MCP layer mature after initial production hardening.
+
+**Implementation status:** implemented as the Phase 14 operating baseline. Added eval trend reporting, policy-as-code, a local semantic safety classifier, MCP dashboard security summary with OAuth connection revoke support, public responsible-disclosure page, red-team exercise templates, severity matrix, and a continuous-improvement gate wired into the release gate. Workspace-level security settings are enforced through production guardrail env vars and surfaced in the MCP dashboard; a persisted per-workspace settings table remains a future product enhancement.
 
 ### Future Enhancements
 

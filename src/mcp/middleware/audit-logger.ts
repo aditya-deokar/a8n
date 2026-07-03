@@ -13,6 +13,12 @@
 
 import { MCP_CONFIG } from "../config";
 import type { Prisma } from "@/generated/prisma";
+import { getToolContract } from "@/mcp/contracts/tools.manifest";
+import type { McpToolRisk } from "@/mcp/contracts/types";
+import {
+  inferRuntimeEventType,
+  recordMcpRuntimeEvent,
+} from "@/mcp/observability/runtime-guardrails";
 
 /** A single audit log entry */
 export interface AuditLogEntry {
@@ -21,7 +27,10 @@ export interface AuditLogEntry {
   userId: string;
   apiKeyId?: string;
   authMethod: "api_key" | "session" | "oauth";
+  oauthClientId?: string;
   tool: string;
+  risk?: McpToolRisk;
+  profile?: "default" | "chatgpt" | "unknown";
   input: Record<string, unknown>;
   durationMs: number;
   status: "success" | "error";
@@ -118,6 +127,8 @@ interface RequestMetrics {
   errorCount: number;
   avgDurationMs: number;
   toolCounts: Record<string, number>;
+  riskCounts: Record<string, number>;
+  profileCounts: Record<string, number>;
   lastRequestAt: string;
 }
 
@@ -127,6 +138,8 @@ const metrics: RequestMetrics = {
   errorCount: 0,
   avgDurationMs: 0,
   toolCounts: {},
+  riskCounts: {},
+  profileCounts: {},
   lastRequestAt: "",
 };
 
@@ -145,6 +158,11 @@ function updateMetrics(entry: AuditLogEntry) {
   }
 
   metrics.toolCounts[entry.tool] = (metrics.toolCounts[entry.tool] || 0) + 1;
+  if (entry.risk) metrics.riskCounts[entry.risk] = (metrics.riskCounts[entry.risk] || 0) + 1;
+  if (entry.profile) {
+    metrics.profileCounts[entry.profile] =
+      (metrics.profileCounts[entry.profile] || 0) + 1;
+  }
 }
 
 /**
@@ -181,6 +199,14 @@ async function persistAuditEntry(entry: AuditLogEntry) {
       },
     });
   } catch (error) {
+    recordMcpRuntimeEvent({
+      type: "audit_persist_failure",
+      tool: entry.tool,
+      risk: entry.risk,
+      profile: entry.profile,
+      status: "error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     if (MCP_CONFIG.AUDIT_LOG_ENABLED) {
       console.error(
         "[MCP:AUDIT:PERSIST_FAILED]",
@@ -241,6 +267,9 @@ export function createAuditContext(params: {
   userId: string;
   apiKeyId?: string;
   authMethod: "api_key" | "session" | "oauth";
+  oauthClientId?: string;
+  risk?: McpToolRisk;
+  profile?: "default" | "chatgpt" | "unknown";
   tool: string;
   input: Record<string, unknown>;
   ip?: string;
@@ -248,6 +277,16 @@ export function createAuditContext(params: {
 }) {
   const correlationId = generateCorrelationId();
   const startTime = Date.now();
+  const contractToolName = params.tool.split(".")[0] || params.tool;
+  const contract = getToolContract(contractToolName);
+  const risk = params.risk || contract?.risk;
+  const profile =
+    params.profile ||
+    (contract?.profiles.includes("chatgpt")
+      ? "chatgpt"
+      : contract
+        ? "default"
+        : "unknown");
 
   const baseEntry: Omit<AuditLogEntry, "durationMs" | "status" | "error"> = {
     timestamp: new Date().toISOString(),
@@ -255,7 +294,10 @@ export function createAuditContext(params: {
     userId: params.userId,
     apiKeyId: params.apiKeyId,
     authMethod: params.authMethod,
+    oauthClientId: params.oauthClientId,
     tool: params.tool,
+    risk,
+    profile,
     input: sanitizeInput(params.input),
     ip: params.ip,
     userAgent: params.userAgent,
@@ -264,6 +306,19 @@ export function createAuditContext(params: {
   function logEntry(entry: AuditLogEntry) {
     // Always update metrics, regardless of logging setting
     updateMetrics(entry);
+    recordMcpRuntimeEvent({
+      type: inferRuntimeEventType(entry.tool),
+      correlationId: entry.correlationId,
+      userId: entry.userId,
+      authMethod: entry.authMethod,
+      oauthClientId: entry.oauthClientId,
+      tool: contractToolName,
+      risk: entry.risk,
+      profile: entry.profile,
+      status: entry.status,
+      durationMs: entry.durationMs,
+      error: entry.error,
+    });
     void persistAuditEntry(entry);
 
     if (!MCP_CONFIG.AUDIT_LOG_ENABLED) return;

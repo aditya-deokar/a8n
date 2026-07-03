@@ -1,0 +1,62 @@
+{
+  "suite": "mcp-eval-trend-report",
+  "generatedAt": "2026-07-02T17:54:20.023Z",
+  "evidenceFiles": 2,
+  "parsedReports": 1,
+  "suites": [
+    {
+      "suite": "mcp-live-eval",
+      "count": 1,
+      "latest": {
+        "file": "docs\\mcp\\evidence\\live-evals\\2026-07-02\\mcp-live-eval.json",
+        "suite": "mcp-live-eval",
+        "generatedAt": "2026-07-02T12:20:25.054Z",
+        "passed": null,
+        "passRate": null,
+        "averageScore": null,
+        "failedRequired": []
+      },
+      "previous": null,
+      "passRateDelta": null
+    }
+  ],
+  "attackCoverage": [
+    {
+      "category": "authz",
+      "cases": 4,
+      "p0Cases": 4
+    },
+    {
+      "category": "excessive_agency",
+      "cases": 3,
+      "p0Cases": 3
+    },
+    {
+      "category": "exfiltration",
+      "cases": 3,
+      "p0Cases": 3
+    },
+    {
+      "category": "prompt_injection",
+      "cases": 8,
+      "p0Cases": 2
+    },
+    {
+      "category": "ssrf",
+      "cases": 6,
+      "p0Cases": 5
+    },
+    {
+      "category": "tool_poisoning",
+      "cases": 3,
+      "p0Cases": 2
+    },
+    {
+      "category": "widget",
+      "cases": 2,
+      "p0Cases": 2
+    }
+  ],
+  "regressions": [],
+  "passed": true
+}

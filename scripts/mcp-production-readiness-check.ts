@@ -80,8 +80,20 @@ function secretOk(name: string): boolean {
   return env(name).length >= 32;
 }
 
-function localRouteExists(route: "privacy" | "support"): boolean {
+function localRouteExists(route: "privacy" | "support" | "security"): boolean {
   return fs.existsSync(path.join(process.cwd(), "src", "app", route, "page.tsx"));
+}
+
+function fileExists(...segments: string[]): boolean {
+  return fs.existsSync(path.join(process.cwd(), ...segments));
+}
+
+function readSource(...segments: string[]): string {
+  try {
+    return fs.readFileSync(path.join(process.cwd(), ...segments), "utf8");
+  } catch {
+    return "";
+  }
 }
 
 function validateAppUrls(allowDevHosts: boolean): Check[] {
@@ -157,6 +169,9 @@ function validateOAuth(allowDevHosts: boolean): Check[] {
   const resourceOrigin = originOf(resource);
   const redirectUris = csv(env("MCP_OAUTH_REDIRECT_URIS"));
   const redirectUrls = redirectUris.map(parseUrl);
+  const redirectUrisHaveWildcards = redirectUris.some((uri) =>
+    uri.includes("*") || uri.includes("{") || uri.includes("}"),
+  );
   const hasChatGptRedirect = redirectUrls.some(
     (item) =>
       item.url?.protocol === "https:" &&
@@ -183,6 +198,9 @@ function validateOAuth(allowDevHosts: boolean): Check[] {
     check("OAuth redirect URIs are configured", redirectUris.length > 0, "required", {
       count: redirectUris.length,
     }),
+    check("OAuth redirect URIs do not use wildcards or templates", !redirectUrisHaveWildcards, "required", {
+      configured: redirectUris,
+    }),
     check("OAuth redirect URIs are HTTPS production URLs", redirectUrisValid, "required", {
       redirectUriCount: redirectUris.length,
     }),
@@ -193,14 +211,45 @@ function validateOAuth(allowDevHosts: boolean): Check[] {
       { expectedShape: "https://chatgpt.com/connector/oauth/{callback_id}" },
     ),
     check(
-      "Dynamic client registration is enabled unless a fixed ChatGPT client is configured",
-      env("MCP_OAUTH_ALLOW_DYNAMIC_CLIENT_REGISTRATION") !== "false" ||
-        Boolean(env("MCP_OAUTH_CLIENT_ID")),
+      "OAuth production redirect policy uses exact URI matching",
+      env("MCP_OAUTH_EXACT_REDIRECT_URIS") !== "false",
+      "required",
+      {
+        configured: env("MCP_OAUTH_EXACT_REDIRECT_URIS") || "default:production-exact",
+      },
+    ),
+    check(
+      "Dynamic client registration is disabled or explicitly approved",
+      env("MCP_OAUTH_ALLOW_DYNAMIC_CLIENT_REGISTRATION") !== "true" ||
+        env("MCP_OAUTH_DYNAMIC_CLIENT_REGISTRATION_APPROVED") === "true",
       "required",
       {
         allowDynamicClientRegistration:
-          env("MCP_OAUTH_ALLOW_DYNAMIC_CLIENT_REGISTRATION") || "default:true",
+          env("MCP_OAUTH_ALLOW_DYNAMIC_CLIENT_REGISTRATION") || "default:production-false",
+        approved: env("MCP_OAUTH_DYNAMIC_CLIENT_REGISTRATION_APPROVED") === "true",
         hasConfiguredClient: Boolean(env("MCP_OAUTH_CLIENT_ID")),
+      },
+    ),
+  ];
+}
+
+function validateEgressSafety(): Check[] {
+  const integrationSource = readSource("src", "mcp", "tools", "integrations", "integration-tools.ts");
+  return [
+    check("safe-fetch wrapper exists", fileExists("src", "lib", "safe-fetch.ts"), "required"),
+    check("SSRF egress classifier exists", fileExists("src", "mcp", "safety", "egress-policy.ts"), "required"),
+    check(
+      "live credential provider checks use safeFetch",
+      integrationSource.includes("safeFetch(") && !integrationSource.includes("await fetch("),
+      "required",
+    ),
+    check(
+      "MCP_SAFE_FETCH_ALLOWLIST_MODE=true",
+      env("MCP_SAFE_FETCH_ALLOWLIST_MODE") === "true",
+      "required",
+      {
+        configured: env("MCP_SAFE_FETCH_ALLOWLIST_MODE") || "false",
+        configuredDomains: csv(env("MCP_SAFE_FETCH_ALLOWLIST_DOMAINS")).length,
       },
     ),
   ];
@@ -220,6 +269,41 @@ function validateSecretsAndAudit(): Check[] {
   ];
 }
 
+function validateObservability(): Check[] {
+  const errorBoundarySource = readSource("src", "mcp", "middleware", "error-boundary.ts");
+  const routeSource = readSource("src", "app", "api", "mcp", "route.ts");
+  const sanitizeSource = readSource("src", "mcp", "shared", "sanitize.ts");
+  return [
+    check(
+      "MCP observability runtime module exists",
+      fileExists("src", "mcp", "observability", "runtime-guardrails.ts"),
+      "required",
+    ),
+    check(
+      "runtime guardrails are enforced centrally",
+      errorBoundarySource.includes("assertMcpRuntimeGuardrailForTool(toolName)"),
+      "required",
+    ),
+    check(
+      "MCP route emits auth and rate-limit observability events",
+      routeSource.includes('type: "auth_failure"') &&
+        routeSource.includes('type: "rate_limit_denial"'),
+      "required",
+    ),
+    check(
+      "sanitizer emits prompt-injection observability events",
+      sanitizeSource.includes('type: "prompt_injection_warning"'),
+      "required",
+    ),
+    check(
+      "observability docs exist",
+      fileExists("docs", "mcp", "observability", "README.md") &&
+        fileExists("docs", "mcp", "observability", "alert-rules.md"),
+      "recommended",
+    ),
+  ];
+}
+
 function validatePublicPages(): Check[] {
   return [
     check("privacy page exists", localRouteExists("privacy"), "required", {
@@ -227,6 +311,9 @@ function validatePublicPages(): Check[] {
     }),
     check("support page exists", localRouteExists("support"), "required", {
       route: "/support",
+    }),
+    check("security page exists", localRouteExists("security"), "required", {
+      route: "/security",
     }),
   ];
 }
@@ -237,7 +324,9 @@ function main() {
     ...validateAppUrls(options.allowDevHosts),
     ...validateCors(options.allowDevHosts),
     ...validateOAuth(options.allowDevHosts),
+    ...validateEgressSafety(),
     ...validateSecretsAndAudit(),
+    ...validateObservability(),
     ...validatePublicPages(),
   ];
   const requiredFailures = checks.filter(
@@ -248,7 +337,7 @@ function main() {
   );
   const passed = requiredFailures.length === 0;
   const report = {
-    suite: "chatgpt-app-phase-7-production-readiness",
+    suite: "chatgpt-app-phase-7-8-production-readiness",
     generatedAt: new Date().toISOString(),
     allowDevHosts: options.allowDevHosts,
     passed,
@@ -260,7 +349,7 @@ function main() {
   if (options.json) {
     console.log(JSON.stringify(report, null, 2));
   } else {
-    console.log("a8n ChatGPT Apps Phase 7 production readiness check");
+    console.log("a8n ChatGPT Apps Phase 7/8 production readiness check");
     console.log(`Development hosts allowed: ${options.allowDevHosts ? "yes" : "no"}`);
     console.log("");
     for (const item of checks) {

@@ -1,6 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 export const MCP_APP_WIDGET_MIME_TYPE = "text/html;profile=mcp-app";
+export const CHATGPT_WIDGET_CSP =
+  "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'";
 
 export const CHATGPT_WIDGET_URIS = {
   workflowDraftPreview: "ui://a8n/workflow-draft-preview.html",
@@ -20,6 +22,8 @@ type WidgetSpec = {
     | "executionTimeline"
     | "workflowApproval";
 };
+
+export type ChatGptWidgetKind = WidgetSpec["kind"];
 
 const WIDGET_SPECS: WidgetSpec[] = [
   {
@@ -116,12 +120,14 @@ function widgetHtml(spec: WidgetSpec): string {
   const title = escapeHtml(spec.title);
   const description = escapeHtml(spec.description);
   const kind = JSON.stringify(spec.kind);
+  const csp = escapeHtml(CHATGPT_WIDGET_CSP);
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="${csp}" />
   <title>${title}</title>
   <style>
     :root {
@@ -199,12 +205,21 @@ function widgetHtml(spec: WidgetSpec): string {
     const fallbackTitle = ${JSON.stringify(spec.title)};
 
     function html(value) {
-      return String(value ?? "")
+      return safeText(value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    }
+
+    function safeText(value) {
+      return String(value ?? "")
+        .replace(/a8n_mcp_[A-Za-z0-9._-]+/g, "[REDACTED_MCP_KEY]")
+        .replace(/\\bsk-(?:live|test|proj)-[A-Za-z0-9_-]+/g, "[REDACTED_SECRET]")
+        .replace(/\\b(?:xox[baprs]-|ghp_|AIza)[A-Za-z0-9_-]+/g, "[REDACTED_SECRET]")
+        .replace(/\\bBearer\\s+[A-Za-z0-9._~+/=-]+/gi, "Bearer [REDACTED]")
+        .replace(/(api[_ -]?key|token|secret|authorization)(["':=\\s]+)[^\\s<>"']{8,}/gi, "$1$2[REDACTED]");
     }
 
     function hostEnvelope() {
@@ -226,7 +241,7 @@ function widgetHtml(spec: WidgetSpec): string {
     function setStatus(text, tone) {
       const status = document.getElementById("status");
       status.className = "pill " + (tone || "");
-      status.textContent = text;
+      status.textContent = safeText(text);
     }
 
     function panel(title, body) {
@@ -238,7 +253,7 @@ function widgetHtml(spec: WidgetSpec): string {
     }
 
     function renderDraft(data) {
-      document.getElementById("title").textContent = data.draft?.name || fallbackTitle;
+      document.getElementById("title").textContent = safeText(data.draft?.name || fallbackTitle);
       const valid = Boolean(data.validation?.valid);
       setStatus(valid ? "Ready" : "Needs setup", valid ? "ok" : "warn");
       const explanation = data.explanation?.beginnerExplanation || "No explanation available.";
@@ -254,7 +269,7 @@ function widgetHtml(spec: WidgetSpec): string {
     }
 
     function renderSetup(data) {
-      document.getElementById("title").textContent = data.workflow?.name ? "Setup: " + data.workflow.name : fallbackTitle;
+      document.getElementById("title").textContent = safeText(data.workflow?.name ? "Setup: " + data.workflow.name : fallbackTitle);
       setStatus(data.ready ? "Ready" : "Needs setup", data.ready ? "ok" : "warn");
       const credentials = list(data.credentialChecks, function(item) {
         return "<li><strong>" + html(item.nodeLabel || item.nodeType) + "</strong>: " + html(item.status) + "</li>";
@@ -271,7 +286,7 @@ function widgetHtml(spec: WidgetSpec): string {
     }
 
     function renderTimeline(data) {
-      document.getElementById("title").textContent = data.execution?.workflowName || fallbackTitle;
+      document.getElementById("title").textContent = safeText(data.execution?.workflowName || fallbackTitle);
       const status = data.execution?.status || "unknown";
       setStatus(status, status === "SUCCESS" ? "ok" : status === "FAILED" ? "bad" : "warn");
       const timeline = list(data.timeline, function(item) {
@@ -287,21 +302,30 @@ function widgetHtml(spec: WidgetSpec): string {
     }
 
     function renderApproval(data, bridge) {
-      document.getElementById("title").textContent = data.draft?.name ? "Approve: " + data.draft.name : fallbackTitle;
+      document.getElementById("title").textContent = safeText(data.draft?.name ? "Approve: " + data.draft.name : fallbackTitle);
       const valid = Boolean(data.validation?.valid);
       setStatus(valid ? "Valid" : "Invalid", valid ? "ok" : "bad");
       const diff = data.diff || {};
       const hash = data.approval?.confirmationHash || "";
       const canCall = Boolean(bridge && typeof bridge.callTool === "function" && data.approval?.arguments);
+      const rawArgs = data.approval?.arguments || {};
+      const applyArgs = {
+        draftId: rawArgs.draftId,
+        workflowId: rawArgs.workflowId,
+        approved: rawArgs.approved === true,
+        confirmationHash: rawArgs.confirmationHash
+      };
       setTimeout(function() {
         const button = document.getElementById("applyDraft");
         if (!button) return;
         button.disabled = !canCall || !valid;
+        if (button.dataset.bound === "true") return;
+        button.dataset.bound = "true";
         button.addEventListener("click", async function() {
           button.disabled = true;
           button.textContent = "Applying...";
           try {
-            await bridge.callTool("apply_workflow_draft", data.approval.arguments);
+            await bridge.callTool("apply_workflow_draft", applyArgs);
             button.textContent = "Applied";
           } catch (error) {
             button.textContent = "Apply draft";
@@ -356,6 +380,20 @@ function widgetHtml(spec: WidgetSpec): string {
   </script>
 </body>
 </html>`;
+}
+
+export function renderChatGptWidgetHtml(kind: ChatGptWidgetKind): string {
+  const spec = WIDGET_SPECS.find((item) => item.kind === kind);
+  if (!spec) {
+    throw new Error(`Unknown ChatGPT widget kind: ${kind}`);
+  }
+  return widgetHtml(spec);
+}
+
+export function listChatGptWidgetSpecs(): Array<
+  Pick<WidgetSpec, "name" | "title" | "uri" | "description" | "kind">
+> {
+  return WIDGET_SPECS.map((spec) => ({ ...spec }));
 }
 
 export function registerChatGptWidgetResources(server: McpServer): void {

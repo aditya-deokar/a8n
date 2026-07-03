@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import { google } from "googleapis";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
+import { safeFetch } from "@/lib/safe-fetch";
 import { CredentialType, NodeType, type Prisma } from "@/generated/prisma";
 import { requireScope } from "@/mcp/middleware/scope-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
@@ -524,19 +525,22 @@ export function registerTestCredential(
             if (args.live) {
               let response: Response;
               if (credential.type === CredentialType.OPENAI) {
-                response = await fetch("https://api.openai.com/v1/models", {
+                response = await safeFetch("https://api.openai.com/v1/models", {
                   headers: { Authorization: `Bearer ${secret}` },
+                  userAgentSuffix: "credential-test/openai",
                 });
               } else if (credential.type === CredentialType.ANTHROPIC) {
-                response = await fetch("https://api.anthropic.com/v1/models", {
+                response = await safeFetch("https://api.anthropic.com/v1/models", {
                   headers: {
                     "x-api-key": secret,
                     "anthropic-version": "2023-06-01",
                   },
+                  userAgentSuffix: "credential-test/anthropic",
                 });
               } else {
-                response = await fetch(
+                response = await safeFetch(
                   `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(secret)}`,
+                  { userAgentSuffix: "credential-test/gemini" },
                 );
               }
               checks.push({
