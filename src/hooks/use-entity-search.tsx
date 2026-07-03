@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { PAGINATION } from "@/config/constants";
 
 interface UseEntitySearchProps<T extends { 
@@ -18,7 +18,25 @@ export function useEntitySearch<T extends {
   setParams,
   debounceMs = 500
 }: UseEntitySearchProps<T>) {
-  const [localSearch, setLocalSearch] = useState(params.search);
+  const [localSearchState, setLocalSearchState] = useState({
+    sourceSearch: params.search,
+    value: params.search,
+  });
+
+  const localSearch =
+    localSearchState.sourceSearch === params.search
+      ? localSearchState.value
+      : params.search;
+
+  const setLocalSearch = useCallback(
+    (value: string) => {
+      setLocalSearchState({
+        sourceSearch: params.search,
+        value,
+      });
+    },
+    [params.search],
+  );
 
   useEffect(() => {
     if (localSearch === "" && params.search !== "") {
@@ -36,19 +54,15 @@ export function useEntitySearch<T extends {
           ...params,
           search: localSearch,
           page: PAGINATION.DEFAULT_PAGE,
-        })
+        });
       }
     }, debounceMs);
 
     return () => clearTimeout(timer);
   }, [localSearch, params, setParams, debounceMs]);
 
-  useEffect(() => {
-    setLocalSearch(params.search)
-  }, [params.search]);
-
   return {
     searchValue: localSearch,
     onSearchChange: setLocalSearch,
   };
-};
+}

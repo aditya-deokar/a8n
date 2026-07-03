@@ -31,7 +31,7 @@ async function playwrightFetch(request: APIRequestContext, input: RequestInfo | 
     headers.append(header.name, header.value);
   }
 
-  return new Response(await response.body(), {
+  return new Response(await response.text(), {
     status: response.status(),
     statusText: response.statusText(),
     headers,

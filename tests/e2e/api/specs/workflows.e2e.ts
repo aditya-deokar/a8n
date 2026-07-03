@@ -37,7 +37,7 @@ test.describe("backend E2E workflow lifecycle", () => {
       userId: expect.any(String),
       name: expect.any(String),
     });
-    expect(workflow.nodes).toBeUndefined();
+    expect(Object.hasOwn(workflow, "nodes")).toBe(false);
   });
 
   test("free test user cannot create a premium workflow", async ({ request }) => {

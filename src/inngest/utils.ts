@@ -6,7 +6,7 @@ import toposort from "toposort";
 import { inngest } from "./client";
 import { createId } from "@paralleldrive/cuid2";
 
-function useMockedExternalServices() {
+function isUsingMockedExternalServices() {
   return isE2EMode() && process.env.E2E_EXTERNAL_SERVICES === "mock";
 }
 
@@ -58,12 +58,11 @@ export const topologicalSort = (
 
 export const sendWorkflowExecution = async (data: {
   workflowId: string;
-  [key: string]: any;
-}) => {
+} & Record<string, unknown>) => {
   const eventId = createId();
   throwIfE2EFault("inngest", "Simulated E2E Inngest failure.");
 
-  if (useMockedExternalServices()) {
+  if (isUsingMockedExternalServices()) {
     const dispatch = recordE2EWorkflowDispatch(eventId, data);
 
     return {

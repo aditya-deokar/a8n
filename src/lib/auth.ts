@@ -2,39 +2,40 @@ import { checkout, polar, portal } from "@polar-sh/better-auth";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
+import { env } from "@/env";
 import prisma from "@/lib/db";
 import { polarClient } from "./polar";
 
 const useMockedExternalServices =
-  process.env.E2E_TESTS === "true" && process.env.E2E_EXTERNAL_SERVICES === "mock";
+  env.E2E_TESTS === true && env.E2E_EXTERNAL_SERVICES === "mock";
 
 const appUrl =
-  process.env.BETTER_AUTH_URL ||
-  process.env.NEXT_PUBLIC_APP_URL ||
+  env.BETTER_AUTH_URL ||
+  env.NEXT_PUBLIC_APP_URL ||
   "http://localhost:3000";
 
 const trustedOrigins = Array.from(
   new Set(
-    [appUrl, process.env.NEXT_PUBLIC_APP_URL, process.env.NGROK_URL]
+    [appUrl, env.NEXT_PUBLIC_APP_URL, env.NGROK_URL]
       .filter((origin): origin is string => Boolean(origin))
       .map((origin) => origin.replace(/\/$/, "")),
   ),
 );
 
 const socialProviders = {
-  ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+  ...(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET
     ? {
         github: {
-          clientId: process.env.GITHUB_CLIENT_ID,
-          clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          clientId: env.GITHUB_CLIENT_ID,
+          clientSecret: env.GITHUB_CLIENT_SECRET,
         },
       }
     : {}),
-  ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+  ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
     ? {
         google: {
-          clientId: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          clientId: env.GOOGLE_CLIENT_ID,
+          clientSecret: env.GOOGLE_CLIENT_SECRET,
         },
       }
     : {}),
@@ -68,7 +69,7 @@ export const auth = betterAuth({
                       slug: "pro",
                     }
                   ],
-                  successUrl: process.env.POLAR_SUCCESS_URL,
+                  successUrl: env.POLAR_SUCCESS_URL,
                   authenticatedUsersOnly: true,
                 }),
                 portal(),

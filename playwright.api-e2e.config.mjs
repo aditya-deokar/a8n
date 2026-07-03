@@ -21,7 +21,7 @@ const e2eEnv = {
   POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN || "test-polar-token",
   MCP_API_KEY_HMAC_SECRET:
     process.env.MCP_API_KEY_HMAC_SECRET ||
-    "test-mcp-api-key-hmac-secret-32",
+    "test-mcp-api-key-hmac-secret-32-chars",
   MCP_OAUTH_TOKEN_HMAC_SECRET:
     process.env.MCP_OAUTH_TOKEN_HMAC_SECRET ||
     "test-mcp-oauth-token-hmac-secret-32",

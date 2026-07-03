@@ -182,7 +182,7 @@ function main() {
       process.env.ENCRYPTION_KEY || "test-api-encryption-key-32-characters",
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN || "test-polar-token",
     MCP_API_KEY_HMAC_SECRET:
-      process.env.MCP_API_KEY_HMAC_SECRET || "ci-mcp-api-key-hmac-secret-32",
+      process.env.MCP_API_KEY_HMAC_SECRET || "ci-mcp-api-key-hmac-secret-32-chars",
     MCP_OAUTH_TOKEN_HMAC_SECRET:
       process.env.MCP_OAUTH_TOKEN_HMAC_SECRET || "ci-mcp-oauth-token-hmac-secret-32",
   };

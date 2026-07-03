@@ -15,12 +15,57 @@ import { discordChannel } from "./channels/discord";
 import { slackChannel } from "./channels/slack";
 import { emailChannel } from "./channels/email";
 import { googleSheetsChannel } from "./channels/google-sheets";
+import type { NodeExecutorParams, StepTools, WorkflowContext } from "@/features/executions/types";
+
+type WorkflowExecutionEvent = {
+  id: string;
+  data: {
+    workflowId?: string;
+    initialData?: WorkflowContext;
+  } & Record<string, unknown>;
+};
+
+type WorkflowExecutionInput = {
+  event: WorkflowExecutionEvent;
+  step: StepTools;
+};
+
+type WorkflowFailureInput = {
+  event: {
+    data: {
+      event: {
+        id: string;
+      };
+      error: {
+        message: string;
+        stack?: string;
+      };
+    };
+  };
+};
+
+type LegacyInngestApi = {
+  inngestApi: {
+    publish: (
+      options: {
+        topics: string[];
+        channel: string;
+        runId: string;
+      },
+      data: unknown,
+    ) => Promise<{ ok: boolean }>;
+  };
+};
+
+type PublishInput = Parameters<NodeExecutorParams["publish"]>[0];
 
 export const executeWorkflow = inngest.createFunction(
   { 
     id: "execute-workflow",
     retries: process.env.NODE_ENV === "production" ? 3 : 0,
-    onFailure: async ({ event, step }: any) => {
+    onFailure: async (input: unknown) => {
+      const { event } = input as WorkflowFailureInput;
+
       return prisma.execution.update({
         where: { inngestEventId: event.data.event.id },
         data: {
@@ -44,8 +89,9 @@ export const executeWorkflow = inngest.createFunction(
       emailChannel(),
       googleSheetsChannel(),
     ],
-  } as any,
-  async ({ event, step }: any) => {
+  } as unknown as Parameters<typeof inngest.createFunction>[0],
+  async (input: unknown) => {
+    const { event, step } = input as WorkflowExecutionInput;
     const inngestEventId = event.id;
     const workflowId = event.data.workflowId;
 
@@ -86,10 +132,10 @@ export const executeWorkflow = inngest.createFunction(
     });
 
     // Initialize context with any initial data from the trigger
-    let context = event.data.initialData || {};
+    let context: WorkflowContext = event.data.initialData || {};
 
     // Shim for legacy @inngest/realtime middleware publish
-    const publish = async (input: any) => {
+    const publish: NodeExecutorParams["publish"] = async (input: PublishInput) => {
       const { topic, channel, data } = await input;
       const publishOpts = {
         topics: [topic],
@@ -97,7 +143,10 @@ export const executeWorkflow = inngest.createFunction(
         runId: event.id,
       };
       
-      const result = await (inngest as any).inngestApi.publish(publishOpts, data);
+      const result = await (inngest as unknown as LegacyInngestApi).inngestApi.publish(
+        publishOpts,
+        data,
+      );
       if (!result.ok) throw new Error("Failed to publish event to realtime");
       return data;
     };
