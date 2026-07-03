@@ -1,4 +1,8 @@
 import { registerOAuthClient } from "@/mcp/auth/oauth.service";
+import {
+  checkOAuthRouteRateLimit,
+  oauthRateLimitResponse,
+} from "@/mcp/auth/oauth-route-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +26,9 @@ function errorResponse(error: string, status = 400): Response {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const rateResult = checkOAuthRouteRateLimit(request, "register");
+  if (!rateResult.allowed) return oauthRateLimitResponse(rateResult, corsHeaders());
+
   try {
     const body = await request.json();
     const client = await registerOAuthClient(body);

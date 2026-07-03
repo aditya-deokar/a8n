@@ -62,7 +62,28 @@ export function createOptionsRequest({ origin, profile } = {}) {
 
 export async function readJson(response) {
   const text = await response.text();
-  return text ? JSON.parse(text) : null;
+  if (!text) return null;
+  if (!text.trimStart().startsWith("event:")) return JSON.parse(text);
+
+  for (const frame of text.split(/\r?\n\r?\n/)) {
+    const data = frame
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice("data:".length).trimStart())
+      .join("\n")
+      .trim();
+
+    if (!data || data === "[DONE]") continue;
+
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed?.jsonrpc || parsed?.result || parsed?.error) return parsed;
+    } catch {
+      // Ignore non-JSON SSE frames.
+    }
+  }
+
+  throw new SyntaxError("MCP SSE response did not contain a JSON-RPC data frame");
 }
 
 export async function callMcpJson(routeModule, requestOptions = {}) {

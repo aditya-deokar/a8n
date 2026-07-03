@@ -17,13 +17,14 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { createMcpServer } from "@/mcp";
 import { validateBearerToken } from "@/mcp/auth/bearer-auth.middleware";
-import { checkRateLimit, rateLimitHeaders } from "@/mcp/middleware/rate-limiter";
+import { checkRateLimitForRequest, rateLimitHeaders } from "@/mcp/middleware/rate-limiter";
 import { createAuditContext, extractRequestMeta } from "@/mcp/middleware/audit-logger";
 import { MCP_CONFIG } from "@/mcp/config";
 import { getMcpAppProfile, type McpAppProfile } from "@/mcp/app-profile";
 import { buildOAuthWwwAuthenticateHeader } from "@/mcp/auth/oauth.service";
 import type { McpAuthInfo } from "@/mcp/auth/types";
 import type { RateLimitResult } from "@/mcp/middleware/rate-limiter";
+import { recordMcpRuntimeEvent } from "@/mcp/observability/runtime-guardrails";
 
 type AuthGuardSuccess = { auth: McpAuthInfo; rateResult: RateLimitResult };
 type AuthGuardError = { error: Response };
@@ -134,6 +135,12 @@ async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
   const authResult = await validateBearerToken(request);
 
   if (!authResult.ok) {
+    recordMcpRuntimeEvent({
+      type: "auth_failure",
+      authMethod: "unknown",
+      status: "error",
+      error: authResult.error,
+    });
     return {
       error: new Response(
         JSON.stringify({
@@ -154,9 +161,17 @@ async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
 
   // ─── 2. Rate Limiting ───────────────────────────────────────
   const rateLimitKey = authResult.auth.apiKeyId || authResult.auth.userId;
-  const rateResult = checkRateLimit(rateLimitKey);
+  const rateResult = await checkRateLimitForRequest(rateLimitKey);
 
   if (!rateResult.allowed) {
+    recordMcpRuntimeEvent({
+      type: "rate_limit_denial",
+      userId: authResult.auth.userId,
+      authMethod: authResult.auth.method,
+      oauthClientId: authResult.auth.oauthClientId,
+      status: "denied",
+      error: "Rate limit exceeded.",
+    });
     return {
       error: new Response(
         JSON.stringify({
@@ -204,6 +219,8 @@ export async function POST(request: Request): Promise<Response> {
     userId: auth.userId,
     apiKeyId: auth.apiKeyId,
     authMethod: auth.method,
+    oauthClientId: auth.oauthClientId,
+    profile: appProfile,
     tool: "mcp_request",
     input: { method: "POST", url: request.url },
     ip,

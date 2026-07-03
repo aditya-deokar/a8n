@@ -4,10 +4,10 @@
  * In-memory sliding window rate limiter keyed by API key or user ID.
  * Protects the MCP server from excessive requests.
  *
- * Note: For multi-instance deployments, replace with Redis-backed
- * rate limiting (e.g., Upstash Redis with @upstash/ratelimit).
+ * Phase 12 adds a Postgres-backed adapter for multi-instance production.
  */
 
+import { randomUUID } from "node:crypto";
 import { MCP_CONFIG } from "../config";
 
 interface RateLimitEntry {
@@ -45,6 +45,7 @@ export interface RateLimitResult {
   limit: number;
   remaining: number;
   resetMs: number;
+  backend?: "memory" | "database";
 }
 
 /**
@@ -85,6 +86,7 @@ export function checkRateLimit(
       limit: maxRequests,
       remaining: 0,
       resetMs,
+      backend: "memory",
     };
   }
 
@@ -96,7 +98,83 @@ export function checkRateLimit(
     limit: maxRequests,
     remaining: maxRequests - entry.timestamps.length,
     resetMs: windowMs,
+    backend: "memory",
   };
+}
+
+function rateLimitBackend(): "memory" | "database" {
+  return MCP_CONFIG.RATE_LIMIT.BACKEND === "database" ? "database" : "memory";
+}
+
+function maxRequestsForTier(tier: "free" | "pro") {
+  return tier === "pro"
+    ? MCP_CONFIG.RATE_LIMIT.PRO_TIER
+    : MCP_CONFIG.RATE_LIMIT.FREE_TIER;
+}
+
+/**
+ * Check rate limits using the configured production backend.
+ *
+ * In development this delegates to the in-memory limiter. In production set
+ * `MCP_RATE_LIMIT_BACKEND=database` so all app instances share one Postgres
+ * counter table.
+ */
+export async function checkRateLimitForRequest(
+  identifier: string,
+  tier: "free" | "pro" = "free",
+): Promise<RateLimitResult> {
+  if (rateLimitBackend() === "memory") {
+    return checkRateLimit(identifier, tier);
+  }
+
+  return checkDatabaseRateLimit(identifier, tier);
+}
+
+async function checkDatabaseRateLimit(
+  identifier: string,
+  tier: "free" | "pro",
+): Promise<RateLimitResult> {
+  const prisma = (await import("@/lib/db")).default;
+  const now = Date.now();
+  const nowDate = new Date(now);
+  const windowMs = MCP_CONFIG.RATE_LIMIT.WINDOW_MS;
+  const maxRequests = maxRequestsForTier(tier);
+  const windowStartMs = Math.floor(now / windowMs) * windowMs;
+  const windowStart = new Date(windowStartMs);
+  const expiresAt = new Date(windowStartMs + windowMs * 2);
+
+  const rows = await prisma.$queryRaw<Array<{ count: number }>>`
+    INSERT INTO "mcp_rate_limit_bucket"
+      ("id", "identifier", "tier", "windowStart", "count", "expiresAt", "createdAt", "updatedAt")
+    VALUES
+      (${randomUUID()}, ${identifier}, ${tier}, ${windowStart}, 1, ${expiresAt}, ${nowDate}, ${nowDate})
+    ON CONFLICT ("identifier", "tier", "windowStart")
+    DO UPDATE SET
+      "count" = "mcp_rate_limit_bucket"."count" + 1,
+      "updatedAt" = ${nowDate},
+      "expiresAt" = ${expiresAt}
+    RETURNING "count";
+  `;
+
+  const count = Number(rows[0]?.count || 1);
+  const resetMs = Math.max(windowStartMs + windowMs - now, 0);
+
+  return {
+    allowed: count <= maxRequests,
+    limit: maxRequests,
+    remaining: Math.max(maxRequests - count, 0),
+    resetMs,
+    backend: "database",
+  };
+}
+
+export async function cleanupExpiredRateLimitBuckets(now = new Date()) {
+  const prisma = (await import("@/lib/db")).default;
+  const deleted = await prisma.$executeRaw`
+    DELETE FROM "mcp_rate_limit_bucket"
+    WHERE "expiresAt" < ${now};
+  `;
+  return { rateLimitBucketsDeleted: Number(deleted) };
 }
 
 /**

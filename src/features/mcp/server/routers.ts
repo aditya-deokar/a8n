@@ -2,6 +2,11 @@ import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import z from "zod";
 import { createApiKey, listApiKeys, revokeApiKey } from "@/mcp/auth/api-key.service";
 import { DEFAULT_SCOPES, type McpScope } from "@/mcp/auth/scopes";
+import { revokeOAuthClientUserTokens } from "@/mcp/auth/oauth.service";
+import {
+  getMcpUserSecuritySummary,
+  listMcpOAuthConnectionsForUser,
+} from "@/mcp/security/security-summary";
 
 export const mcpRouter = createTRPCRouter({
   createKey: protectedProcedure
@@ -46,5 +51,22 @@ export const mcpRouter = createTRPCRouter({
         userId: ctx.auth.user.id,
       });
       return { success };
+    }),
+
+  securitySummary: protectedProcedure.query(async ({ ctx }) => {
+    return getMcpUserSecuritySummary(ctx.auth.user.id);
+  }),
+
+  listOAuthConnections: protectedProcedure.query(async ({ ctx }) => {
+    return listMcpOAuthConnectionsForUser(ctx.auth.user.id);
+  }),
+
+  revokeOAuthConnection: protectedProcedure
+    .input(z.object({ clientId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      return revokeOAuthClientUserTokens({
+        userId: ctx.auth.user.id,
+        clientId: input.clientId,
+      });
     }),
 });

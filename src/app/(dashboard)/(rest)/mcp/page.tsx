@@ -4,13 +4,21 @@ import { HydrateClient } from "@/trpc/server";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorView, LoadingView } from "@/components/entity-components";
 import { McpDashboardView } from "@/features/mcp/components/mcp-dashboard-view";
-import { prefetchMcpKeys } from "@/features/mcp/server/prefetch";
+import {
+  prefetchMcpKeys,
+  prefetchMcpOAuthConnections,
+  prefetchMcpSecuritySummary,
+} from "@/features/mcp/server/prefetch";
 
 const Page = async () => {
   await requireAuth();
 
   // Prefetch MCP API keys state for SSR hydration
-  await prefetchMcpKeys();
+  await Promise.all([
+    prefetchMcpKeys(),
+    prefetchMcpSecuritySummary(),
+    prefetchMcpOAuthConnections(),
+  ]);
 
   return (
     <HydrateClient>

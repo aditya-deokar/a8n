@@ -32,7 +32,7 @@ import {
   registerTestCredential,
   registerTestWebhookSetup,
 } from "./integrations/integration-tools";
-import { CHATGPT_APP_TOOL_COUNT } from "@/mcp/safety/app-tool-policy";
+import { getMcpRuntimeFeatureFlags } from "@/mcp/observability/runtime-guardrails";
 
 /**
  * Register the app-facing tool profile used by ChatGPT Apps.
@@ -45,6 +45,7 @@ export function registerChatGptAppTools(
   server: McpServer,
   context: McpToolContext = {},
 ): void {
+  const flags = getMcpRuntimeFeatureFlags();
   registerWhoami(server, context);
   registerServerInfo(server, context);
   registerHealthCheck(server, context);
@@ -55,24 +56,32 @@ export function registerChatGptAppTools(
   registerListWorkflows(server, context);
   registerGetWorkflow(server, context);
   registerPlanWorkflowFromGoal(server, context);
+  registerExplainWorkflow(server, context);
+  registerPreviewWorkflowDiff(server, context);
+
+  registerGetExecutionTimeline(server, context);
+  registerDiagnoseExecution(server, context);
+
+  registerGetWorkflowSetupChecklist(server, context);
+  registerGetIntegrationSetupGuide(server, context);
+
+  registerChatGptRenderTools(server, context);
+
+  if (flags.forceReadOnlyChatGptProfile) {
+    console.log("[MCP] ChatGPT app profile forced read-only by runtime guardrail");
+    return;
+  }
+
   registerCreateWorkflowDraft(server, context);
   registerAnswerWorkflowDraftQuestions(server, context);
   registerValidateWorkflowDraft(server, context);
-  registerExplainWorkflow(server, context);
-  registerPreviewWorkflowDiff(server, context);
   registerApplyWorkflowDraft(server, context);
 
   registerExecuteWorkflowAndWait(server, context);
   registerRunWorkflowTest(server, context);
-  registerGetExecutionTimeline(server, context);
-  registerDiagnoseExecution(server, context);
   registerSuggestWorkflowFix(server, context);
   registerApplyWorkflowFix(server, context);
 
-  registerGetWorkflowSetupChecklist(server, context);
-  registerGetIntegrationSetupGuide(server, context);
   registerTestCredential(server, context);
   registerTestWebhookSetup(server, context);
-
-  registerChatGptRenderTools(server, context);
 }

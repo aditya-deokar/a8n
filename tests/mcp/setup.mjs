@@ -5,6 +5,8 @@ process.env.MCP_API_KEY_HMAC_SECRET =
   process.env.MCP_API_KEY_HMAC_SECRET || "test-mcp-api-key-hmac-secret-32";
 process.env.MCP_OAUTH_TOKEN_HMAC_SECRET =
   process.env.MCP_OAUTH_TOKEN_HMAC_SECRET || "test-mcp-oauth-token-hmac-secret-32";
+process.env.ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY || "test-mcp-encryption-key-32-characters";
 process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000";
 process.env.APP_URL = process.env.APP_URL || "http://127.0.0.1:3000";
 process.env.DATABASE_URL =

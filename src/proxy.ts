@@ -7,12 +7,15 @@ export async function proxy(request: NextRequest) {
     request.cookies.get("__Secure-better-auth.session_token")?.value;
 
   const pathname = request.nextUrl.pathname;
-  const isDashboardPage = ["/workflows", "/executions", "/credentials", "/mcp"].some((path) =>
-    pathname.startsWith(path),
+  const dashboardRoots = ["/workflows", "/executions", "/credentials", "/mcp"];
+  const isDashboardPage = dashboardRoots.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 
   if (isDashboardPage && !sessionToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackURL", `${pathname}${request.nextUrl.search}`);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

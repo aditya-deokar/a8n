@@ -2,6 +2,10 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 import { type NextRequest, NextResponse } from "next/server";
 import { verifySharedWebhookSecret, webhookAuthError } from "../_security";
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 export async function POST(request: NextRequest) {
   try {
     const url = new URL(request.url);
@@ -19,7 +23,13 @@ export async function POST(request: NextRequest) {
     };
     if (!verification.ok) return webhookAuthError(verification);
 
-    const body = await request.json();
+    const body = await request.json().catch(() => null);
+    if (!isRecord(body)) {
+      return NextResponse.json(
+        { success: false, error: "Malformed Google Form payload" },
+        { status: 400 },
+      );
+    }
 
     const formData = {
       formId: body.formId,

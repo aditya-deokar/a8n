@@ -4,6 +4,7 @@ import React from "react";
 import { McpKeysList } from "./mcp-keys-list";
 import { McpClientConfigs } from "./mcp-client-configs";
 import { McpKeyCreatePanel } from "./mcp-key-create-modal";
+import { McpSecurityCenter } from "./mcp-security-center";
 import { ServerIcon, ShieldCheckIcon, CpuIcon, LayersIcon, PlusIcon, XIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -112,6 +113,11 @@ export const McpDashboardView = () => {
           <div className="flex-1 overflow-y-auto p-6 md:p-8">
             <div className="flex flex-col gap-8">
               <McpDashboardOverview />
+
+              <div className="flex flex-col gap-3">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 ml-1">Security Center</h2>
+                <McpSecurityCenter />
+              </div>
 
               <div className="flex flex-col gap-3">
                 <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 ml-1">Active API Keys</h2>

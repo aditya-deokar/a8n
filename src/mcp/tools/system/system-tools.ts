@@ -13,6 +13,7 @@ import { mcpJsonResponse } from "@/mcp/shared/sanitize";
 import { MCP_CONFIG } from "@/mcp/config";
 import { MCP_SCOPES, type McpScope } from "@/mcp/auth/scopes";
 import { getRequestMetrics } from "@/mcp/middleware/audit-logger";
+import { getMcpObservabilitySnapshot } from "@/mcp/observability/runtime-guardrails";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 import { isChatGptAppProfile } from "@/mcp/app-profile";
 
@@ -60,6 +61,7 @@ export function registerServerInfo(
 
       return withErrorBoundary("server_info", async () => {
         const metrics = getRequestMetrics();
+        const observability = getMcpObservabilitySnapshot();
         const chatGptProfile = isChatGptAppProfile(context.appProfile);
 
         return mcpJsonResponse({
@@ -90,10 +92,17 @@ export function registerServerInfo(
             errorCount: metrics.errorCount,
             avgDurationMs: metrics.avgDurationMs,
             lastRequestAt: metrics.lastRequestAt || null,
+            riskCounts: metrics.riskCounts,
+            profileCounts: metrics.profileCounts,
             topTools: Object.entries(metrics.toolCounts)
               .sort(([, a], [, b]) => b - a)
               .slice(0, 10)
               .map(([tool, count]) => ({ tool, count })),
+          },
+          observability: {
+            enabled: observability.enabled,
+            activeAlerts: observability.activeAlerts,
+            featureFlags: observability.featureFlags,
           },
         });
       });

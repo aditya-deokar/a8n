@@ -1,0 +1,109 @@
+{
+  "suite": "api-release-gate",
+  "generatedAt": "2026-07-03T13:16:23.945Z",
+  "strict": false,
+  "db": false,
+  "staging": false,
+  "checkTimeoutMs": 600000,
+  "passed": true,
+  "failedRequired": [],
+  "stopShipCriteria": [
+    "Anonymous access cannot reach protected or premium procedures.",
+    "Free users cannot call premium procedures.",
+    "Cross-tenant read or write access cannot succeed.",
+    "Raw credential values are never persisted, returned, logged, or stored in artifacts.",
+    "Workflow execution dispatch happens only after ownership lookup succeeds.",
+    "API key hashes, OAuth token hashes, and raw keys are not exposed by list/read procedures.",
+    "Destructive mutations include the authenticated user id in the ownership boundary.",
+    "The real test database schema matches committed Prisma migrations."
+  ],
+  "checks": [
+    {
+      "name": "prisma validate",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\prisma\\build\\index.js validate --schema prisma/schema.prisma",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1833,
+      "stdout": "The schema at prisma\\schema.prisma is valid 🚀",
+      "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from prisma\\schema.prisma."
+    },
+    {
+      "name": "typecheck",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe --max-old-space-size=4096 C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\typescript\\bin\\tsc --noEmit --pretty false",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 15271,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "lint",
+      "required": false,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\eslint\\bin\\eslint.js .",
+      "status": "failed",
+      "exitCode": 2,
+      "durationMs": 2148,
+      "stdout": "",
+      "stderr": "Oops! Something went wrong! :(\n\nESLint: 10.2.0\n\nTypeError: Class extends value undefined is not a constructor or null\n    at Object.<anonymous> (C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\.pnpm\\@typescript-eslint+utils@8._22dd9941863bfbcd09a39a1dcfd1e32b\\node_modules\\@typescript-eslint\\utils\\dist\\ts-eslint\\eslint\\FlatESLint.js:12:49)\n    at Module._compile (node:internal/modules/cjs/loader:1761:14)\n    at Object..js (node:internal/modules/cjs/loader:1893:10)\n    at Module.load (node:internal/modules/cjs/loader:1481:32)\n    at Module._load (node:internal/modules/cjs/loader:1300:12)\n    at TracingChannel.traceSync (node:diagnostics_channel:328:14)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)\n    at Module.require (node:internal/modules/cjs/loader:1504:12)\n    at require (node:internal/modules/helpers:152:16)\n    at Object.<anonymous> (C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\.pnpm\\@typescript-eslint+utils@8._22dd9941863bfbcd09a39a1dcfd1e32b\\node_modules\\@typescript-eslint\\utils\\dist\\ts-eslint\\ESLint.js:4:20)"
+    },
+    {
+      "name": "API unit and contract tests",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\vitest\\vitest.mjs run --config vitest.api.config.mjs tests/api/unit tests/api/contract",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 1418,
+      "stdout": "\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.9 \u001b[39m\u001b[90mC:/Users/adity/Documents/final-year project/n8n\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/api/unit/pagination.test.mjs \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 4\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/unit/trpc-middleware.test.mjs \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 208\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/contract/app-router-surface.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 389\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m exposes the expected tRPC procedure paths \u001b[33m 385\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/contract/error-shape.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 410\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m uses UNAUTHORIZED for missing sessions \u001b[33m 388\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/contract/procedure-inputs.test.mjs \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 462\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m rejects an empty workflow name before persistence \u001b[33m 396\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m5 passed\u001b[39m\u001b[22m\u001b[90m (5)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m16 passed\u001b[39m\u001b[22m\u001b[90m (16)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:46:15\n\u001b[2m   Duration \u001b[22m 960ms\u001b[2m (transform 462ms, setup 109ms, import 473ms, tests 1.47s, environment 1ms)\u001b[22m",
+      "stderr": ""
+    },
+    {
+      "name": "API integration, transport, and security tests",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\vitest\\vitest.mjs run --config vitest.api.config.mjs tests/api/integration tests/api/transport tests/api/security",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2970,
+      "stdout": "\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.9 \u001b[39m\u001b[90mC:/Users/adity/Documents/final-year project/n8n\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/api/integration/executions-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 995\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m lists current-user executions through workflow ownership \u001b[33m 943\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/api-key-token-exposure.test.mjs \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1042\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m returns the raw MCP API key only from createKey \u001b[33m 909\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/side-effects.test.mjs \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1053\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m dispatches workflow execution only after ownership lookup succeeds \u001b[33m 948\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/transport/trpc-batch.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 658\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m batches same-tick query calls through one HTTP request \u001b[33m 570\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/destructive-actions.test.mjs \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1126\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m workflow deletion is scoped to the authenticated user \u001b[33m 938\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/integration/mcp-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1164\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m creates API keys for the current user and computes expiration \u001b[33m 942\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/credential-secrets.test.mjs \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1185\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m never persists or returns raw credential values on create \u001b[33m 1004\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/transport/trpc-route.test.mjs \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 819\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m executes query procedures through the HTTP route \u001b[33m 560\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/integration/credentials-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1287\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m creates encrypted credentials for the current premium user \u001b[33m 1025\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/integration/workflows-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1272\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m creates a workflow with an initial node for the current premium user \u001b[33m 903\u001b[2mms\u001b[22m\u001b[39m\n \u001b[2m\u001b[90m↓\u001b[39m\u001b[22m tests/api/integration/database-integrity.test.mjs \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m | \u001b[22m\u001b[33m4 skipped\u001b[39m\u001b[2m)\u001b[22m\n \u001b[32m✓\u001b[39m tests/api/security/authz-negative-paths.test.mjs \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1538\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m rejects anonymous access to 'workflows.create' \u001b[33m 926\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m11 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m1 skipped\u001b[39m\u001b[90m (12)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m69 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m4 skipped\u001b[39m\u001b[90m (73)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:46:16\n\u001b[2m   Duration \u001b[22m 2.45s\u001b[2m (transform 1.75s, setup 385ms, import 2.61s, tests 12.14s, environment 2ms)\u001b[22m",
+      "stderr": ""
+    },
+    {
+      "name": "API coverage",
+      "required": false,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\vitest\\vitest.mjs run --config vitest.api.config.mjs --coverage",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 4593,
+      "stdout": "\u001b[1m\u001b[30m\u001b[46m RUN \u001b[49m\u001b[39m\u001b[22m \u001b[36mv4.1.9 \u001b[39m\u001b[90mC:/Users/adity/Documents/final-year project/n8n\u001b[39m\n      \u001b[2mCoverage enabled with \u001b[22m\u001b[33mv8\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/api/integration/executions-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 927\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m lists current-user executions through workflow ownership \u001b[33m 860\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/transport/trpc-batch.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 627\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m batches same-tick query calls through one HTTP request \u001b[33m 532\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/side-effects.test.mjs \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1038\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m dispatches workflow execution only after ownership lookup succeeds \u001b[33m 907\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/api-key-token-exposure.test.mjs \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1016\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m returns the raw MCP API key only from createKey \u001b[33m 858\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/destructive-actions.test.mjs \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1024\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m workflow deletion is scoped to the authenticated user \u001b[33m 827\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/credential-secrets.test.mjs \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1193\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m never persists or returns raw credential values on create \u001b[33m 912\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/integration/mcp-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1269\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m creates API keys for the current user and computes expiration \u001b[33m 885\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/transport/trpc-route.test.mjs \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 926\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m executes query procedures through the HTTP route \u001b[33m 543\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/integration/credentials-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1426\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m creates encrypted credentials for the current premium user \u001b[33m 976\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/integration/workflows-router.test.mjs \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1475\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m creates a workflow with an initial node for the current premium user \u001b[33m 888\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/unit/pagination.test.mjs \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 9\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/security/authz-negative-paths.test.mjs \u001b[2m(\u001b[22m\u001b[2m25 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2095\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m rejects anonymous access to 'workflows.create' \u001b[33m 877\u001b[2mms\u001b[22m\u001b[39m\n \u001b[2m\u001b[90m↓\u001b[39m\u001b[22m tests/api/integration/database-integrity.test.mjs \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m | \u001b[22m\u001b[33m4 skipped\u001b[39m\u001b[2m)\u001b[22m\n \u001b[32m✓\u001b[39m tests/api/unit/trpc-middleware.test.mjs \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 233\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/contract/error-shape.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 515\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m uses UNAUTHORIZED for missing sessions \u001b[33m 488\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/contract/app-router-surface.test.mjs \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 461\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m exposes the expected tRPC procedure paths \u001b[33m 453\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/api/contract/procedure-inputs.test.mjs \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 578\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m rejects an empty workflow name before persistence \u001b[33m 480\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m16 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m1 skipped\u001b[39m\u001b[90m (17)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m85 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m4 skipped\u001b[39m\u001b[90m (89)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:46:20\n\u001b[2m   Duration \u001b[22m 3.78s\u001b[2m (transform 1.99s, setup 503ms, import 3.34s, tests 14.81s, environment 5ms)\u001b[22m\n\n\u001b[34m % \u001b[39m\u001b[2mCoverage report from \u001b[22m\u001b[33mv8\u001b[39m\n-------------------|---------|----------|---------|---------|-------------------\nFile               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s \n-------------------|---------|----------|---------|---------|-------------------\nAll files          |   97.84 |    77.27 |   97.05 |   98.86 |                   \n ...pi/trpc/[trpc] |      75 |       25 |     100 |   66.66 |                   \n  route.ts         |      75 |       25 |     100 |   66.66 | 12                \n ...entials/server |     100 |      100 |     100 |     100 |                   \n  routers.ts       |     100 |      100 |     100 |     100 |                   \n ...cutions/server |     100 |      100 |     100 |     100 |                   \n  routers.ts       |     100 |      100 |     100 |     100 |                   \n ...res/mcp/server |     100 |      100 |     100 |     100 |                   \n  routers.ts       |     100 |      100 |     100 |     100 |                   \n ...rkflows/server |     100 |       75 |     100 |     100 |                   \n  routers.ts       |     100 |       75 |     100 |     100 | 102,147           \n lib               |      80 |      100 |      50 |     100 |                   \n  encryption.ts    |      80 |      100 |      50 |     100 |                   \n trpc              |     100 |      100 |     100 |     100 |                   \n  init.ts          |     100 |      100 |     100 |     100 |                   \n trpc/routers      |     100 |      100 |     100 |     100 |                   \n  _app.ts          |     100 |      100 |     100 |     100 |                   \n-------------------|---------|----------|---------|---------|-------------------",
+      "stderr": ""
+    },
+    {
+      "name": "prisma migrate status",
+      "required": false,
+      "command": "",
+      "status": "skipped",
+      "exitCode": null,
+      "durationMs": 0,
+      "reason": "Pass --db or set API_DATABASE_TESTS=true."
+    },
+    {
+      "name": "API database integrity tests",
+      "required": false,
+      "command": "",
+      "status": "skipped",
+      "exitCode": null,
+      "durationMs": 0,
+      "reason": "Pass --db or set API_DATABASE_TESTS=true."
+    },
+    {
+      "name": "staging smoke check",
+      "required": false,
+      "command": "",
+      "status": "skipped",
+      "exitCode": null,
+      "durationMs": 0,
+      "reason": "Pass --staging with API_RELEASE_GATE_STAGING_URL."
+    }
+  ]
+}

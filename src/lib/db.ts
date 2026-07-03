@@ -1,12 +1,15 @@
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma";
+import { assertSafeE2EEnvironment } from "@/lib/e2e-safety";
 
 const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 const connectionString = process.env.DATABASE_URL;
+
+assertSafeE2EEnvironment();
 
 if (!connectionString) {
   throw new Error(

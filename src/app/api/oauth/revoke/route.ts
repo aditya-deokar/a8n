@@ -1,4 +1,8 @@
 import { revokeOAuthToken } from "@/mcp/auth/oauth.service";
+import {
+  checkOAuthRouteRateLimit,
+  oauthRateLimitResponse,
+} from "@/mcp/auth/oauth-route-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +16,9 @@ function corsHeaders(): Record<string, string> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const rateResult = checkOAuthRouteRateLimit(request, "revoke");
+  if (!rateResult.allowed) return oauthRateLimitResponse(rateResult, corsHeaders());
+
   const params = new URLSearchParams(await request.text());
   const token = params.get("token");
   if (token) {

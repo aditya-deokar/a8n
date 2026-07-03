@@ -9,6 +9,7 @@ import {
   isPersistentAuditEnabled,
   listPersistedAuditEvents,
 } from "@/mcp/middleware/audit-logger";
+import { getMcpObservabilitySnapshot } from "@/mcp/observability/runtime-guardrails";
 
 export function registerSecurityStatus(
   server: McpServer,
@@ -23,6 +24,7 @@ export function registerSecurityStatus(
       requireScope(auth, "system:read");
 
       return withErrorBoundary("security_status", async () => {
+        const observability = getMcpObservabilitySnapshot();
         const corsOrigins = MCP_CONFIG.CORS_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean);
@@ -59,6 +61,26 @@ export function registerSecurityStatus(
             databaseEnabled: isPersistentAuditEnabled(),
             listTool: "list_mcp_audit_events",
           },
+          oauth: {
+            exactRedirectUris: MCP_CONFIG.OAUTH_EXACT_REDIRECT_URIS,
+            dynamicClientRegistration:
+              MCP_CONFIG.OAUTH_ALLOW_DYNAMIC_CLIENT_REGISTRATION,
+            dynamicClientRegistrationApproved:
+              process.env.MCP_OAUTH_DYNAMIC_CLIENT_REGISTRATION_APPROVED === "true",
+            refreshTokenRotation: MCP_CONFIG.OAUTH_ROTATE_REFRESH_TOKENS,
+            consentPersistence: true,
+            csrfProtection: true,
+          },
+          egress: {
+            safeFetch: true,
+            allowlistMode: process.env.MCP_SAFE_FETCH_ALLOWLIST_MODE === "true",
+            configuredAllowlistDomains: (process.env.MCP_SAFE_FETCH_ALLOWLIST_DOMAINS || "")
+              .split(",")
+              .map((domain) => domain.trim())
+              .filter(Boolean).length,
+            privateNetworkBlocking: true,
+            redirectValidation: true,
+          },
           rateLimit: {
             mode: "in-memory",
             windowMs: MCP_CONFIG.RATE_LIMIT.WINDOW_MS,
@@ -67,6 +89,13 @@ export function registerSecurityStatus(
             recommendation:
               "Use Redis/Upstash or platform rate limiting for multi-instance production deployments.",
           },
+          observability: {
+            enabled: observability.enabled,
+            activeAlerts: observability.activeAlerts,
+            alertCount: observability.alerts.length,
+            dashboards: observability.dashboards.map((dashboard) => dashboard.id),
+          },
+          runtimeGuardrails: observability.featureFlags,
           webhooks: webhookSecurity,
           redaction: {
             structuredOutput: true,

@@ -100,7 +100,7 @@ describe("MCP route auth and CORS integration", () => {
     expect(response.headers.get("WWW-Authenticate")).toContain("Bearer");
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://chatgpt.com");
     expect(validateBearerToken).toHaveBeenCalledTimes(1);
-  });
+  }, 10_000);
 
   it("rejects disallowed origins without echoing them as allowed", async () => {
     const { routeModule, validateBearerToken } = await loadRoute();

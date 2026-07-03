@@ -32,6 +32,7 @@ model User {
   mcpOAuthAuthorizationCodes McpOAuthAuthorizationCode[]
   mcpOAuthAccessTokens McpOAuthAccessToken[]
   mcpOAuthRefreshTokens McpOAuthRefreshToken[]
+  mcpOAuthConsents McpOAuthConsent[]
 
   @@unique([email])
   @@map("user")
@@ -304,6 +305,21 @@ model McpAuditLog {
   @@map("mcp_audit_log")
 }
 
+model McpRateLimitBucket {
+  id          String   @id @default(cuid())
+  identifier  String
+  tier        String
+  windowStart DateTime
+  count       Int      @default(0)
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([identifier, tier, windowStart])
+  @@index([expiresAt])
+  @@map("mcp_rate_limit_bucket")
+}
+
 model McpOAuthClient {
   id                      String   @id @default(cuid())
   clientId                String   @unique
@@ -319,6 +335,7 @@ model McpOAuthClient {
   authorizationCodes McpOAuthAuthorizationCode[]
   accessTokens       McpOAuthAccessToken[]
   refreshTokens      McpOAuthRefreshToken[]
+  consents           McpOAuthConsent[]
 
   @@index([clientId])
   @@map("mcp_oauth_client")
@@ -386,4 +403,22 @@ model McpOAuthRefreshToken {
   @@index([clientId])
   @@index([expiresAt])
   @@map("mcp_oauth_refresh_token")
+}
+
+model McpOAuthConsent {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      McpOAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  scopes      String[]  @default([])
+  redirectUri String
+  resource    String
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  @@index([userId])
+  @@index([clientId])
+  @@index([userId, clientId, revokedAt])
+  @@map("mcp_oauth_consent")
 }

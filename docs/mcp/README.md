@@ -64,6 +64,7 @@ Choose the path that matches your goal:
 3. [13 — Evaluation And Rollout](./13-evaluation-and-rollout.md) — pre-release verification
 4. [14 — Production Testing, Evals, and Security Hardening](./14-production-testing-evals-security-plan.md) — production-grade MCP assurance roadmap
 5. [security/](./security/) — threat model, stop-ship checklist, and MCP security governance
+6. [continuous-improvement/](./continuous-improvement/) — Phase 14 eval trends, red-team cadence, disclosure process, and recurring assurance loop
 
 ---
 
@@ -86,6 +87,7 @@ Choose the path that matches your goal:
 | [13-evaluation-and-rollout.md](./13-evaluation-and-rollout.md) | Phase 8 eval suite, quality gates, and rollout checklist |
 | [14-production-testing-evals-security-plan.md](./14-production-testing-evals-security-plan.md) | Production hardening plan for MCP testing, evals, prompt-injection defense, security, observability, and release gates |
 | [security/](./security/) | MCP threat model, stop-ship checklist, and security governance |
+| [continuous-improvement/](./continuous-improvement/) | Phase 14 continuous assurance loop, red-team template, and responsible disclosure process |
 | [mcp-apps/](./mcp-apps/) | ChatGPT Apps integration audit, implementation phases, UX, auth, security, and submission checklist |
 
 ---

@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { throwIfE2EFault } from "@/lib/e2e-faults";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import z from "zod";
 import { PAGINATION } from "@/config/constants";
@@ -36,6 +37,8 @@ export const executionsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      throwIfE2EFault("prisma", "Simulated E2E Prisma failure.");
+
       const { page, pageSize } = input;
 
       const [items, totalCount] = await Promise.all([

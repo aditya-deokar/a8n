@@ -2,10 +2,22 @@ import { auth } from "@/lib/auth";
 import {
   issueAuthorizationCode,
   parseAuthorizeParams,
+  recordOAuthConsent,
   scopeString,
   validateOAuthClient,
   type OAuthAuthorizeParams,
 } from "@/mcp/auth/oauth.service";
+import {
+  clearOAuthCsrfCookie,
+  createOAuthCsrfToken,
+  oauthCsrfCookie,
+  validateAndConsumeOAuthCsrf,
+} from "@/mcp/auth/oauth-csrf";
+import {
+  checkOAuthRouteRateLimit,
+  oauthRateLimitResponse,
+} from "@/mcp/auth/oauth-route-guard";
+import { createAuditContext, extractRequestMeta } from "@/mcp/middleware/audit-logger";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +69,11 @@ async function currentSession(request: Request) {
   });
 }
 
-function consentHtml(params: OAuthAuthorizeParams, user: { email: string; name?: string | null }) {
+function consentHtml(
+  params: OAuthAuthorizeParams,
+  user: { email: string; name?: string | null },
+  csrfToken: string,
+) {
   const scopes = params.scope.map((scope) => `<li><code>${escapeHtml(scope)}</code></li>`).join("");
   const hiddenFields = [
     ["response_type", params.responseType],
@@ -68,6 +84,7 @@ function consentHtml(params: OAuthAuthorizeParams, user: { email: string; name?:
     ["code_challenge", params.codeChallenge],
     ["code_challenge_method", params.codeChallengeMethod],
     ["resource", params.resource],
+    ["csrf_token", csrfToken],
   ]
     .map(
       ([name, value]) =>
@@ -112,6 +129,7 @@ function consentHtml(params: OAuthAuthorizeParams, user: { email: string; name?:
     <p>Signed in as <strong>${escapeHtml(user.name || user.email)}</strong>. ChatGPT is requesting access to your a8n account.</p>
     <div class="meta">
       <p><strong>Client:</strong> <code>${escapeHtml(params.clientId)}</code></p>
+      <p><strong>Redirect URI:</strong> <code>${escapeHtml(params.redirectUri)}</code></p>
       <p><strong>Resource:</strong> <code>${escapeHtml(params.resource)}</code></p>
     </div>
     <p>Requested scopes:</p>
@@ -128,7 +146,49 @@ function consentHtml(params: OAuthAuthorizeParams, user: { email: string; name?:
 </html>`;
 }
 
+function auditConsentEvent(params: {
+  request: Request;
+  userId: string;
+  event: "approved" | "denied" | "csrf_failed";
+  oauth?: OAuthAuthorizeParams;
+  error?: string;
+}) {
+  const meta = extractRequestMeta(params.request);
+  const audit = createAuditContext({
+    userId: params.userId,
+    authMethod: "session",
+    tool: `oauth.consent_${params.event}`,
+    input: {
+      clientId: params.oauth?.clientId,
+      redirectUri: params.oauth?.redirectUri,
+      resource: params.oauth?.resource,
+      scopes: params.oauth?.scope,
+    },
+    ip: meta.ip,
+    userAgent: meta.userAgent,
+  });
+
+  if (params.error) {
+    audit.fail(params.error);
+  } else {
+    audit.success();
+  }
+}
+
+function withClearedCsrf(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.append("Set-Cookie", clearOAuthCsrfCookie());
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export async function GET(request: Request): Promise<Response> {
+  const rateResult = checkOAuthRouteRateLimit(request, "authorize");
+  if (!rateResult.allowed) return oauthRateLimitResponse(rateResult);
+
   try {
     const url = new URL(request.url);
     const params = parseAuthorizeParams(url, request);
@@ -140,10 +200,12 @@ export async function GET(request: Request): Promise<Response> {
     const session = await currentSession(request);
     if (!session) return redirectToLogin(request);
 
-    return new Response(consentHtml(params, session.user), {
+    const csrfToken = createOAuthCsrfToken();
+    return new Response(consentHtml(params, session.user, csrfToken), {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "no-store",
+        "Set-Cookie": oauthCsrfCookie(csrfToken),
       },
     });
   } catch (error) {
@@ -152,10 +214,23 @@ export async function GET(request: Request): Promise<Response> {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const rateResult = checkOAuthRouteRateLimit(request, "authorize");
+  if (!rateResult.allowed) return oauthRateLimitResponse(rateResult);
+
   const session = await currentSession(request);
   if (!session) return redirectToLogin(request);
 
   const form = await request.formData();
+  if (!validateAndConsumeOAuthCsrf(request, form.get("csrf_token"))) {
+    auditConsentEvent({
+      request,
+      userId: session.user.id,
+      event: "csrf_failed",
+      error: "OAuth consent CSRF token validation failed.",
+    });
+    return withClearedCsrf(badRequest("Invalid or expired OAuth consent token. Please restart account linking."));
+  }
+
   const action = String(form.get("action") || "");
   const url = new URL(request.url);
   for (const key of [
@@ -180,13 +255,23 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     if (action !== "approve") {
-      return oauthErrorRedirect(
+      auditConsentEvent({ request, userId: session.user.id, event: "denied", oauth: params });
+      return withClearedCsrf(oauthErrorRedirect(
         params.redirectUri,
         "access_denied",
         "The user denied access to a8n.",
         params.state,
-      );
+      ));
     }
+
+    await recordOAuthConsent({
+      userId: session.user.id,
+      clientId: params.clientId,
+      scopes: params.scope,
+      redirectUri: params.redirectUri,
+      resource: params.resource,
+    });
+    auditConsentEvent({ request, userId: session.user.id, event: "approved", oauth: params });
 
     const code = await issueAuthorizationCode({
       ...params,
@@ -196,8 +281,8 @@ export async function POST(request: Request): Promise<Response> {
     redirectUrl.searchParams.set("code", code);
     if (params.state) redirectUrl.searchParams.set("state", params.state);
 
-    return Response.redirect(redirectUrl, 302);
+    return withClearedCsrf(Response.redirect(redirectUrl, 302));
   } catch (error) {
-    return badRequest(error instanceof Error ? error.message : "Invalid OAuth authorization request.");
+    return withClearedCsrf(badRequest(error instanceof Error ? error.message : "Invalid OAuth authorization request."));
   }
 }
