@@ -6,6 +6,7 @@ import type { NodeExecutor } from "@/features/executions/types";
 import { anthropicChannel } from "@/inngest/channels/anthropic";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
+import { aiTelemetryOptions, observeExternalProvider } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -98,19 +99,25 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
   });
 
   try {
-    const { steps } = await step.ai.wrap(
-      "anthropic-generate-text",
-      generateText,
+    const { steps } = await observeExternalProvider(
       {
-        model: anthropic("claude-sonnet-4-5"),
-        system: systemPrompt,
-        prompt: userPrompt,
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
+        provider: "anthropic",
+        operation: "generate_text",
+        nodeId,
+        nodeType: "ANTHROPIC",
+        model: "claude-sonnet-4-5",
       },
+      () =>
+        step.ai.wrap(
+          "anthropic-generate-text",
+          generateText,
+          {
+            model: anthropic("claude-sonnet-4-5"),
+            system: systemPrompt,
+            prompt: userPrompt,
+            experimental_telemetry: aiTelemetryOptions(),
+          },
+        ),
     );
 
     const text = 

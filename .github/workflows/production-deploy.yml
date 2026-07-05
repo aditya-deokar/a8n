@@ -1,0 +1,242 @@
+name: Production Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version, for example v1.4.0"
+        required: true
+        type: string
+      rollback_target:
+        description: "Known-good version, commit, or Vercel deployment to roll back to"
+        required: true
+        type: string
+      release_notes_url:
+        description: "Optional release notes or PR URL"
+        required: false
+        type: string
+      apply_migrations:
+        description: "Apply committed Prisma migrations to production"
+        required: true
+        default: true
+        type: boolean
+      backup_confirmed:
+        description: "Confirm production backup/PITR/restore point is available"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  production-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_APP_URL }}
+    env:
+      CI: "true"
+      NODE_ENV: production
+      A8N_ENV_PROFILE: production
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      RELEASE_VERSION: ${{ inputs.version }}
+      ROLLBACK_TARGET: ${{ inputs.rollback_target }}
+      PRODUCTION_APP_URL: ${{ vars.PRODUCTION_APP_URL }}
+      DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+      BETTER_AUTH_SECRET: ${{ secrets.PRODUCTION_BETTER_AUTH_SECRET }}
+      BETTER_AUTH_URL: ${{ vars.PRODUCTION_APP_URL }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.PRODUCTION_APP_URL }}
+      APP_URL: ${{ vars.PRODUCTION_APP_URL }}
+      NEXT_PUBLIC_WEBHOOK_BASE_URL: ${{ vars.PRODUCTION_WEBHOOK_BASE_URL || vars.PRODUCTION_APP_URL }}
+      ENCRYPTION_KEY: ${{ secrets.PRODUCTION_ENCRYPTION_KEY }}
+      POLAR_ACCESS_TOKEN: ${{ secrets.PRODUCTION_POLAR_ACCESS_TOKEN }}
+      POLAR_SUCCESS_URL: ${{ vars.PRODUCTION_POLAR_SUCCESS_URL }}
+      MCP_AUDIT_DB_ENABLED: "true"
+      MCP_AUDIT_LOG_ENABLED: "true"
+      MCP_API_KEY_HMAC_SECRET: ${{ secrets.PRODUCTION_MCP_API_KEY_HMAC_SECRET }}
+      MCP_OAUTH_TOKEN_HMAC_SECRET: ${{ secrets.PRODUCTION_MCP_OAUTH_TOKEN_HMAC_SECRET }}
+      MCP_CORS_ORIGINS: ${{ vars.PRODUCTION_APP_URL }}
+      MCP_RATE_LIMIT_BACKEND: database
+      MCP_SAFE_FETCH_ALLOWLIST_MODE: "true"
+      A8N_WEBHOOK_SHARED_SECRET: ${{ secrets.PRODUCTION_A8N_WEBHOOK_SHARED_SECRET }}
+      GOOGLE_FORM_WEBHOOK_SECRET: ${{ secrets.PRODUCTION_GOOGLE_FORM_WEBHOOK_SECRET }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.PRODUCTION_STRIPE_WEBHOOK_SECRET }}
+      STRIPE_WEBHOOK_SHARED_SECRET: ${{ secrets.PRODUCTION_STRIPE_WEBHOOK_SHARED_SECRET }}
+      FEATURE_FLAGS_ENABLED: ${{ vars.PRODUCTION_FEATURE_FLAGS_ENABLED || 'true' }}
+      FEATURE_FLAG_OVERRIDES: ${{ vars.PRODUCTION_FEATURE_FLAG_OVERRIDES }}
+      FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT: ${{ vars.PRODUCTION_FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT || '0' }}
+      FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT: ${{ vars.PRODUCTION_FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT || '0' }}
+      FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT: ${{ vars.PRODUCTION_FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT || '0' }}
+      FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT: ${{ vars.PRODUCTION_FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT || '0' }}
+      CANARY_ROLLOUT_PERCENT: ${{ vars.PRODUCTION_CANARY_ROLLOUT_PERCENT || '0' }}
+      EXPERIMENT_EVENT_LOG_ENABLED: ${{ vars.PRODUCTION_EXPERIMENT_EVENT_LOG_ENABLED || 'true' }}
+      EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT: ${{ vars.PRODUCTION_EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT }}
+      KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION: ${{ vars.PRODUCTION_KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION || 'false' }}
+      KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING: ${{ vars.PRODUCTION_KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING || 'false' }}
+      KILL_SWITCH_DISABLE_MCP_MUTATIONS: ${{ vars.PRODUCTION_KILL_SWITCH_DISABLE_MCP_MUTATIONS || 'false' }}
+      KILL_SWITCH_READ_ONLY_MODE: ${{ vars.PRODUCTION_KILL_SWITCH_READ_ONLY_MODE || 'false' }}
+      OBSERVABILITY_LOG_ENABLED: ${{ vars.OBSERVABILITY_LOG_ENABLED || 'true' }}
+      OBSERVABILITY_LOG_LEVEL: ${{ vars.OBSERVABILITY_LOG_LEVEL || 'info' }}
+      OBSERVABILITY_PROVIDER: ${{ vars.OBSERVABILITY_PROVIDER || 'console' }}
+      OBSERVABILITY_METRICS_ENDPOINT: ${{ vars.OBSERVABILITY_METRICS_ENDPOINT }}
+      ERROR_TRACKING_DSN: ${{ secrets.ERROR_TRACKING_DSN }}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${{ vars.OTEL_EXPORTER_OTLP_ENDPOINT }}
+      OTEL_SERVICE_NAME: ${{ vars.OTEL_SERVICE_NAME || 'a8n' }}
+      OTEL_HEADERS: ${{ secrets.OTEL_HEADERS }}
+      ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+      VERCEL_ORG_ID: ${{ secrets.PRODUCTION_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.PRODUCTION_VERCEL_PROJECT_ID }}
+    steps:
+      - name: Require backup confirmation
+        if: ${{ inputs.backup_confirmed != true }}
+        run: |
+          echo "Production backup/PITR/restore point must be confirmed before deploy."
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Production environment check
+        run: pnpm env:check -- --profile production
+
+      - name: Observability readiness
+        run: pnpm observability:check -- --profile production --json
+
+      - name: Security release check
+        run: pnpm security:release:check -- --strict --json
+
+      - name: Feature flag readiness
+        run: pnpm feature-flags:check -- --strict --json
+
+      - name: Incident readiness
+        run: pnpm incident:check -- --strict --json
+
+      - name: Restore drill readiness
+        run: pnpm restore:drill:check -- --strict --json
+
+      - name: Performance readiness
+        run: pnpm performance:check -- --strict --json
+
+      - name: Governance readiness
+        run: pnpm governance:check -- --strict --json
+
+      - name: Environment drift check
+        run: pnpm environment:drift:check -- --strict --json
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+
+      - name: Apply production migrations
+        if: ${{ inputs.apply_migrations == true }}
+        run: pnpm exec prisma migrate deploy
+
+      - name: Record skipped migrations
+        if: ${{ inputs.apply_migrations != true }}
+        run: echo "Migrations intentionally skipped for this production deployment."
+
+      - name: Production migration status
+        run: pnpm db:migration:preflight -- --db --json
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pull Vercel production project
+        run: pnpm dlx vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy to Vercel production project
+        run: |
+          pnpm dlx vercel deploy --prod --yes --token="${{ secrets.VERCEL_TOKEN }}" > production-url.txt
+          DEPLOYMENT_URL="$(tail -n 1 production-url.txt)"
+          echo "PRODUCTION_DEPLOYMENT_URL=$DEPLOYMENT_URL" >> "$GITHUB_ENV"
+          echo "Deployed production URL: $DEPLOYMENT_URL"
+
+      - name: Production smoke
+        run: |
+          TARGET_URL="${PRODUCTION_APP_URL:-$PRODUCTION_DEPLOYMENT_URL}"
+          pnpm smoke:prod -- --base-url "$TARGET_URL" --json
+
+      - name: Generate release manifest
+        run: |
+          TARGET_URL="${PRODUCTION_APP_URL:-$PRODUCTION_DEPLOYMENT_URL}"
+          pnpm release:manifest -- \
+            --environment production \
+            --version "${{ inputs.version }}" \
+            --rollback-target "${{ inputs.rollback_target }}" \
+            --release-notes-url "${{ inputs.release_notes_url }}" \
+            --deployment-url "$TARGET_URL" \
+            --database-migration-status "passed" \
+            --api-release-gate-status "staging-required" \
+            --api-e2e-release-gate-status "staging-required" \
+            --mcp-release-gate-status "staging-required" \
+            --production-smoke-status "passed" \
+            --observability-status "checked" \
+            --security-status "checked" \
+            --feature-flag-status "checked" \
+            --incident-status "checked" \
+            --restore-drill-status "checked" \
+            --performance-status "checked" \
+            --governance-status "checked" \
+            --environment-drift-status "checked" \
+            --json
+
+      - name: Write production summary
+        if: always()
+        run: |
+          echo "## Production Deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version: ${{ inputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Rollback target: ${{ inputs.rollback_target }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Production URL: ${PRODUCTION_APP_URL:-$PRODUCTION_DEPLOYMENT_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Release manifest: docs/releases" >> "$GITHUB_STEP_SUMMARY"
+          echo "Security evidence: docs/api/evidence/security" >> "$GITHUB_STEP_SUMMARY"
+          echo "Feature flag evidence: docs/api/evidence/feature-flags" >> "$GITHUB_STEP_SUMMARY"
+          echo "Incident evidence: docs/api/evidence/incidents" >> "$GITHUB_STEP_SUMMARY"
+          echo "DR evidence: docs/api/evidence/disaster-recovery" >> "$GITHUB_STEP_SUMMARY"
+          echo "Performance evidence: docs/api/evidence/performance" >> "$GITHUB_STEP_SUMMARY"
+          echo "Governance evidence: docs/api/evidence/governance" >> "$GITHUB_STEP_SUMMARY"
+          echo "Environment drift evidence: docs/api/evidence/environment-drift" >> "$GITHUB_STEP_SUMMARY"
+          echo "Rollback order: feature flag or kill switch, app rollback, database roll-forward, restore only for confirmed corruption." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload production release evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-release-evidence
+          path: |
+            docs/releases
+            docs/api/evidence/migrations
+            docs/api/evidence/smoke/production
+            docs/api/evidence/observability
+            docs/api/evidence/security
+            docs/api/evidence/feature-flags
+            docs/api/evidence/incidents
+            docs/api/evidence/disaster-recovery
+            docs/api/evidence/performance
+            docs/api/evidence/governance
+            docs/api/evidence/environment-drift
+            production-url.txt

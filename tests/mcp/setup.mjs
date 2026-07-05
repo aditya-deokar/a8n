@@ -15,5 +15,10 @@ process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://127
 process.env.APP_URL = process.env.APP_URL || "http://127.0.0.1:3000";
 process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL =
   process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL || "http://127.0.0.1:3000";
+try {
+  new URL(process.env.BASE_URL || "");
+} catch {
+  process.env.BASE_URL = "http://127.0.0.1:3000";
+}
 process.env.DATABASE_URL =
   process.env.DATABASE_URL || "postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test";

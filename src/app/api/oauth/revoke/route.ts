@@ -3,6 +3,7 @@ import {
   checkOAuthRouteRateLimit,
   oauthRateLimitResponse,
 } from "@/mcp/auth/oauth-route-guard";
+import { withRequestLogging } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ function corsHeaders(): Record<string, string> {
   };
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function postHandler(request: Request): Promise<Response> {
   const rateResult = checkOAuthRouteRateLimit(request, "revoke");
   if (!rateResult.allowed) return oauthRateLimitResponse(rateResult, corsHeaders());
 
@@ -31,9 +32,23 @@ export async function POST(request: Request): Promise<Response> {
   });
 }
 
-export async function OPTIONS(): Promise<Response> {
+async function optionsHandler(request: Request): Promise<Response> {
+  void request;
+
   return new Response(null, {
     status: 204,
     headers: corsHeaders(),
   });
 }
+
+export const POST = withRequestLogging(postHandler, {
+  component: "auth",
+  route: "/api/oauth/revoke",
+  eventPrefix: "oauth_revoke_request",
+});
+
+export const OPTIONS = withRequestLogging(optionsHandler, {
+  component: "auth",
+  route: "/api/oauth/revoke",
+  eventPrefix: "oauth_revoke_request",
+});

@@ -69,8 +69,14 @@ jobs:
       - name: Environment check
         run: pnpm env:check
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: Full API coverage
         run: pnpm test:api:coverage
@@ -91,6 +97,7 @@ jobs:
           name: api-nightly-artifacts
           path: |
             coverage/api
+            docs/api/evidence/migrations
             docs/api/evidence/release-gates
             docs/api/evidence/e2e
             playwright-report/api-e2e

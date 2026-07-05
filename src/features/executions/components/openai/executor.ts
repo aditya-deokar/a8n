@@ -6,6 +6,7 @@ import type { NodeExecutor } from "@/features/executions/types";
 import { openAiChannel } from "@/inngest/channels/openai";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
+import { aiTelemetryOptions, observeExternalProvider } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -98,19 +99,25 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
   });
 
   try {
-    const { steps } = await step.ai.wrap(
-      "openai-generate-text",
-      generateText,
+    const { steps } = await observeExternalProvider(
       {
-        model: openai("gpt-4"),
-        system: systemPrompt,
-        prompt: userPrompt,
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
+        provider: "openai",
+        operation: "generate_text",
+        nodeId,
+        nodeType: "OPENAI",
+        model: "gpt-4",
       },
+      () =>
+        step.ai.wrap(
+          "openai-generate-text",
+          generateText,
+          {
+            model: openai("gpt-4"),
+            system: systemPrompt,
+            prompt: userPrompt,
+            experimental_telemetry: aiTelemetryOptions(),
+          },
+        ),
     );
 
     const text = 

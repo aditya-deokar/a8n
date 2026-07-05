@@ -35,6 +35,13 @@ This project should use separate environments so production secrets, production 
 | `MCP_API_KEY_HMAC_SECRET` | Local secret | Test secret | Preview secret | Staging secret | Production secret |
 | `MCP_OAUTH_TOKEN_HMAC_SECRET` | Local secret | Test secret | Preview secret | Staging secret | Production secret |
 | Webhook secrets | Local/test | Test | Preview | Staging | Production |
+| `FEATURE_FLAGS_ENABLED` | true | true | true | true | true |
+| `CANARY_ROLLOUT_PERCENT` | 0 | 0 | 0 | Staging-controlled | Production-controlled |
+| Feature-specific rollout percentages | 0 | 0 | 0 | Staging-controlled | Production-controlled |
+| Experiment override variables | Empty | Empty | Empty | Staging-controlled | Production-controlled |
+| Kill switch variables | false | false | false | Staging-controlled | Production-controlled |
+| Restore drill metadata | Empty | Empty | Empty | Staging-controlled | Production-controlled |
+| Performance load-test metadata | Empty | Empty | Empty | Staging-controlled | Production-controlled |
 
 ## CI Safety Defaults
 
@@ -60,6 +67,32 @@ A8N_ENV_PROFILE=production
 MCP_RATE_LIMIT_BACKEND=database
 MCP_CORS_ORIGINS=https://your-production-domain.com
 MCP_SAFE_FETCH_ALLOWLIST_MODE=true
+FEATURE_FLAGS_ENABLED=true
+CANARY_ROLLOUT_PERCENT=0
+KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION=false
+KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING=false
+KILL_SWITCH_DISABLE_MCP_MUTATIONS=false
 ```
 
 Production values must use HTTPS public URLs and real provider secrets.
+
+## Implemented Environment Workflows
+
+| Workflow | Environment | Purpose |
+|---|---|---|
+| `.github/workflows/preview.yml` | Preview | PR build/migration readiness and smoke after successful hosted preview deployment |
+| `.github/workflows/staging-deploy.yml` | Staging | Protected staging deployment, migration, release gates, and smoke |
+| `.github/workflows/production-deploy.yml` | Production | Manual approved production deployment, migration, smoke, and release manifest |
+| `.github/workflows/observability.yml` | Test/CI | Observability readiness and alert documentation evidence |
+| `.github/workflows/security.yml` | Test/CI | Security, dependency, secret scan, and SBOM evidence |
+| `.github/workflows/feature-flags.yml` | Test/CI | Feature flag, kill switch, canary, and experiment readiness |
+| `.github/workflows/restore-drill.yml` | Staging/Test | Incident and disaster recovery readiness evidence |
+| `.github/workflows/performance-nightly.yml` | Staging/Test | Performance budget and load-test readiness evidence |
+
+## Hosted Smoke Commands
+
+```powershell
+pnpm smoke:preview -- --base-url https://your-preview-url.vercel.app
+pnpm smoke:staging -- --base-url https://your-staging-url.example.com
+pnpm smoke:prod -- --base-url https://your-production-url.example.com
+```

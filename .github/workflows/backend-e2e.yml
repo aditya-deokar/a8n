@@ -13,6 +13,7 @@ on:
       - "tests/e2e/api/**"
       - "scripts/api-e2e-release-gate.ts"
       - "scripts/env-check.ts"
+      - "scripts/migration-preflight.ts"
       - "playwright.api-e2e.config.mjs"
       - ".env.example"
       - "package.json"
@@ -92,8 +93,14 @@ jobs:
       - name: Environment check
         run: pnpm env:check
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: API E2E smoke gate
         run: pnpm api:e2e:release:gate -- --smoke --json
@@ -107,6 +114,7 @@ jobs:
             playwright-report/api-e2e
             test-results/api-e2e
             docs/api/evidence/e2e
+            docs/api/evidence/migrations
 
   api-e2e-full:
     if: github.event_name != 'pull_request'
@@ -145,8 +153,14 @@ jobs:
       - name: Environment check
         run: pnpm env:check
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: API E2E full gate
         run: pnpm api:e2e:release:gate -- --json
@@ -160,3 +174,4 @@ jobs:
             playwright-report/api-e2e
             test-results/api-e2e
             docs/api/evidence/e2e
+            docs/api/evidence/migrations

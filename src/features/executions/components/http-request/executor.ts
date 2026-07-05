@@ -3,6 +3,7 @@ import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOptions } from "ky";
 import type { NodeExecutor } from "@/features/executions/types";
 import { httpRequestChannel } from "@/inngest/channels/http-request";
+import { observeExternalProvider, safeProviderHost } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -81,7 +82,17 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
         };
       }
 
-      const response = await ky(endpoint, options);
+      const response = await observeExternalProvider(
+        {
+          provider: "http",
+          operation: "request",
+          nodeId,
+          nodeType: "HTTP_REQUEST",
+          method,
+          host: safeProviderHost(endpoint),
+        },
+        () => ky(endpoint, options),
+      );
       const contentType = response.headers.get("content-type");
       const responseData = contentType?.includes("application/json")
         ? await response.json()

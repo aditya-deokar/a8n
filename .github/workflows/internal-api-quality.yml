@@ -16,6 +16,7 @@ on:
       - "tests/api/**"
       - "scripts/api-*.ts"
       - "scripts/env-check.ts"
+      - "scripts/migration-preflight.ts"
       - "docs/TRPC_INTERNAL_API_TESTING_PLAN.md"
       - "docs/DevOps/**"
       - "docs/api/**"
@@ -74,6 +75,9 @@ jobs:
       - name: Prisma validate
         run: pnpm exec prisma validate
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -82,6 +86,13 @@ jobs:
 
       - name: API unit and contract tests
         run: pnpm test:api:unit
+
+      - name: Upload static migration evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-preflight-static
+          path: docs/api/evidence/migrations
 
   api-integration:
     runs-on: ubuntu-latest
@@ -139,8 +150,14 @@ jobs:
       - name: Generate Prisma client
         run: pnpm exec prisma generate
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: API integration, transport, and security tests
         run: pnpm test:api:integration
@@ -159,3 +176,10 @@ jobs:
         with:
           name: api-coverage
           path: coverage/api
+
+      - name: Upload migration evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-preflight-integration
+          path: docs/api/evidence/migrations

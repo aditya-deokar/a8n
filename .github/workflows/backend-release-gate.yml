@@ -53,6 +53,18 @@ jobs:
       STRIPE_WEBHOOK_SECRET: test-stripe-webhook-secret
       STRIPE_WEBHOOK_SHARED_SECRET: test-stripe-shared-webhook-secret
       API_DATABASE_TESTS: "true"
+      FEATURE_FLAGS_ENABLED: "true"
+      FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT: "0"
+      FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT: "0"
+      FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT: "0"
+      FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT: "0"
+      CANARY_ROLLOUT_PERCENT: "0"
+      EXPERIMENT_EVENT_LOG_ENABLED: "true"
+      EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT: ""
+      KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION: "false"
+      KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING: "false"
+      KILL_SWITCH_DISABLE_MCP_MUTATIONS: "false"
+      KILL_SWITCH_READ_ONLY_MODE: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -73,8 +85,14 @@ jobs:
       - name: Environment check
         run: pnpm env:check
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: MCP quality
         run: pnpm test:mcp
@@ -91,6 +109,30 @@ jobs:
       - name: API E2E release gate
         run: pnpm api:e2e:release:gate -- --json
 
+      - name: Observability readiness
+        run: pnpm observability:check -- --profile production --json
+
+      - name: Security release check
+        run: pnpm security:release:check -- --strict --json
+
+      - name: Feature flag readiness
+        run: pnpm feature-flags:check -- --strict --json
+
+      - name: Incident readiness
+        run: pnpm incident:check -- --strict --json
+
+      - name: Restore drill readiness
+        run: pnpm restore:drill:check -- --strict --json
+
+      - name: Performance readiness
+        run: pnpm performance:check -- --strict --json
+
+      - name: Governance readiness
+        run: pnpm governance:check -- --strict --json
+
+      - name: Environment drift check
+        run: pnpm environment:drift:check -- --strict --json
+
       - name: Build
         run: pnpm build
 
@@ -100,7 +142,16 @@ jobs:
         with:
           name: api-release-gate
           path: |
+            docs/api/evidence/migrations
             docs/api/evidence/release-gates
             docs/api/evidence/e2e
+            docs/api/evidence/observability
+            docs/api/evidence/security
+            docs/api/evidence/feature-flags
+            docs/api/evidence/incidents
+            docs/api/evidence/disaster-recovery
+            docs/api/evidence/performance
+            docs/api/evidence/governance
+            docs/api/evidence/environment-drift
             playwright-report/api-e2e
             test-results/api-e2e

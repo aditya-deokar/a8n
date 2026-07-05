@@ -28,6 +28,7 @@ import { registerMcpAppResources } from "./app-resources.resource";
 import type { McpToolContext } from "@/mcp/shared/auth-context";
 import { isChatGptAppProfile } from "@/mcp/app-profile";
 import { registerChatGptWidgetResources } from "@/mcp/apps/widget-resources";
+import { logger } from "@/lib/logging";
 
 export function registerAllResources(
   server: McpServer,
@@ -43,7 +44,15 @@ export function registerAllResources(
     registerChatGptWidgetResources(server);
   }
 
-  console.log(
-    `[MCP] ${isChatGptAppProfile(context.appProfile) ? 21 : 17} resources and 5 resource templates registered`,
+  logger.info(
+    {
+      component: "mcp",
+      event: "mcp_registry_registered",
+      registry: "resources",
+      profile: isChatGptAppProfile(context.appProfile) ? "chatgpt" : "default",
+      count: isChatGptAppProfile(context.appProfile) ? 21 : 17,
+      templates: 5,
+    },
+    "MCP resources registered.",
   );
 }

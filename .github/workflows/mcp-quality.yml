@@ -8,8 +8,10 @@ on:
       - "src/app/api/oauth/**"
       - "src/app/api/webhooks/**"
       - "src/env.ts"
+      - "prisma/**"
       - "scripts/mcp-*.ts"
       - "scripts/env-check.ts"
+      - "scripts/migration-preflight.ts"
       - "docs/mcp/**"
       - "docs/DevOps/**"
       - "tests/mcp/**"
@@ -74,6 +76,9 @@ jobs:
       - name: Prisma validate
         run: pnpm exec prisma validate
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -88,3 +93,10 @@ jobs:
 
       - name: MCP unit tests
         run: pnpm test:mcp
+
+      - name: Upload migration evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mcp-migration-preflight
+          path: docs/api/evidence/migrations

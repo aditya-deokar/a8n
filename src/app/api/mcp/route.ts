@@ -25,6 +25,9 @@ import { buildOAuthWwwAuthenticateHeader } from "@/mcp/auth/oauth.service";
 import type { McpAuthInfo } from "@/mcp/auth/types";
 import type { RateLimitResult } from "@/mcp/middleware/rate-limiter";
 import { recordMcpRuntimeEvent } from "@/mcp/observability/runtime-guardrails";
+import { getToolContract } from "@/mcp/contracts/tools.manifest";
+import { isKillSwitchEnabled } from "@/lib/feature-flags";
+import { logger, normalizeError, withRequestLogging } from "@/lib/logging";
 
 type AuthGuardSuccess = { auth: McpAuthInfo; rateResult: RateLimitResult };
 type AuthGuardError = { error: Response };
@@ -126,6 +129,90 @@ function rejectDisallowedOrigin(request: Request): Response | null {
   );
 }
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
+function jsonRpcId(value: unknown) {
+  const record = asRecord(value);
+  const id = record?.id;
+  return typeof id === "string" || typeof id === "number" ? id : null;
+}
+
+function mcpToolName(value: unknown) {
+  const record = asRecord(value);
+  if (record?.method !== "tools/call") return null;
+
+  const params = asRecord(record.params);
+  return typeof params?.name === "string" ? params.name : null;
+}
+
+function isMutatingMcpTool(toolName: string) {
+  const contract = getToolContract(toolName);
+  if (!contract) return false;
+
+  return (
+    contract.risk !== "read_only" ||
+    contract.externalSideEffect ||
+    contract.destructive ||
+    contract.admin
+  );
+}
+
+async function rejectMcpMutationWhenDisabled(
+  request: Request,
+  auth: McpAuthInfo,
+): Promise<Response | null> {
+  if (!isKillSwitchEnabled("disableMcpMutations")) return null;
+
+  let payload: unknown;
+  try {
+    payload = await request.clone().json();
+  } catch {
+    return null;
+  }
+
+  const messages = Array.isArray(payload) ? payload : [payload];
+  const blockedMessage = messages.find((message) => {
+    const toolName = mcpToolName(message);
+    return Boolean(toolName && isMutatingMcpTool(toolName));
+  });
+  const blockedToolName = blockedMessage ? mcpToolName(blockedMessage) : null;
+  if (!blockedToolName) return null;
+  const blockedContract = getToolContract(blockedToolName);
+
+  recordMcpRuntimeEvent({
+    type: "runtime_guardrail_denial",
+    userId: auth.userId,
+    authMethod: auth.method,
+    oauthClientId: auth.oauthClientId,
+    tool: blockedToolName,
+    risk: blockedContract?.risk,
+    profile: blockedContract?.profiles.includes("chatgpt") ? "chatgpt" : "default",
+    status: "denied",
+    error: `MCP mutation blocked by disableMcpMutations: ${blockedToolName}`,
+  });
+
+  return withCors(
+    request,
+    new Response(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: jsonRpcId(blockedMessage),
+        error: {
+          code: -32000,
+          message: "MCP mutations are temporarily disabled.",
+        },
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      },
+    ),
+  );
+}
+
 /**
  * Shared authentication + rate limiting guard.
  * Returns the auth context and rate limit result, or an error Response.
@@ -203,7 +290,7 @@ async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
  *   4. Connect MCP server
  *   5. Handle the protocol request
  */
-export async function POST(request: Request): Promise<Response> {
+async function postHandler(request: Request): Promise<Response> {
   const originError = rejectDisallowedOrigin(request);
   if (originError) return originError;
 
@@ -211,6 +298,9 @@ export async function POST(request: Request): Promise<Response> {
   if ("error" in guardResult) return withCors(request, guardResult.error);
 
   const { auth, rateResult } = guardResult;
+  const mutationError = await rejectMcpMutationWhenDisabled(request, auth);
+  if (mutationError) return mutationError;
+
   const { ip, userAgent } = extractRequestMeta(request);
   const appProfile = appProfileFromRequest(request);
 
@@ -265,7 +355,14 @@ export async function POST(request: Request): Promise<Response> {
       error instanceof Error ? error.message : "Unknown error";
     audit.fail(errorMessage);
 
-    console.error("[MCP:ROUTE] Request handling failed:", error);
+    logger.error(
+      {
+        component: "mcp",
+        event: "mcp_route_failed",
+        error: normalizeError(error),
+      },
+      "MCP request handling failed.",
+    );
 
     return withCors(
       request,
@@ -293,7 +390,7 @@ export async function POST(request: Request): Promise<Response> {
  * Handle GET requests — SSE streams and server capability discovery.
  * Some MCP clients use GET for SSE-based streaming.
  */
-export async function GET(request: Request): Promise<Response> {
+async function getHandler(request: Request): Promise<Response> {
   const originError = rejectDisallowedOrigin(request);
   if (originError) return originError;
 
@@ -339,7 +436,7 @@ export async function GET(request: Request): Promise<Response> {
 /**
  * Handle DELETE requests — session cleanup (stateless = no-op).
  */
-export async function DELETE(request: Request): Promise<Response> {
+async function deleteHandler(request: Request): Promise<Response> {
   const originError = rejectDisallowedOrigin(request);
   if (originError) return originError;
 
@@ -363,9 +460,33 @@ export async function DELETE(request: Request): Promise<Response> {
   }
 }
 
-export async function OPTIONS(request: Request): Promise<Response> {
+async function optionsHandler(request: Request): Promise<Response> {
   const originError = rejectDisallowedOrigin(request);
   if (originError) return originError;
 
   return withCors(request, new Response(null, { status: 204 }));
 }
+
+export const POST = withRequestLogging(postHandler, {
+  component: "mcp",
+  route: "/api/mcp",
+  eventPrefix: "mcp_request",
+});
+
+export const GET = withRequestLogging(getHandler, {
+  component: "mcp",
+  route: "/api/mcp",
+  eventPrefix: "mcp_request",
+});
+
+export const DELETE = withRequestLogging(deleteHandler, {
+  component: "mcp",
+  route: "/api/mcp",
+  eventPrefix: "mcp_request",
+});
+
+export const OPTIONS = withRequestLogging(optionsHandler, {
+  component: "mcp",
+  route: "/api/mcp",
+  eventPrefix: "mcp_request",
+});

@@ -1,0 +1,101 @@
+{
+  "suite": "feature-flag-check",
+  "generatedAt": "2026-07-04T07:23:38.371Z",
+  "strict": true,
+  "passed": true,
+  "failedRequired": [],
+  "registry": {
+    "featureFlags": [
+      "newWorkflowEditor",
+      "apiCanary",
+      "mcpEnhancedTooling",
+      "credentialRotationFlow"
+    ],
+    "killSwitches": [
+      "disableWorkflowExecution",
+      "disableWebhookProcessing",
+      "disableMcpMutations",
+      "readOnlyMode"
+    ],
+    "experiments": [
+      "workflowOnboardingV2"
+    ]
+  },
+  "checks": [
+    {
+      "name": "feature flag helper",
+      "status": "passed",
+      "required": true,
+      "message": "Server-side feature flag helper exists."
+    },
+    {
+      "name": "feature flag registry",
+      "status": "passed",
+      "required": true,
+      "message": "Feature flag registry should include rollout flags with owners and explicit rollout env names.",
+      "details": {
+        "flagCount": 4
+      }
+    },
+    {
+      "name": "kill switches",
+      "status": "passed",
+      "required": true,
+      "message": "Kill-switch registry should include operational emergency controls.",
+      "details": {
+        "killSwitchCount": 4
+      }
+    },
+    {
+      "name": "experiment registry",
+      "status": "passed",
+      "required": true,
+      "message": "Experiment registry should include at least one experiment with variants totaling 100 and explicit override env names.",
+      "details": {
+        "experimentCount": 1
+      }
+    },
+    {
+      "name": "environment template",
+      "status": "passed",
+      "required": true,
+      "message": ".env.example should document rollout, experiment, and kill-switch variables."
+    },
+    {
+      "name": "workflow execution kill switch wired",
+      "status": "passed",
+      "required": true,
+      "message": "Workflow dispatch should be protected by the workflow execution kill switch."
+    },
+    {
+      "name": "webhook processing kill switch wired",
+      "status": "passed",
+      "required": true,
+      "message": "Webhook routes should return controlled responses when webhook processing is disabled."
+    },
+    {
+      "name": "MCP mutation kill switch wired",
+      "status": "passed",
+      "required": true,
+      "message": "MCP route should block mutating tools when the MCP mutation kill switch is enabled."
+    },
+    {
+      "name": "feature flag runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Feature flag runbook should cover kill switches, rollout, and audit rules."
+    },
+    {
+      "name": "A/B testing runbook",
+      "status": "passed",
+      "required": true,
+      "message": "A/B testing runbook should cover variants, primary metrics, and guardrails."
+    },
+    {
+      "name": "feature flag audit log",
+      "status": "passed",
+      "required": true,
+      "message": "Feature flag changes should have an audit log template."
+    }
+  ]
+}

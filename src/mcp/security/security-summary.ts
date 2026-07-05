@@ -1,4 +1,5 @@
 import prisma from "@/lib/db";
+import { logger, normalizeError } from "@/lib/logging";
 import { MCP_CONFIG } from "@/mcp/config";
 
 export type McpOAuthConnectionSummary = {
@@ -61,8 +62,14 @@ async function withMcpSchemaFallback<T>(
 
     onSchemaMissing?.();
     if (process.env.NODE_ENV !== "test") {
-      console.warn(
-        `[mcp] ${label} is unavailable because the database schema is missing MCP tables or columns. Run pending Prisma migrations.`,
+      logger.warn(
+        {
+          component: "mcp",
+          event: "mcp_schema_missing",
+          operation: label,
+          error: normalizeError(error),
+        },
+        "MCP database schema is missing expected tables or columns.",
       );
     }
     return fallback;

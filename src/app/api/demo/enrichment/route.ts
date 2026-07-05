@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { logger, normalizeError, withRequestLogging } from "@/lib/logging";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -150,7 +151,7 @@ const getContext = (body: unknown): JsonRecord => {
   return body;
 };
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const context = getContext(body);
@@ -169,7 +170,14 @@ export async function POST(request: NextRequest) {
       demoEvent,
     });
   } catch (error) {
-    console.error("Demo enrichment error:", error);
+    logger.error(
+      {
+        component: "api",
+        event: "demo_enrichment_failed",
+        error: normalizeError(error),
+      },
+      "Demo enrichment failed.",
+    );
 
     return NextResponse.json(
       {
@@ -180,3 +188,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRequestLogging(postHandler, {
+  component: "api",
+  route: "/api/demo/enrichment",
+  eventPrefix: "demo_enrichment_request",
+});

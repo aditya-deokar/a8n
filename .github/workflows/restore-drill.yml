@@ -1,0 +1,99 @@
+name: Restore Drill
+
+on:
+  schedule:
+    - cron: "0 21 1 */3 *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment used for the drill; use staging unless explicitly approved"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - preview
+      backup_provider:
+        description: "Backup provider or database platform"
+        required: false
+        type: string
+      restore_target:
+        description: "Non-production restore target or drill ticket"
+        required: false
+        type: string
+      dry_run:
+        description: "Keep this workflow in non-destructive readiness mode"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: restore-drill-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  restore-drill:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment || 'staging' }}
+    env:
+      CI: "true"
+      NODE_ENV: test
+      A8N_ENV_PROFILE: test
+      DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
+      BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+      ENCRYPTION_KEY: test-restore-drill-key-32-characters
+      BACKUP_PROVIDER: ${{ inputs.backup_provider }}
+      RESTORE_DRILL_TARGET: ${{ inputs.restore_target }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Incident readiness
+        run: pnpm incident:check -- --strict --json
+
+      - name: Restore drill readiness
+        run: pnpm restore:drill:check -- --strict --json
+
+      - name: Confirm non-destructive mode
+        if: ${{ inputs.dry_run != true && github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "This workflow is intentionally readiness-only. Follow docs/DevOps/database-restore-runbook.md for provider restore steps."
+          exit 1
+
+      - name: Write restore drill summary
+        if: always()
+        run: |
+          echo "## Restore Drill" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Environment: ${{ inputs.environment || 'staging' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Backup provider: ${BACKUP_PROVIDER:-not recorded}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Restore target: ${RESTORE_DRILL_TARGET:-not recorded}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Evidence: docs/api/evidence/disaster-recovery and docs/api/evidence/incidents" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload restore drill evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: restore-drill-evidence
+          path: |
+            docs/api/evidence/disaster-recovery
+            docs/api/evidence/incidents

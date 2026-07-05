@@ -7,6 +7,7 @@ import type { NodeExecutor } from "@/features/executions/types";
 import { emailChannel } from "@/inngest/channels/email";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
+import { observeExternalProvider } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -139,7 +140,19 @@ export const emailExecutor: NodeExecutor<EmailData> = async ({
         replyTo,
       };
 
-      const info = await transporter.sendMail(mailOptions);
+      const info = await observeExternalProvider(
+        {
+          provider: "smtp",
+          operation: "send_mail",
+          nodeId,
+          nodeType: "EMAIL",
+          host: smtp.host,
+          successFields: (result) => ({
+            messageId: result.messageId,
+          }),
+        },
+        () => transporter.sendMail(mailOptions),
+      );
 
       return {
         ...context,

@@ -1,0 +1,58 @@
+name: Governance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 20 1 */3 *"
+  pull_request:
+    paths:
+      - "infra/**"
+      - "docs/DevOps/**"
+      - ".github/workflows/governance.yml"
+      - ".github/CODEOWNERS"
+      - "scripts/governance-readiness-check.ts"
+      - "scripts/environment-drift-check.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Governance readiness
+        run: pnpm governance:check -- --strict --json
+
+      - name: Environment drift check
+        run: pnpm environment:drift:check -- --strict --json
+
+      - name: Upload governance evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: governance-evidence
+          path: |
+            docs/api/evidence/governance
+            docs/api/evidence/environment-drift

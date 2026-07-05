@@ -3,6 +3,7 @@
 import { getSubscriptionToken, type Realtime } from "@inngest/realtime";
 import { manualTriggerChannel } from "@/inngest/channels/manual-trigger";
 import { inngest } from "@/inngest/client";
+import { logger, normalizeError } from "@/lib/logging";
 
 export type ManualTriggerToken = Realtime.Token<
   typeof manualTriggerChannel,
@@ -18,7 +19,17 @@ export async function fetchManualTriggerRealtimeToken(): Promise<ManualTriggerTo
 
     return token;
   } catch (error) {
-    console.error("Failed to fetch Inngest realtime token:", error);
-    return null as any;
+    logger.error(
+      {
+        component: "workflow",
+        event: "external_provider_request_failed",
+        provider: "inngest",
+        operation: "get_realtime_subscription_token",
+        channel: "manual-trigger",
+        error: normalizeError(error),
+      },
+      "Failed to fetch Inngest realtime token.",
+    );
+    return null as unknown as ManualTriggerToken;
   }
 };

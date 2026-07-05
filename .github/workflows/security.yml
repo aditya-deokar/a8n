@@ -1,0 +1,132 @@
+name: Security And Supply Chain
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "tests/load/**"
+      - "prisma/**"
+      - ".github/workflows/**"
+      - ".github/dependabot.yml"
+      - "docs/DevOps/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+  push:
+    branches:
+      - main
+      - "codex/**"
+      - "release/**"
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+  pull-requests: read
+
+jobs:
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-2.0-only, GPL-2.0-or-later, GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  supply-chain:
+    name: Supply Chain Evidence
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      NODE_ENV: test
+      A8N_ENV_PROFILE: test
+      DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
+      BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+      ENCRYPTION_KEY: test-security-encryption-key-32-characters
+      MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32-chars
+      MCP_OAUTH_TOKEN_HMAC_SECRET: ci-mcp-oauth-token-hmac-secret-32
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Security release check
+        run: pnpm security:release:check -- --strict --json
+
+      - name: pnpm audit
+        run: pnpm audit --audit-level high
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload security evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-supply-chain-evidence
+          path: |
+            docs/api/evidence/security
+            sbom.spdx.json

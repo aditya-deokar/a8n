@@ -475,6 +475,7 @@ Database changes are usually the riskiest part of production deployment because 
 |---|---|
 | Migration files committed to repo | Makes schema changes reviewable |
 | `prisma validate` in CI | Catches invalid schema early |
+| Migration preflight in CI | Blocks destructive SQL patterns before release |
 | `prisma migrate deploy` in CI/staging/prod | Applies schema consistently |
 | Migration status check | Detects drift |
 | Backups before risky migrations | Enables recovery |
@@ -514,6 +515,8 @@ This solves:
 
 ```powershell
 pnpm exec prisma validate
+pnpm db:migration:preflight
+pnpm db:migration:preflight -- --db
 pnpm exec prisma migrate status
 pnpm exec prisma migrate deploy
 pnpm test:api:db
@@ -1232,6 +1235,14 @@ Suggested files:
 - `docs/DevOps/database-migration-runbook.md`
 - `scripts/migration-preflight.ts`
 
+Current implementation:
+
+- `scripts/migration-preflight.ts` scans Prisma migration SQL for destructive and review-required patterns.
+- `pnpm db:migration:preflight` runs the static migration gate.
+- `pnpm db:migration:preflight -- --db` adds `prisma migrate status` against the configured database.
+- CI workflows run migration preflight before DB-backed API, MCP, E2E, nightly, and release gates.
+- Migration evidence is written under `docs/api/evidence/migrations`.
+
 ---
 
 ### Phase 4: Preview Environments
@@ -1262,8 +1273,17 @@ Acceptance criteria:
 Suggested files:
 
 - `.github/workflows/preview.yml`
-- `scripts/preview-smoke.ts`
+- `scripts/environment-smoke.ts`
 - `docs/DevOps/preview-environment-runbook.md`
+
+Current implementation:
+
+- `.github/workflows/preview.yml` runs preview readiness checks on PRs.
+- The same workflow runs hosted preview smoke when GitHub receives a successful Preview deployment status.
+- `scripts/environment-smoke.ts` provides the shared smoke runner.
+- `pnpm smoke:preview` smokes a preview URL and writes JSON evidence.
+- Preview evidence is stored under `docs/api/evidence/smoke/preview`.
+- `docs/DevOps/preview-environment-runbook.md` defines preview DB, secret, smoke, and teardown rules.
 
 ---
 
@@ -1297,8 +1317,18 @@ Acceptance criteria:
 Suggested files:
 
 - `.github/workflows/staging-deploy.yml`
-- `scripts/staging-smoke.ts`
+- `scripts/environment-smoke.ts`
 - `docs/DevOps/staging-runbook.md`
+
+Current implementation:
+
+- `.github/workflows/staging-deploy.yml` deploys `main` and `release/**` to the protected `staging` environment.
+- The workflow runs production-profile env validation with staging-only secrets.
+- Staging migrations run through preflight, `prisma migrate deploy`, and DB status checks.
+- Internal API, API E2E smoke, MCP release gate, build, Vercel staging deploy, and staging smoke are wired.
+- `pnpm smoke:staging` smokes a staging URL and writes JSON evidence.
+- Staging evidence is stored under `docs/api/evidence/smoke/staging`.
+- `docs/DevOps/staging-runbook.md` defines staging secrets, platform requirements, promotion rules, and rollback handling.
 
 ---
 
@@ -1333,9 +1363,18 @@ Acceptance criteria:
 Suggested files:
 
 - `.github/workflows/production-deploy.yml`
-- `scripts/prod-smoke.ts`
+- `scripts/environment-smoke.ts`
 - `scripts/release-manifest.ts`
 - `docs/DevOps/production-release-runbook.md`
+
+Current implementation:
+
+- `.github/workflows/production-deploy.yml` provides manual production deploy through the protected `production` environment.
+- Production deploy requires backup confirmation and a rollback target before it continues.
+- The workflow runs production env validation, observability readiness, migration preflight/status, build, Vercel production deploy, production smoke, and release manifest generation.
+- `pnpm smoke:prod` runs production smoke checks and writes JSON evidence.
+- `pnpm release:manifest` writes release manifests under `docs/releases`.
+- `docs/DevOps/production-release-runbook.md` defines production secrets, inputs, gates, smoke, evidence, and rollback order.
 
 ---
 
@@ -1376,6 +1415,16 @@ Suggested files:
 - `docs/DevOps/observability-runbook.md`
 - `docs/DevOps/alert-rules.md`
 
+Current implementation:
+
+- `src/lib/observability.ts` provides structured redacted server logs, metric events, duration tracking, and exception capture.
+- `src/instrumentation.ts` emits a server boot event through the observability layer.
+- `scripts/observability-check.ts` validates observability readiness and writes JSON evidence.
+- `.github/workflows/observability.yml` runs observability readiness on PR/main/nightly/manual triggers.
+- `pnpm observability:check` and `pnpm observability:check:strict` are available for local and production readiness checks.
+- `docs/DevOps/observability-runbook.md` defines logs, metrics, traces, dashboards, SLOs, and provider setup.
+- `docs/DevOps/alert-rules.md` defines initial API, database, workflow, webhook, MCP, billing, and release alerts.
+
 ---
 
 ### Phase 8: Security And Supply Chain
@@ -1414,6 +1463,15 @@ Suggested files:
 - `docs/DevOps/supply-chain-policy.md`
 - `docs/DevOps/security-release-checklist.md`
 
+Current implementation:
+
+- `.github/workflows/security.yml` runs CodeQL, dependency review, Gitleaks secret scanning, `pnpm security:release:check`, `pnpm audit --audit-level high`, and SBOM generation.
+- `.github/dependabot.yml` keeps npm and GitHub Actions dependencies current with grouped update PRs.
+- `scripts/security-release-check.ts` validates security workflow coverage, supply-chain docs, package manager build-script controls, threat model presence, and obvious secret leaks.
+- `pnpm security:release:check` writes JSON evidence under `docs/api/evidence/security`.
+- Staging, production, and backend release gate workflows include the security release check and upload security evidence.
+- `docs/DevOps/supply-chain-policy.md`, `docs/DevOps/security-release-checklist.md`, and `docs/DevOps/threat-model.md` define the operational policy.
+
 ---
 
 ### Phase 9: Feature Flags, Canary, And A/B Testing
@@ -1449,6 +1507,18 @@ Suggested files:
 - `src/lib/feature-flags.ts`
 - `docs/DevOps/feature-flag-runbook.md`
 - `docs/DevOps/ab-testing-runbook.md`
+
+Current implementation:
+
+- `src/config/feature-flags.ts` defines release flags, canary flags, kill switches, and the initial `workflowOnboardingV2` experiment.
+- `src/lib/feature-flags.ts` provides server-side flag evaluation, deterministic percentage rollout, kill switch checks, experiment assignment, exposure logging, and diagnostics.
+- Workflow execution dispatch is protected by `KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION`.
+- Google Form and Stripe webhook routes are protected by `KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING`.
+- MCP write, admin, and external side-effect tools are blocked by `KILL_SWITCH_DISABLE_MCP_MUTATIONS` while read-only MCP tools remain available.
+- `scripts/feature-flag-check.ts` validates registry shape, kill switch wiring, experiment weights, runbooks, and audit log presence.
+- `.github/workflows/feature-flags.yml` runs feature flag readiness and uploads evidence.
+- Staging and production workflows expose rollout, experiment, canary, and kill switch variables through protected environment variables.
+- `docs/DevOps/feature-flag-runbook.md`, `docs/DevOps/ab-testing-runbook.md`, and `docs/DevOps/feature-flag-audit-log.md` define rollout and experiment operations.
 
 ---
 
@@ -1487,6 +1557,18 @@ Suggested files:
 - `docs/DevOps/disaster-recovery.md`
 - `.github/workflows/restore-drill.yml`
 
+Current implementation:
+
+- `docs/DevOps/incident-response-runbook.md` defines severity, roles, communication, mitigation, validation, and postmortem rules.
+- `docs/DevOps/incidents/incident-template.md` and `docs/DevOps/incidents/postmortem-template.md` provide reusable incident and postmortem templates.
+- `docs/DevOps/rollback-runbook.md` defines rollback order across feature flags, kill switches, app rollback, database roll-forward, and restore.
+- `docs/DevOps/secret-leak-runbook.md` defines revoke, rotate, audit, and notification steps for leaked secrets.
+- `docs/DevOps/database-restore-runbook.md` defines PITR/snapshot restore steps, staging rehearsal, integrity checks, and approval requirements.
+- `docs/DevOps/disaster-recovery.md` defines RPO/RTO targets, backup verification, restore drill cadence, and DR evidence.
+- `scripts/incident-readiness-check.ts` and `scripts/restore-drill-check.ts` generate incident and disaster recovery evidence.
+- `.github/workflows/restore-drill.yml` runs non-destructive incident and restore drill readiness checks on a quarterly schedule or manual dispatch.
+- Release workflows include incident and restore readiness evidence.
+
 ---
 
 ### Phase 11: Performance, Load, And Cost Controls
@@ -1521,6 +1603,17 @@ Suggested files:
 - `tests/load/webhooks.k6.js`
 - `.github/workflows/performance-nightly.yml`
 - `docs/DevOps/performance-runbook.md`
+
+Current implementation:
+
+- `docs/DevOps/performance-budgets.json` defines API, webhook, workflow execution, frontend, and cost budgets.
+- `docs/DevOps/performance-runbook.md` defines load-test rules, p95 guardrails, release-blocking conditions, and evidence paths.
+- `docs/DevOps/cost-control-runbook.md` defines cloud, database, AI/provider, workflow, and observability cost controls.
+- `docs/DevOps/slow-query-review-template.md` provides a slow query investigation template.
+- `tests/load/api.k6.js`, `tests/load/webhooks.k6.js`, and `tests/load/workflow-execution.k6.js` provide staged k6 load-test scaffolding.
+- `scripts/performance-readiness-check.ts` validates budgets, load-test scripts, performance workflow, cost controls, and slow-query review docs.
+- `.github/workflows/performance-nightly.yml` runs performance readiness and can run staged k6 load tests against a configured staging URL.
+- Release workflows include performance readiness evidence.
 
 ---
 
@@ -1558,6 +1651,21 @@ Suggested files:
 - `docs/DevOps/operational-review-template.md`
 - `docs/DevOps/access-review-template.md`
 
+Current implementation:
+
+- `infra/README.md` defines Infrastructure as Code ownership, review rules, and future provider layout.
+- `infra/environment-baseline.json` records local, test, preview, staging, and production environment expectations.
+- `docs/DevOps/governance-runbook.md` defines operational review, access review, secret rotation, restore drill, threat model refresh, release calendar, and evidence cadence.
+- `docs/DevOps/operational-review-template.md` records SLOs, error budget status, incidents, performance, cost, and action items.
+- `docs/DevOps/access-review-template.md` supports quarterly least-privilege review for GitHub, Vercel, database, and providers.
+- `docs/DevOps/error-budget-policy.md` defines SLO baseline, release freeze behavior, and rollback policy.
+- `docs/DevOps/release-calendar.md` defines release windows, freeze windows, hotfix rules, and release ownership.
+- `docs/DevOps/environment-drift-runbook.md` defines baseline ownership and staging/production drift response.
+- `docs/DevOps/quarterly-governance-checklist.md` ties access review, secret rotation, restore drill, and threat model refresh into one quarterly checklist.
+- `scripts/governance-readiness-check.ts` and `scripts/environment-drift-check.ts` generate governance and drift evidence.
+- `.github/workflows/governance.yml` runs governance and environment drift checks on PR, schedule, and manual dispatch.
+- Staging, production, backend release gates, release manifests, CODEOWNERS, PR template, and release checklist include governance and environment drift controls.
+
 ---
 
 ## 27. Recommended Workflow Files To Eventually Have
@@ -1570,11 +1678,13 @@ Suggested files:
 | `backend-release-gate.yml` | main/release/manual | Combined backend gate |
 | `frontend-quality.yml` | PR/main | UI tests/build checks |
 | `security.yml` | PR/main/nightly | CodeQL, dependencies, secrets |
+| `feature-flags.yml` | PR/main/manual | Feature flag, canary, kill switch, and experiment readiness |
 | `preview.yml` | PR | Preview deployment and smoke |
 | `staging-deploy.yml` | main/release | Staging deploy and gates |
 | `production-deploy.yml` | release/manual | Production deploy with approval |
 | `performance-nightly.yml` | schedule/manual | Load/performance tests |
 | `restore-drill.yml` | schedule/manual | Backup restore verification |
+| `governance.yml` | PR/quarterly/manual | Platform governance and environment drift checks |
 
 ---
 
@@ -1585,12 +1695,22 @@ Suggested files:
 | `pnpm verify` | Local full quality check |
 | `pnpm verify:backend` | Backend release quality check |
 | `pnpm verify:frontend` | Frontend quality check |
+| `pnpm smoke:preview` | Preview smoke tests |
 | `pnpm smoke:staging` | Staging smoke tests |
 | `pnpm smoke:prod` | Production smoke tests |
 | `pnpm release:manifest` | Generate release manifest |
+| `pnpm observability:check` | Observability readiness and evidence |
 | `pnpm env:check` | Validate environment variables |
-| `pnpm security:scan` | Local security scan |
+| `pnpm security:release:check` | Security and supply-chain release readiness |
+| `pnpm feature-flags:check` | Feature flag, kill switch, and experiment readiness |
+| `pnpm incident:check` | Incident response and rollback readiness |
+| `pnpm restore:drill:check` | Disaster recovery and restore drill readiness |
+| `pnpm performance:check` | Performance budget, load-test, cost, and slow-query readiness |
+| `pnpm governance:check` | Platform governance, access review, release calendar, and error budget readiness |
+| `pnpm environment:drift:check` | Environment baseline and drift detection readiness |
 | `pnpm load:api` | API load test |
+| `pnpm load:webhooks` | Webhook burst load test |
+| `pnpm load:workflow` | Workflow execution load test |
 | `pnpm db:migration:preflight` | Migration preflight checks |
 
 ---
@@ -1609,12 +1729,20 @@ Use this before any production release.
 - [ ] API release gate passed.
 - [ ] Backend E2E release gate passed.
 - [ ] MCP release gate passed if MCP changed.
+- [ ] Security release check passed.
+- [ ] Feature flag readiness check passed.
+- [ ] Incident readiness check passed.
+- [ ] Restore drill readiness check passed.
+- [ ] Performance readiness check passed.
+- [ ] Governance readiness check passed.
+- [ ] Environment drift check passed.
 - [ ] Build passed.
 
 ### Security
 
 - [ ] No secrets committed.
 - [ ] Dependency scan reviewed.
+- [ ] SBOM generated for production release.
 - [ ] Auth/security-sensitive changes reviewed.
 - [ ] Webhook changes tested.
 - [ ] Credential/encryption changes reviewed.
@@ -1631,6 +1759,7 @@ Use this before any production release.
 - [ ] Version/tag decided.
 - [ ] Release notes ready.
 - [ ] Feature flags configured.
+- [ ] Kill switches configured and rollback order is clear.
 - [ ] Rollback target known.
 - [ ] Production smoke test command ready.
 
@@ -1647,7 +1776,7 @@ Use this before any production release.
 
 ## 30. Immediate Next Best Steps For This Project
 
-If implementing this in future, start here:
+The project has now implemented this initial sequence. For a new project, start here:
 
 1. Add `.env.example` and `src/env.ts` validation.
 2. Add `.github/CODEOWNERS` and PR template.
@@ -1658,7 +1787,8 @@ If implementing this in future, start here:
 7. Add Sentry or equivalent error monitoring.
 8. Add feature flag helper and one emergency kill switch.
 9. Add incident, rollback, and database restore runbooks.
-10. Add preview environment automation with isolated database branches.
+10. Add performance budgets, load tests, and cost controls.
+11. Add governance, access review, release calendar, error budget, and drift detection.
 
 This order gives the highest production safety return without overbuilding too early.
 

@@ -9,6 +9,34 @@ import {
   setPremiumSubscription,
 } from "../helpers/trpc-caller.mjs";
 
+async function captureLogEvents() {
+  const { logger } = await import("@/lib/logging");
+  const events = [];
+  const original = {
+    debug: logger.debug,
+    info: logger.info,
+    warn: logger.warn,
+    error: logger.error,
+    fatal: logger.fatal,
+    child: logger.child,
+  };
+
+  for (const level of ["debug", "info", "warn", "error", "fatal"]) {
+    logger[level] = (fields, message) => {
+      events.push({ level, fields, message });
+    };
+  }
+  logger.child = () => logger;
+
+  return {
+    events,
+    logger,
+    restore() {
+      Object.assign(logger, original);
+    },
+  };
+}
+
 describe("tRPC middleware", () => {
   beforeEach(() => {
     resetApiTestMocks();
@@ -66,5 +94,124 @@ describe("tRPC middleware", () => {
       expectTrpcCode(error, "FORBIDDEN");
       return true;
     });
+  });
+
+  it("logs successful protected procedure completion with request and user context", async () => {
+    setApiUser(apiUsers.userAPro);
+    const { createTRPCRouter, protectedProcedure } = await loadTrpcInit();
+    const capture = await captureLogEvents();
+
+    try {
+      const router = createTRPCRouter({
+        whoami: protectedProcedure.query(({ ctx }) => ctx.auth.user.id),
+      });
+
+      await expect(
+        router.createCaller({
+          requestId: "req_trpc_success",
+          correlationId: "req_trpc_success",
+          requestLogger: capture.logger,
+        }).whoami(),
+      ).resolves.toBe(apiUsers.userAPro.id);
+
+      expect(capture.events).toContainEqual(
+        expect.objectContaining({
+          level: "info",
+          fields: expect.objectContaining({
+            component: "trpc",
+            event: "trpc_procedure_completed",
+            procedurePath: "whoami",
+            procedureType: "query",
+            requestId: "req_trpc_success",
+            userId: apiUsers.userAPro.id,
+          }),
+        }),
+      );
+    } finally {
+      capture.restore();
+    }
+  });
+
+  it("logs unauthorized protected procedure attempts safely", async () => {
+    setAnonymousApiUser();
+    const { createTRPCRouter, protectedProcedure } = await loadTrpcInit();
+    const capture = await captureLogEvents();
+
+    try {
+      const router = createTRPCRouter({
+        whoami: protectedProcedure.query(({ ctx }) => ctx.auth.user.id),
+      });
+
+      await expect(
+        router.createCaller({
+          requestId: "req_trpc_unauthorized",
+          correlationId: "req_trpc_unauthorized",
+          requestLogger: capture.logger,
+        }).whoami(),
+      ).rejects.toSatisfy((error) => {
+        expectTrpcCode(error, "UNAUTHORIZED");
+        return true;
+      });
+
+      expect(capture.events).toContainEqual(
+        expect.objectContaining({
+          level: "warn",
+          fields: expect.objectContaining({
+            component: "trpc",
+            event: "trpc_auth_failed",
+            procedurePath: "whoami",
+            procedureType: "query",
+            requestId: "req_trpc_unauthorized",
+            trpcErrorCode: "UNAUTHORIZED",
+          }),
+        }),
+      );
+    } finally {
+      capture.restore();
+    }
+  });
+
+  it("logs failed premium mutations without procedure input", async () => {
+    setApiUser(apiUsers.userAFree);
+    setPremiumSubscription(false);
+    const { createTRPCRouter, premiumProcedure } = await loadTrpcInit();
+    const capture = await captureLogEvents();
+
+    try {
+      const router = createTRPCRouter({
+        premium: premiumProcedure.mutation(() => "ok"),
+      });
+
+      await expect(
+        router.createCaller({
+          requestId: "req_trpc_failure",
+          correlationId: "req_trpc_failure",
+          requestLogger: capture.logger,
+        }).premium(),
+      ).rejects.toSatisfy((error) => {
+        expectTrpcCode(error, "FORBIDDEN");
+        return true;
+      });
+
+      const failureEvent = capture.events.find(
+        (event) => event.fields?.event === "trpc_procedure_failed",
+      );
+
+      expect(failureEvent).toMatchObject({
+        level: "warn",
+        fields: expect.objectContaining({
+          component: "trpc",
+          procedurePath: "premium",
+          procedureType: "mutation",
+          requestId: "req_trpc_failure",
+          trpcErrorCode: "FORBIDDEN",
+          userId: apiUsers.userAFree.id,
+        }),
+      });
+      expect(JSON.stringify(failureEvent.fields)).not.toContain("secret");
+      expect(JSON.stringify(failureEvent.fields)).not.toContain("input");
+    } finally {
+      capture.restore();
+    }
   });
 });

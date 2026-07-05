@@ -4,6 +4,7 @@ import { NonRetriableError } from "inngest";
 import type { NodeExecutor } from "@/features/executions/types";
 import { discordChannel } from "@/inngest/channels/discord";
 import ky from "ky";
+import { observeExternalProvider, safeProviderHost } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -63,13 +64,25 @@ export const discordExecutor: NodeExecutor<DiscordData> = async ({
         );
         throw new NonRetriableError("Discord node: Webhook URL is required");
       }
+      const webhookUrl = data.webhookUrl;
 
-      await ky.post(data.webhookUrl, {
-        json: {
-          content: content.slice(0, 2000), // Discord's max message length
-          username,
+      await observeExternalProvider(
+        {
+          provider: "discord",
+          operation: "webhook_post",
+          nodeId,
+          nodeType: "DISCORD",
+          method: "POST",
+          host: safeProviderHost(webhookUrl),
         },
-      });
+        () =>
+          ky.post(webhookUrl, {
+            json: {
+              content: content.slice(0, 2000), // Discord's max message length
+              username,
+            },
+          }),
+      );
 
       if (!data.variableName) {
         await publish(

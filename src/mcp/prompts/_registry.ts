@@ -14,11 +14,20 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerCreateWorkflowPrompt } from "./create-workflow.prompt";
 import { registerDebugExecutionPrompt } from "./debug-execution.prompt";
 import { registerSetupIntegrationPrompt } from "./setup-integration.prompt";
+import { logger } from "@/lib/logging";
 
 export function registerAllPrompts(server: McpServer): void {
   registerCreateWorkflowPrompt(server);
   registerDebugExecutionPrompt(server);
   registerSetupIntegrationPrompt(server);
 
-  console.log("[MCP] 3 prompts registered");
+  logger.info(
+    {
+      component: "mcp",
+      event: "mcp_registry_registered",
+      registry: "prompts",
+      count: 3,
+    },
+    "MCP prompts registered.",
+  );
 }

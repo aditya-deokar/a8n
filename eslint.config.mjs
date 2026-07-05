@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "playwright-report/**",
     "test-results/**",
+    "tests/load/**",
   ]),
   {
     files: ["**/*.{js,mjs,ts,tsx}"],
@@ -24,6 +25,12 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "warn",
       "react/no-unescaped-entities": "warn",
       "react/display-name": "warn",
+    },
+  },
+  {
+    files: ["src/**/*.{js,mjs,ts,tsx}"],
+    rules: {
+      "no-console": "error",
     },
   },
   {

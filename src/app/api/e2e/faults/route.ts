@@ -4,6 +4,7 @@ import {
   type E2EFaultName,
 } from "@/lib/e2e-faults";
 import { isE2EMode } from "@/lib/e2e-safety";
+import { withRequestLogging } from "@/lib/logging";
 import { NextResponse } from "next/server";
 
 const E2E_FAULTS = new Set<E2EFaultName>(["prisma", "inngest", "polar"]);
@@ -16,7 +17,7 @@ function unavailable() {
   return NextResponse.json({ success: false, error: "Not found." }, { status: 404 });
 }
 
-export async function POST(request: Request) {
+async function postHandler(request: Request) {
   if (!available()) return unavailable();
 
   const body = await request.json().catch(() => null);
@@ -33,9 +34,23 @@ export async function POST(request: Request) {
   return NextResponse.json({ success: true, fault });
 }
 
-export async function DELETE() {
+async function deleteHandler(request: Request) {
+  void request;
+
   if (!available()) return unavailable();
 
   clearE2EFaults();
   return NextResponse.json({ success: true });
 }
+
+export const POST = withRequestLogging(postHandler, {
+  component: "api",
+  route: "/api/e2e/faults",
+  eventPrefix: "e2e_fault_request",
+});
+
+export const DELETE = withRequestLogging(deleteHandler, {
+  component: "api",
+  route: "/api/e2e/faults",
+  eventPrefix: "e2e_fault_request",
+});

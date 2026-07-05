@@ -11,6 +11,11 @@ process.env.NEXT_PUBLIC_APP_URL =
 process.env.APP_URL = process.env.APP_URL || "http://127.0.0.1:3000";
 process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL =
   process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL || "http://127.0.0.1:3000";
+try {
+  new URL(process.env.BASE_URL || "");
+} catch {
+  process.env.BASE_URL = "http://127.0.0.1:3000";
+}
 process.env.ENCRYPTION_KEY =
   process.env.ENCRYPTION_KEY || "test-api-encryption-key-32-characters";
 process.env.POLAR_ACCESS_TOKEN = process.env.POLAR_ACCESS_TOKEN || "test-polar-token";

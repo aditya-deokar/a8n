@@ -6,6 +6,7 @@ import type { NodeExecutor } from "@/features/executions/types";
 import { googleSheetsChannel } from "@/inngest/channels/google-sheets";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
+import { observeExternalProvider } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -138,14 +139,28 @@ export const googleSheetsExecutor: NodeExecutor<GoogleSheetsData> = async ({
         scopes: ["https://www.googleapis.com/auth/spreadsheets"],
       });
       const sheets = google.sheets({ version: "v4", auth });
-      const response = await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: `${sheetName}!A:Z`,
-        valueInputOption: "USER_ENTERED",
-        requestBody: {
-          values: [row],
+      const response = await observeExternalProvider(
+        {
+          provider: "google_sheets",
+          operation: "append_row",
+          nodeId,
+          nodeType: "GOOGLE_SHEETS",
+          statusCode: (result) => result.status,
+          successFields: (result) => ({
+            updatedRows: result.data.updates?.updatedRows,
+            updatedCells: result.data.updates?.updatedCells,
+          }),
         },
-      });
+        () =>
+          sheets.spreadsheets.values.append({
+            spreadsheetId,
+            range: `${sheetName}!A:Z`,
+            valueInputOption: "USER_ENTERED",
+            requestBody: {
+              values: [row],
+            },
+          }),
+      );
 
       return {
         ...context,

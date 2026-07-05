@@ -32,6 +32,16 @@ const optionalPositiveInt = z.preprocess(
   z.coerce.number().int().positive().optional(),
 );
 
+const optionalNonNegativeInt = z.preprocess(
+  emptyToUndefined,
+  z.coerce.number().int().min(0).optional(),
+);
+
+const optionalPercent = z.preprocess(
+  emptyToUndefined,
+  z.coerce.number().int().min(0).max(100).optional(),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   A8N_ENV_PROFILE: z
@@ -68,6 +78,52 @@ const envSchema = z.object({
 
   INNGEST_EVENT_KEY: optionalString,
   INNGEST_SIGNING_KEY: optionalString,
+
+  OBSERVABILITY_LOG_ENABLED: optionalBoolean,
+  OBSERVABILITY_LOG_LEVEL: z
+    .preprocess(emptyToUndefined, z.enum(["debug", "info", "warn", "error", "fatal"]).optional())
+    .optional(),
+  OBSERVABILITY_LOG_FORMAT: z
+    .preprocess(emptyToUndefined, z.enum(["json", "pretty"]).optional())
+    .optional(),
+  OBSERVABILITY_REDACTION_STRICT: optionalBoolean,
+  OBSERVABILITY_INCLUDE_ERROR_STACK: optionalBoolean,
+  OBSERVABILITY_CLIENT_LOG_ENABLED: optionalBoolean,
+  OBSERVABILITY_REQUEST_BODY_LOG_ENABLED: optionalBoolean,
+  OBSERVABILITY_SLOW_QUERY_MS: optionalPositiveInt,
+  OBSERVABILITY_SAMPLE_DEBUG_RATE: optionalNonNegativeInt,
+  OBSERVABILITY_PROVIDER: z
+    .preprocess(emptyToUndefined, z.enum(["console", "sentry", "otel", "datadog"]).optional())
+    .optional(),
+  OBSERVABILITY_METRICS_ENDPOINT: optionalUrl,
+  ERROR_TRACKING_DSN: optionalString,
+  OTEL_EXPORTER_OTLP_ENDPOINT: optionalUrl,
+  OTEL_SERVICE_NAME: optionalString,
+  OTEL_HEADERS: optionalString,
+  ALERT_WEBHOOK_URL: optionalUrl,
+  RELEASE_VERSION: optionalString,
+  ROLLBACK_TARGET: optionalString,
+  BACKUP_PROVIDER: optionalString,
+  RESTORE_DRILL_TARGET: optionalString,
+  BASE_URL: optionalUrl,
+  API_LOAD_PATH: optionalString,
+  WEBHOOK_LOAD_PATH: optionalString,
+  MCP_BEARER_TOKEN: optionalString,
+  WORKFLOW_ID: optionalString,
+
+  FEATURE_FLAGS_ENABLED: optionalBoolean,
+  FEATURE_FLAG_OVERRIDES: optionalString,
+  FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT: optionalPercent,
+  CANARY_ROLLOUT_PERCENT: optionalPercent,
+  EXPERIMENT_EVENT_LOG_ENABLED: optionalBoolean,
+  EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT: optionalString,
+  KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION: optionalBoolean,
+  KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING: optionalBoolean,
+  KILL_SWITCH_DISABLE_MCP_MUTATIONS: optionalBoolean,
+  KILL_SWITCH_READ_ONLY_MODE: optionalBoolean,
 
   MCP_APP_PROFILE: optionalString,
   MCP_AUDIT_LOG_ENABLED: optionalBoolean,
@@ -121,6 +177,8 @@ const envSchema = z.object({
   NGROK_URL: optionalUrl,
   NGROK_AUTHTOKEN: optionalString,
   VERCEL_URL: optionalString,
+  PREVIEW_URL: optionalUrl,
+  STAGING_URL: optionalUrl,
 
   E2E_TESTS: optionalBoolean,
   E2E_EXTERNAL_SERVICES: z

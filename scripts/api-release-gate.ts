@@ -63,6 +63,10 @@ function vitestCli() {
   return cliPath("vitest", "vitest.mjs");
 }
 
+function pnpmCli() {
+  return process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+}
+
 function dateStamp() {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kolkata",
@@ -107,6 +111,34 @@ function run(
     name,
     required,
     command: `${process.execPath} ${args.join(" ")}`,
+    status: result.status === 0 ? "passed" : "failed",
+    exitCode: result.status,
+    durationMs,
+    stdout: redact(result.stdout?.trim()),
+    stderr: redact(result.error ? result.error.message : result.stderr?.trim()),
+  };
+}
+
+function runCommand(
+  name: string,
+  command: string,
+  args: string[],
+  required = true,
+  env: NodeJS.ProcessEnv = process.env,
+): GateCheck {
+  const started = Date.now();
+  const result = spawnSync(command, args, {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    env,
+    timeout: checkTimeoutMs,
+  });
+  const durationMs = Date.now() - started;
+
+  return {
+    name,
+    required,
+    command: `${command} ${args.join(" ")}`,
     status: result.status === 0 ? "passed" : "failed",
     exitCode: result.status,
     durationMs,
@@ -189,6 +221,18 @@ function main() {
 
   const checks: GateCheck[] = [
     run("prisma validate", [prismaCli(), "validate", "--schema", "prisma/schema.prisma"], true, env),
+    runCommand(
+      "database migration preflight",
+      pnpmCli(),
+      [
+        "db:migration:preflight",
+        "--",
+        "--json",
+        ...(options.db ? ["--db"] : []),
+      ],
+      true,
+      options.db ? { ...env, API_DATABASE_TESTS: "true" } : env,
+    ),
     run("typecheck", ["--max-old-space-size=4096", tscCli(), "--noEmit", "--pretty", "false"], true, env),
   ];
 
@@ -298,6 +342,7 @@ function main() {
       "API key hashes, OAuth token hashes, and raw keys are not exposed by list/read procedures.",
       "Destructive mutations include the authenticated user id in the ownership boundary.",
       "The real test database schema matches committed Prisma migrations.",
+      "Database migrations pass destructive-change preflight and migrate-status checks before release.",
     ],
     checks,
   };

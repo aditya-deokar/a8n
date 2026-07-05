@@ -1,0 +1,189 @@
+name: Staging Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - "release/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  staging-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_APP_URL }}
+    env:
+      CI: "true"
+      NODE_ENV: production
+      A8N_ENV_PROFILE: production
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      API_DATABASE_TESTS: "true"
+      E2E_TESTS: "true"
+      E2E_EXTERNAL_SERVICES: mock
+      STAGING_APP_URL: ${{ vars.STAGING_APP_URL }}
+      DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+      BETTER_AUTH_SECRET: ${{ secrets.STAGING_BETTER_AUTH_SECRET }}
+      BETTER_AUTH_URL: ${{ vars.STAGING_APP_URL }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.STAGING_APP_URL }}
+      APP_URL: ${{ vars.STAGING_APP_URL }}
+      NEXT_PUBLIC_WEBHOOK_BASE_URL: ${{ vars.STAGING_WEBHOOK_BASE_URL || vars.STAGING_APP_URL }}
+      ENCRYPTION_KEY: ${{ secrets.STAGING_ENCRYPTION_KEY }}
+      POLAR_ACCESS_TOKEN: ${{ secrets.STAGING_POLAR_ACCESS_TOKEN }}
+      POLAR_SUCCESS_URL: ${{ vars.STAGING_POLAR_SUCCESS_URL }}
+      MCP_AUDIT_DB_ENABLED: "true"
+      MCP_AUDIT_LOG_ENABLED: "true"
+      MCP_API_KEY_HMAC_SECRET: ${{ secrets.STAGING_MCP_API_KEY_HMAC_SECRET }}
+      MCP_OAUTH_TOKEN_HMAC_SECRET: ${{ secrets.STAGING_MCP_OAUTH_TOKEN_HMAC_SECRET }}
+      MCP_CORS_ORIGINS: ${{ vars.STAGING_APP_URL }}
+      MCP_RATE_LIMIT_BACKEND: database
+      MCP_SAFE_FETCH_ALLOWLIST_MODE: "true"
+      A8N_WEBHOOK_SHARED_SECRET: ${{ secrets.STAGING_A8N_WEBHOOK_SHARED_SECRET }}
+      GOOGLE_FORM_WEBHOOK_SECRET: ${{ secrets.STAGING_GOOGLE_FORM_WEBHOOK_SECRET }}
+      STRIPE_WEBHOOK_SECRET: ${{ secrets.STAGING_STRIPE_WEBHOOK_SECRET }}
+      STRIPE_WEBHOOK_SHARED_SECRET: ${{ secrets.STAGING_STRIPE_WEBHOOK_SHARED_SECRET }}
+      FEATURE_FLAGS_ENABLED: ${{ vars.STAGING_FEATURE_FLAGS_ENABLED || 'true' }}
+      FEATURE_FLAG_OVERRIDES: ${{ vars.STAGING_FEATURE_FLAG_OVERRIDES }}
+      FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT: ${{ vars.STAGING_FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT || '0' }}
+      FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT: ${{ vars.STAGING_FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT || '0' }}
+      FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT: ${{ vars.STAGING_FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT || '0' }}
+      FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT: ${{ vars.STAGING_FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT || '0' }}
+      CANARY_ROLLOUT_PERCENT: ${{ vars.STAGING_CANARY_ROLLOUT_PERCENT || '0' }}
+      EXPERIMENT_EVENT_LOG_ENABLED: ${{ vars.STAGING_EXPERIMENT_EVENT_LOG_ENABLED || 'true' }}
+      EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT: ${{ vars.STAGING_EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT }}
+      KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION: ${{ vars.STAGING_KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION || 'false' }}
+      KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING: ${{ vars.STAGING_KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING || 'false' }}
+      KILL_SWITCH_DISABLE_MCP_MUTATIONS: ${{ vars.STAGING_KILL_SWITCH_DISABLE_MCP_MUTATIONS || 'false' }}
+      KILL_SWITCH_READ_ONLY_MODE: ${{ vars.STAGING_KILL_SWITCH_READ_ONLY_MODE || 'false' }}
+      VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Environment check
+        run: pnpm env:check -- --profile production
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+
+      - name: Apply staging migrations
+        run: pnpm exec prisma migrate deploy
+
+      - name: Staging migration status
+        run: pnpm db:migration:preflight -- --db --json
+
+      - name: Internal API release gate
+        run: pnpm api:release:gate -- --strict --db --json
+
+      - name: API E2E smoke gate
+        run: pnpm api:e2e:release:gate -- --smoke --json
+
+      - name: MCP release gate
+        run: pnpm mcp:release:gate
+
+      - name: Observability readiness
+        run: pnpm observability:check -- --profile production --json
+
+      - name: Security release check
+        run: pnpm security:release:check -- --strict --json
+
+      - name: Feature flag readiness
+        run: pnpm feature-flags:check -- --strict --json
+
+      - name: Incident readiness
+        run: pnpm incident:check -- --strict --json
+
+      - name: Restore drill readiness
+        run: pnpm restore:drill:check -- --strict --json
+
+      - name: Performance readiness
+        run: pnpm performance:check -- --strict --json
+
+      - name: Governance readiness
+        run: pnpm governance:check -- --strict --json
+
+      - name: Environment drift check
+        run: pnpm environment:drift:check -- --strict --json
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pull Vercel staging project
+        run: pnpm dlx vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+
+      - name: Deploy to Vercel staging project
+        run: |
+          pnpm dlx vercel deploy --prod --yes --token="${{ secrets.VERCEL_TOKEN }}" > staging-url.txt
+          DEPLOYMENT_URL="$(tail -n 1 staging-url.txt)"
+          echo "STAGING_DEPLOYMENT_URL=$DEPLOYMENT_URL" >> "$GITHUB_ENV"
+          echo "Deployed staging URL: $DEPLOYMENT_URL"
+
+      - name: Staging smoke
+        run: |
+          TARGET_URL="${STAGING_DEPLOYMENT_URL:-$STAGING_APP_URL}"
+          pnpm smoke:staging -- --base-url "$TARGET_URL" --json
+
+      - name: Write staging summary
+        if: always()
+        run: |
+          echo "## Staging Deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Staging URL: ${STAGING_DEPLOYMENT_URL:-$STAGING_APP_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Migration evidence: docs/api/evidence/migrations" >> "$GITHUB_STEP_SUMMARY"
+          echo "Smoke evidence: docs/api/evidence/smoke/staging" >> "$GITHUB_STEP_SUMMARY"
+          echo "Security evidence: docs/api/evidence/security" >> "$GITHUB_STEP_SUMMARY"
+          echo "Feature flag evidence: docs/api/evidence/feature-flags" >> "$GITHUB_STEP_SUMMARY"
+          echo "Incident evidence: docs/api/evidence/incidents" >> "$GITHUB_STEP_SUMMARY"
+          echo "DR evidence: docs/api/evidence/disaster-recovery" >> "$GITHUB_STEP_SUMMARY"
+          echo "Performance evidence: docs/api/evidence/performance" >> "$GITHUB_STEP_SUMMARY"
+          echo "Governance evidence: docs/api/evidence/governance" >> "$GITHUB_STEP_SUMMARY"
+          echo "Environment drift evidence: docs/api/evidence/environment-drift" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload staging evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: staging-release-evidence
+          path: |
+            docs/api/evidence/migrations
+            docs/api/evidence/release-gates
+            docs/api/evidence/e2e
+            docs/api/evidence/smoke/staging
+            docs/api/evidence/observability
+            docs/api/evidence/security
+            docs/api/evidence/feature-flags
+            docs/api/evidence/incidents
+            docs/api/evidence/disaster-recovery
+            docs/api/evidence/performance
+            docs/api/evidence/governance
+            docs/api/evidence/environment-drift
+            playwright-report/api-e2e
+            test-results/api-e2e

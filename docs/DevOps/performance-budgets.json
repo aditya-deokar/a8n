@@ -1,0 +1,68 @@
+{
+  "api": {
+    "p95LatencyMs": {
+      "value": 750,
+      "unit": "ms"
+    },
+    "errorRatePercent": {
+      "value": 1,
+      "unit": "%"
+    },
+    "steadyRequestsPerSecond": {
+      "value": 20,
+      "unit": "rps"
+    }
+  },
+  "webhooks": {
+    "p95LatencyMs": {
+      "value": 1000,
+      "unit": "ms"
+    },
+    "errorRatePercent": {
+      "value": 1,
+      "unit": "%"
+    },
+    "burstRequestsPerSecond": {
+      "value": 10,
+      "unit": "rps"
+    }
+  },
+  "workflowExecution": {
+    "p95DispatchLatencyMs": {
+      "value": 1500,
+      "unit": "ms"
+    },
+    "failureRatePercent": {
+      "value": 2,
+      "unit": "%"
+    },
+    "steadyExecutionsPerMinute": {
+      "value": 30,
+      "unit": "executions/min"
+    }
+  },
+  "frontend": {
+    "largestContentfulPaintMs": {
+      "value": 2500,
+      "unit": "ms"
+    },
+    "interactionToNextPaintMs": {
+      "value": 200,
+      "unit": "ms"
+    }
+  },
+  "cost": {
+    "monthlyCloudBudgetUsd": {
+      "value": 100,
+      "unit": "USD"
+    },
+    "monthlyAiProviderBudgetUsd": {
+      "value": 50,
+      "unit": "USD"
+    },
+    "monthlyDatabaseBudgetUsd": {
+      "value": 50,
+      "unit": "USD"
+    }
+  }
+}

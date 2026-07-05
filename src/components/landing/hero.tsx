@@ -12,7 +12,7 @@ import { CardHoverEffect } from '@/components/ui/landing/pulse-card';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { reportClientError } from '@/lib/client-logging';
 
 
 const PIXEL_SCRIPT_URL =
@@ -32,7 +32,9 @@ export default function Hero() {
                 setIsScriptLoaded(true);
               })
               .catch((error) => {
-                console.error('Error loading pixel script:', error);
+                reportClientError(error, {
+                  source: 'landing_pixel_script',
+                });
               });
           });
           observer.disconnect();

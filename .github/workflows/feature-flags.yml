@@ -1,0 +1,87 @@
+name: Feature Flags And Rollout Controls
+
+on:
+  pull_request:
+    paths:
+      - "src/config/feature-flags.ts"
+      - "src/lib/feature-flags.ts"
+      - "src/app/api/mcp/route.ts"
+      - "src/app/api/webhooks/**"
+      - "src/inngest/**"
+      - "scripts/feature-flag-check.ts"
+      - "docs/DevOps/feature-flag-runbook.md"
+      - "docs/DevOps/ab-testing-runbook.md"
+      - "docs/DevOps/feature-flag-audit-log.md"
+      - ".github/workflows/feature-flags.yml"
+      - ".github/workflows/backend-release-gate.yml"
+      - ".github/workflows/staging-deploy.yml"
+      - ".github/workflows/production-deploy.yml"
+      - ".env.example"
+      - "package.json"
+  push:
+    branches:
+      - main
+      - "codex/**"
+      - "release/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  feature-flag-readiness:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      NODE_ENV: test
+      A8N_ENV_PROFILE: test
+      DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
+      BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+      ENCRYPTION_KEY: test-feature-flags-key-32-characters
+      FEATURE_FLAGS_ENABLED: "true"
+      FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT: "0"
+      FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT: "0"
+      FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT: "0"
+      FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT: "0"
+      CANARY_ROLLOUT_PERCENT: "0"
+      EXPERIMENT_EVENT_LOG_ENABLED: "true"
+      EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT: ""
+      KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION: "false"
+      KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING: "false"
+      KILL_SWITCH_DISABLE_MCP_MUTATIONS: "false"
+      KILL_SWITCH_READ_ONLY_MODE: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Environment check
+        run: pnpm env:check
+
+      - name: Feature flag readiness
+        run: pnpm feature-flags:check -- --strict --json
+
+      - name: Upload feature flag evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: feature-flag-readiness-evidence
+          path: docs/api/evidence/feature-flags

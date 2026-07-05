@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "owner": "platform-owner",
+  "reviewCadence": "quarterly",
+  "environments": {
+    "local": {
+      "purpose": "Developer workstation using local or disposable development services.",
+      "variables": [
+        { "name": "DATABASE_URL", "source": "env-file", "required": true, "secret": true },
+        { "name": "BETTER_AUTH_SECRET", "source": "env-file", "required": true, "secret": true },
+        { "name": "NEXT_PUBLIC_APP_URL", "source": "env-file", "required": true, "secret": false },
+        { "name": "APP_URL", "source": "env-file", "required": false, "secret": false },
+        { "name": "NEXT_PUBLIC_WEBHOOK_BASE_URL", "source": "env-file", "required": false, "secret": false },
+        { "name": "ENCRYPTION_KEY", "source": "env-file", "required": true, "secret": true },
+        { "name": "MCP_API_KEY_HMAC_SECRET", "source": "env-file", "required": true, "secret": true },
+        { "name": "MCP_OAUTH_TOKEN_HMAC_SECRET", "source": "env-file", "required": true, "secret": true },
+        { "name": "OBSERVABILITY_LOG_FORMAT", "source": "env-file", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REDACTION_STRICT", "source": "env-file", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_INCLUDE_ERROR_STACK", "source": "env-file", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_CLIENT_LOG_ENABLED", "source": "env-file", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REQUEST_BODY_LOG_ENABLED", "source": "env-file", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SLOW_QUERY_MS", "source": "env-file", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SAMPLE_DEBUG_RATE", "source": "env-file", "required": false, "secret": false }
+      ]
+    },
+    "test": {
+      "purpose": "Automated CI tests with disposable credentials and no production access.",
+      "variables": [
+        { "name": "DATABASE_URL", "source": "github-variable", "required": true, "secret": true },
+        { "name": "BETTER_AUTH_SECRET", "source": "github-variable", "required": true, "secret": true },
+        { "name": "NEXT_PUBLIC_APP_URL", "source": "github-variable", "required": true, "secret": false },
+        { "name": "ENCRYPTION_KEY", "source": "github-variable", "required": true, "secret": true },
+        { "name": "MCP_API_KEY_HMAC_SECRET", "source": "github-variable", "required": true, "secret": true },
+        { "name": "MCP_OAUTH_TOKEN_HMAC_SECRET", "source": "github-variable", "required": true, "secret": true },
+        { "name": "OBSERVABILITY_LOG_FORMAT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REDACTION_STRICT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_INCLUDE_ERROR_STACK", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_CLIENT_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REQUEST_BODY_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SLOW_QUERY_MS", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SAMPLE_DEBUG_RATE", "source": "github-variable", "required": false, "secret": false },
+        { "name": "E2E_TESTS", "source": "github-variable", "required": false, "secret": false }
+      ]
+    },
+    "preview": {
+      "purpose": "Pull request review environment with isolated non-production configuration.",
+      "variables": [
+        { "name": "PREVIEW_URL", "source": "github-variable", "required": false, "secret": false },
+        { "name": "DATABASE_URL", "source": "github-secret", "required": true, "secret": true },
+        { "name": "BETTER_AUTH_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "NEXT_PUBLIC_APP_URL", "source": "github-variable", "required": true, "secret": false },
+        { "name": "ENCRYPTION_KEY", "source": "github-secret", "required": true, "secret": true },
+        { "name": "MCP_API_KEY_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "MCP_OAUTH_TOKEN_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "OBSERVABILITY_LOG_FORMAT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REDACTION_STRICT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_INCLUDE_ERROR_STACK", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_CLIENT_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REQUEST_BODY_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SLOW_QUERY_MS", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SAMPLE_DEBUG_RATE", "source": "github-variable", "required": false, "secret": false }
+      ]
+    },
+    "staging": {
+      "purpose": "Production rehearsal environment with staging-only projects, data, and secrets.",
+      "variables": [
+        { "name": "STAGING_APP_URL", "source": "github-variable", "required": true, "secret": false },
+        { "name": "STAGING_WEBHOOK_BASE_URL", "source": "github-variable", "required": false, "secret": false },
+        { "name": "STAGING_DATABASE_URL", "source": "github-secret", "required": true, "secret": true },
+        { "name": "STAGING_BETTER_AUTH_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "STAGING_ENCRYPTION_KEY", "source": "github-secret", "required": true, "secret": true },
+        { "name": "STAGING_MCP_API_KEY_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "STAGING_MCP_OAUTH_TOKEN_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "STAGING_FEATURE_FLAGS_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "STAGING_CANARY_ROLLOUT_PERCENT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "STAGING_KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION", "source": "github-variable", "required": false, "secret": false },
+        { "name": "STAGING_KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING", "source": "github-variable", "required": false, "secret": false },
+        { "name": "STAGING_KILL_SWITCH_DISABLE_MCP_MUTATIONS", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_LOG_FORMAT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REDACTION_STRICT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_INCLUDE_ERROR_STACK", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_CLIENT_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REQUEST_BODY_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SLOW_QUERY_MS", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SAMPLE_DEBUG_RATE", "source": "github-variable", "required": false, "secret": false },
+        { "name": "STAGING_VERCEL_ORG_ID", "source": "github-secret", "required": true, "secret": true },
+        { "name": "STAGING_VERCEL_PROJECT_ID", "source": "github-secret", "required": true, "secret": true }
+      ]
+    },
+    "production": {
+      "purpose": "Customer-facing production environment with protected approvals and production-only secrets.",
+      "variables": [
+        { "name": "DATABASE_URL", "source": "github-secret", "required": true, "secret": true },
+        { "name": "BETTER_AUTH_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "NEXT_PUBLIC_APP_URL", "source": "github-variable", "required": true, "secret": false },
+        { "name": "APP_URL", "source": "github-variable", "required": false, "secret": false },
+        { "name": "NEXT_PUBLIC_WEBHOOK_BASE_URL", "source": "github-variable", "required": false, "secret": false },
+        { "name": "ENCRYPTION_KEY", "source": "github-secret", "required": true, "secret": true },
+        { "name": "MCP_API_KEY_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "MCP_OAUTH_TOKEN_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_APP_URL", "source": "github-variable", "required": true, "secret": false },
+        { "name": "PRODUCTION_WEBHOOK_BASE_URL", "source": "github-variable", "required": false, "secret": false },
+        { "name": "PRODUCTION_DATABASE_URL", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_BETTER_AUTH_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_ENCRYPTION_KEY", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_MCP_API_KEY_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_MCP_OAUTH_TOKEN_HMAC_SECRET", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_FEATURE_FLAGS_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "PRODUCTION_CANARY_ROLLOUT_PERCENT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "PRODUCTION_KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION", "source": "github-variable", "required": false, "secret": false },
+        { "name": "PRODUCTION_KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING", "source": "github-variable", "required": false, "secret": false },
+        { "name": "PRODUCTION_KILL_SWITCH_DISABLE_MCP_MUTATIONS", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_LOG_FORMAT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REDACTION_STRICT", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_INCLUDE_ERROR_STACK", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_CLIENT_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_REQUEST_BODY_LOG_ENABLED", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SLOW_QUERY_MS", "source": "github-variable", "required": false, "secret": false },
+        { "name": "OBSERVABILITY_SAMPLE_DEBUG_RATE", "source": "github-variable", "required": false, "secret": false },
+        { "name": "PRODUCTION_VERCEL_ORG_ID", "source": "github-secret", "required": true, "secret": true },
+        { "name": "PRODUCTION_VERCEL_PROJECT_ID", "source": "github-secret", "required": true, "secret": true },
+        { "name": "VERCEL_TOKEN", "source": "github-secret", "required": true, "secret": true }
+      ]
+    }
+  }
+}
