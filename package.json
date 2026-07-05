@@ -169,7 +169,7 @@
     "html-entities": "^2.6.0",
     "inngest": "^4.2.0",
     "input-otp": "^1.4.2",
-    "jotai": "^2.19.1",
+    "jotai": "^2.20.1",
     "ky": "^2.0.0",
     "lucide-react": "^1.7.0",
     "next": "16.2.6",
