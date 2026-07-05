@@ -18,13 +18,24 @@ const requiredString = z.preprocess(
   z.string().trim().min(1),
 );
 
+const normalizeBooleanEnv = (value: unknown) => {
+  const normalized = emptyToUndefined(value);
+  if (typeof normalized === "boolean") return normalized ? "true" : "false";
+  if (typeof normalized !== "string") return normalized;
+
+  const lowered = normalized.trim().toLowerCase();
+  if (["1", "true", "yes", "y", "on"].includes(lowered)) return "true";
+  if (["0", "false", "no", "n", "off"].includes(lowered)) return "false";
+  return normalized;
+};
+
 const optionalUrl = z.preprocess(
   emptyToUndefined,
   z.string().trim().url().optional(),
 );
 
 const optionalBoolean = z
-  .preprocess(emptyToUndefined, z.enum(["true", "false"]).optional())
+  .preprocess(normalizeBooleanEnv, z.enum(["true", "false"]).optional())
   .transform((value) => (value === undefined ? undefined : value === "true"));
 
 const optionalPositiveInt = z.preprocess(
@@ -202,7 +213,9 @@ export function resolveEnvProfile(input: NodeJS.ProcessEnv): EnvValidationProfil
   }
 
   if (input.VERCEL_ENV === "production") return "production";
-  if (input.NODE_ENV === "test" || input.CI === "true") return "test";
+  if (input.NODE_ENV === "test" || normalizeBooleanEnv(input.CI) === "true") {
+    return "test";
+  }
   if (input.NODE_ENV === "production") return "production";
   return "development";
 }

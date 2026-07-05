@@ -14,11 +14,39 @@ const appUrl =
   env.NEXT_PUBLIC_APP_URL ||
   "http://localhost:3000";
 
+function trimTrailingSlash(origin: string) {
+  return origin.replace(/\/$/, "");
+}
+
+function expandLoopbackOrigins(origin: string) {
+  const normalizedOrigin = trimTrailingSlash(origin);
+
+  try {
+    const parsed = new URL(normalizedOrigin);
+    const isLoopback =
+      parsed.hostname === "localhost" ||
+      parsed.hostname === "127.0.0.1" ||
+      parsed.hostname === "[::1]" ||
+      parsed.hostname === "::1";
+
+    if (!isLoopback) return [normalizedOrigin];
+
+    const port = parsed.port ? `:${parsed.port}` : "";
+    return [
+      normalizedOrigin,
+      `${parsed.protocol}//localhost${port}`,
+      `${parsed.protocol}//127.0.0.1${port}`,
+    ];
+  } catch {
+    return [normalizedOrigin];
+  }
+}
+
 const trustedOrigins = Array.from(
   new Set(
-    [appUrl, env.NEXT_PUBLIC_APP_URL, env.NGROK_URL]
+    [appUrl, env.NEXT_PUBLIC_APP_URL, env.APP_URL, env.NGROK_URL]
       .filter((origin): origin is string => Boolean(origin))
-      .map((origin) => origin.replace(/\/$/, "")),
+      .flatMap(expandLoopbackOrigins),
   ),
 );
 

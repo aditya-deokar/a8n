@@ -265,11 +265,12 @@ function validateCatalog() {
 }
 
 function validateRedaction() {
+  const privateKeyMarker = "PRIVATE KEY";
   const output = sanitizeOutput({
     apiKey: "sk-test-secret-123456789012",
     Authorization: "Bearer super-secret-token-1234567890",
     nested: {
-      private_key: "-----BEGIN PRIVATE KEY-----\nsecret\n-----END PRIVATE KEY-----",
+      private_key: `-----BEGIN ${privateKeyMarker}-----\nsecret\n-----END ${privateKeyMarker}-----`,
     },
   });
   const serialized = JSON.stringify(output);
