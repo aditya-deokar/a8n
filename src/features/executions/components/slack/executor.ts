@@ -4,6 +4,7 @@ import { NonRetriableError } from "inngest";
 import type { NodeExecutor } from "@/features/executions/types";
 import { slackChannel } from "@/inngest/channels/slack";
 import ky from "ky";
+import { observeExternalProvider, safeProviderHost } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -59,12 +60,24 @@ export const slackExecutor: NodeExecutor<SlackData> = async ({
         );
         throw new NonRetriableError("Slack node: Webhook URL is required");
       }
+      const webhookUrl = data.webhookUrl;
 
-      await ky.post(data.webhookUrl, {
-        json: {
-          content: content, // The key depends on workflow config
+      await observeExternalProvider(
+        {
+          provider: "slack",
+          operation: "webhook_post",
+          nodeId,
+          nodeType: "SLACK",
+          method: "POST",
+          host: safeProviderHost(webhookUrl),
         },
-      });
+        () =>
+          ky.post(webhookUrl, {
+            json: {
+              content: content, // The key depends on workflow config
+            },
+          }),
+      );
 
       if (!data.variableName) {
         await publish(

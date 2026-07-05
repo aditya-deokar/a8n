@@ -3,6 +3,7 @@ import {
   listE2EWorkflowDispatches,
 } from "@/lib/e2e-workflow-dispatches";
 import { isE2EMode } from "@/lib/e2e-safety";
+import { withRequestLogging } from "@/lib/logging";
 import { type NextRequest, NextResponse } from "next/server";
 
 function assertAvailable() {
@@ -13,7 +14,7 @@ function unavailable() {
   return NextResponse.json({ success: false, error: "Not found." }, { status: 404 });
 }
 
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   if (!assertAvailable()) return unavailable();
 
   const url = new URL(request.url);
@@ -25,9 +26,23 @@ export async function GET(request: NextRequest) {
   });
 }
 
-export async function DELETE() {
+async function deleteHandler(request: NextRequest) {
+  void request;
+
   if (!assertAvailable()) return unavailable();
 
   clearE2EWorkflowDispatches();
   return NextResponse.json({ success: true });
 }
+
+export const GET = withRequestLogging(getHandler, {
+  component: "api",
+  route: "/api/e2e/workflow-dispatches",
+  eventPrefix: "e2e_workflow_dispatches_request",
+});
+
+export const DELETE = withRequestLogging(deleteHandler, {
+  component: "api",
+  route: "/api/e2e/workflow-dispatches",
+  eventPrefix: "e2e_workflow_dispatches_request",
+});

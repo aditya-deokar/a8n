@@ -158,7 +158,7 @@ function e2eEnv(): NodeJS.ProcessEnv {
     MCP_AUDIT_DB_ENABLED: process.env.MCP_AUDIT_DB_ENABLED || "false",
     MCP_AUDIT_LOG_ENABLED: process.env.MCP_AUDIT_LOG_ENABLED || "false",
     MCP_API_KEY_HMAC_SECRET:
-      process.env.MCP_API_KEY_HMAC_SECRET || "ci-mcp-api-key-hmac-secret-32",
+      process.env.MCP_API_KEY_HMAC_SECRET || "ci-mcp-api-key-hmac-secret-32-chars",
     MCP_OAUTH_TOKEN_HMAC_SECRET:
       process.env.MCP_OAUTH_TOKEN_HMAC_SECRET || "ci-mcp-oauth-token-hmac-secret-32",
     A8N_WEBHOOK_SHARED_SECRET:

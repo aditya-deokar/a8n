@@ -22,6 +22,7 @@ import type { McpToolContext } from "@/mcp/shared/auth-context";
 import { isChatGptAppProfile } from "@/mcp/app-profile";
 import { CHATGPT_APP_TOOL_COUNT } from "@/mcp/safety/app-tool-policy";
 import { registerChatGptAppTools } from "./chatgpt-profile";
+import { logger } from "@/lib/logging";
 
 /**
  * Register all MCP tools from all domains.
@@ -41,7 +42,16 @@ export function registerAllTools(
 ): void {
   if (isChatGptAppProfile(context.appProfile)) {
     registerChatGptAppTools(server, context);
-    console.log(`[MCP] ${CHATGPT_APP_TOOL_COUNT} ChatGPT app tools registered`);
+    logger.info(
+      {
+        component: "mcp",
+        event: "mcp_registry_registered",
+        registry: "tools",
+        profile: "chatgpt",
+        count: CHATGPT_APP_TOOL_COUNT,
+      },
+      "MCP ChatGPT app tools registered.",
+    );
     return;
   }
 
@@ -53,5 +63,15 @@ export function registerAllTools(
   registerApiKeyTools(server, context);
   registerIntegrationTools(server, context);
 
-  console.log("[MCP] 53 tools registered across 7 domains");
+  logger.info(
+    {
+      component: "mcp",
+      event: "mcp_registry_registered",
+      registry: "tools",
+      profile: "default",
+      count: 53,
+      domains: 7,
+    },
+    "MCP tools registered.",
+  );
 }

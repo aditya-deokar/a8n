@@ -1,0 +1,128 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    paths:
+      - "src/**"
+      - "prisma/**"
+      - "scripts/environment-smoke.ts"
+      - "scripts/env-check.ts"
+      - "scripts/migration-preflight.ts"
+      - ".env.example"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "next.config.*"
+  deployment_status:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.deployment.id || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  preview-readiness:
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      NODE_ENV: test
+      A8N_ENV_PROFILE: test
+      NODE_OPTIONS: "--max-old-space-size=4096"
+      DATABASE_URL: postgresql://a8n_preview:a8n_preview@127.0.0.1:5432/a8n_preview
+      BETTER_AUTH_SECRET: preview-better-auth-secret-32-characters
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_WEBHOOK_BASE_URL: http://127.0.0.1:3000
+      ENCRYPTION_KEY: preview-encryption-key-32-characters
+      POLAR_ACCESS_TOKEN: preview-polar-sandbox-token
+      POLAR_SUCCESS_URL: http://127.0.0.1:3000/success
+      MCP_API_KEY_HMAC_SECRET: preview-mcp-api-key-hmac-secret-32
+      MCP_OAUTH_TOKEN_HMAC_SECRET: preview-mcp-oauth-token-hmac-secret-32
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Environment check
+        run: pnpm env:check
+
+      - name: Prisma validate
+        run: pnpm exec prisma validate
+
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
+      - name: Build preview artifact
+        run: pnpm build
+
+      - name: Upload preview readiness evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preview-readiness-evidence
+          path: docs/api/evidence/migrations
+
+  preview-smoke:
+    if: >
+      github.event_name == 'deployment_status' &&
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment_status.environment_url != '' &&
+      (github.event.deployment.environment == 'Preview' || github.event.deployment.environment == 'preview')
+    runs-on: ubuntu-latest
+    env:
+      PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Preview smoke
+        run: pnpm smoke:preview -- --base-url "${{ github.event.deployment_status.environment_url }}" --json
+
+      - name: Write preview summary
+        if: always()
+        run: |
+          echo "## Preview Smoke" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview URL: ${{ github.event.deployment_status.environment_url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Evidence: docs/api/evidence/smoke/preview" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload preview smoke evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preview-smoke-evidence
+          path: docs/api/evidence/smoke/preview

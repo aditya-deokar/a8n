@@ -1,4 +1,5 @@
 import { MCP_CONFIG } from "@/mcp/config";
+import { logger } from "@/lib/logging";
 import { getToolContract } from "@/mcp/contracts/tools.manifest";
 import type { McpToolContract, McpToolRisk } from "@/mcp/contracts/types";
 
@@ -134,6 +135,34 @@ function increment(map: Record<string, number>, key: string | undefined) {
   map[key] = (map[key] || 0) + 1;
 }
 
+function logRuntimeEvent(event: McpRuntimeEvent & { type: McpRuntimeEventType; timestamp: string }) {
+  const fields = {
+    component: "mcp" as const,
+    event: "mcp_runtime_event",
+    mcpEventType: event.type,
+    timestamp: event.timestamp,
+    correlationId: event.correlationId,
+    userId: event.userId,
+    authMethod: event.authMethod,
+    oauthClientId: event.oauthClientId,
+    tool: event.tool,
+    risk: event.risk,
+    profile: event.profile,
+    status: event.status,
+    durationMs: event.durationMs,
+    error: event.error,
+    count: event.count,
+  };
+
+  if (event.type === "audit_persist_failure" || event.status === "error") {
+    logger.error(fields, "MCP runtime event recorded.");
+  } else if (event.status === "warning" || event.status === "denied") {
+    logger.warn(fields, "MCP runtime event recorded.");
+  } else {
+    logger.info(fields, "MCP runtime event recorded.");
+  }
+}
+
 export function getMcpRuntimeFeatureFlags(): McpRuntimeFeatureFlags {
   return {
     disableSideEffectTools: MCP_CONFIG.DISABLE_SIDE_EFFECT_TOOLS,
@@ -160,7 +189,10 @@ export function inferRuntimeEventType(toolName: string): McpRuntimeEventType {
 
 export function recordMcpRuntimeEvent(event: McpRuntimeEvent): McpRuntimeEvent {
   const timestamp = event.timestamp || nowIso();
-  const safeEvent = sanitizeRuntimeEvent({ ...event, timestamp });
+  const safeEvent = sanitizeRuntimeEvent({ ...event, timestamp }) as McpRuntimeEvent & {
+    type: McpRuntimeEventType;
+    timestamp: string;
+  };
   runtimeMetrics.eventCount++;
   runtimeMetrics.lastEventAt = timestamp;
 
@@ -217,9 +249,7 @@ export function recordMcpRuntimeEvent(event: McpRuntimeEvent): McpRuntimeEvent {
   recentEvents.push(safeEvent as McpRuntimeEvent & { type: McpRuntimeEventType; timestamp: string });
   if (recentEvents.length > RECENT_EVENT_LIMIT) recentEvents.shift();
 
-  if (MCP_CONFIG.OBSERVABILITY_LOG_ENABLED) {
-    console.log("[MCP:OBSERVABILITY]", JSON.stringify(safeEvent));
-  }
+  if (MCP_CONFIG.OBSERVABILITY_LOG_ENABLED) logRuntimeEvent(safeEvent);
 
   return safeEvent;
 }

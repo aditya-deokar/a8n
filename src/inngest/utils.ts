@@ -2,11 +2,14 @@ import type { Connection, Node } from "@/generated/prisma";
 import { throwIfE2EFault } from "@/lib/e2e-faults";
 import { isE2EMode } from "@/lib/e2e-safety";
 import { recordE2EWorkflowDispatch } from "@/lib/e2e-workflow-dispatches";
+import { assertKillSwitchOff } from "@/lib/feature-flags";
+import { getLogContext } from "@/lib/logging";
 import toposort from "toposort";
 import { inngest } from "./client";
 import { createId } from "@paralleldrive/cuid2";
+import { logWorkflowError, logWorkflowInfo } from "./logging";
 
-function useMockedExternalServices() {
+function isUsingMockedExternalServices() {
   return isE2EMode() && process.env.E2E_EXTERNAL_SERVICES === "mock";
 }
 
@@ -58,31 +61,86 @@ export const topologicalSort = (
 
 export const sendWorkflowExecution = async (data: {
   workflowId: string;
-  [key: string]: any;
-}) => {
+} & Record<string, unknown>) => {
   const eventId = createId();
-  throwIfE2EFault("inngest", "Simulated E2E Inngest failure.");
+  const started = Date.now();
+  const activeContext = getLogContext();
+  const e2eMocked = isUsingMockedExternalServices();
+  const logContext = {
+    workflowId: data.workflowId,
+    inngestEventId: eventId,
+    requestId: activeContext.requestId,
+    correlationId: activeContext.correlationId,
+    userId: activeContext.userId,
+    e2eMocked,
+  };
 
-  if (useMockedExternalServices()) {
-    const dispatch = recordE2EWorkflowDispatch(eventId, data);
+  logWorkflowInfo(
+    "workflow_dispatch_requested",
+    "Workflow dispatch requested.",
+    logContext,
+    {
+      killSwitchChecked: true,
+    },
+  );
+
+  try {
+    assertKillSwitchOff("disableWorkflowExecution");
+    throwIfE2EFault("inngest", "Simulated E2E Inngest failure.");
+
+    if (e2eMocked) {
+      const dispatch = recordE2EWorkflowDispatch(eventId, data);
+
+      logWorkflowInfo(
+        "workflow_dispatch_completed",
+        "Workflow dispatch completed.",
+        logContext,
+        {
+          durationMs: Date.now() - started,
+          dispatchMode: "e2e_mock",
+        },
+      );
+
+      return {
+        eventId,
+        result: {
+          e2eRecorded: true,
+          dispatch,
+        },
+      };
+    }
+
+    const result = await inngest.send({
+      name: "workflows/execute.workflow",
+      data,
+      id: eventId,
+    });
+
+    logWorkflowInfo(
+      "workflow_dispatch_completed",
+      "Workflow dispatch completed.",
+      logContext,
+      {
+        durationMs: Date.now() - started,
+        dispatchMode: "inngest",
+      },
+    );
 
     return {
       eventId,
-      result: {
-        e2eRecorded: true,
-        dispatch,
-      },
+      result,
     };
+  } catch (error) {
+    logWorkflowError(
+      "workflow_dispatch_failed",
+      "Workflow dispatch failed.",
+      error,
+      logContext,
+      {
+        durationMs: Date.now() - started,
+      },
+    );
+
+    throw error;
   }
-
-  const result = await inngest.send({
-    name: "workflows/execute.workflow",
-    data,
-    id: eventId,
-  });
-
-  return {
-    eventId,
-    result,
-  };
 };

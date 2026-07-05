@@ -7,11 +7,15 @@ on:
       - "src/features/**"
       - "src/inngest/**"
       - "src/lib/**"
+      - "src/env.ts"
       - "src/trpc/**"
       - "prisma/**"
       - "tests/e2e/api/**"
       - "scripts/api-e2e-release-gate.ts"
+      - "scripts/env-check.ts"
+      - "scripts/migration-preflight.ts"
       - "playwright.api-e2e.config.mjs"
+      - ".env.example"
       - "package.json"
       - "pnpm-lock.yaml"
   push:
@@ -22,9 +26,14 @@ on:
     - cron: "45 20 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CI: "true"
   NODE_ENV: test
+  A8N_ENV_PROFILE: test
   NODE_OPTIONS: "--max-old-space-size=4096"
   E2E_TESTS: "true"
   E2E_EXTERNAL_SERVICES: mock
@@ -36,9 +45,10 @@ env:
   NEXT_PUBLIC_WEBHOOK_BASE_URL: http://127.0.0.1:3000
   ENCRYPTION_KEY: test-api-encryption-key-32-characters
   POLAR_ACCESS_TOKEN: test-polar-token
+  POLAR_SUCCESS_URL: http://127.0.0.1:3000/success
   MCP_AUDIT_DB_ENABLED: "false"
   MCP_AUDIT_LOG_ENABLED: "false"
-  MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32
+  MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32-chars
   MCP_OAUTH_TOKEN_HMAC_SECRET: ci-mcp-oauth-token-hmac-secret-32
   A8N_WEBHOOK_SHARED_SECRET: test-a8n-shared-webhook-secret
   GOOGLE_FORM_WEBHOOK_SECRET: test-google-form-webhook-secret
@@ -80,8 +90,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Environment check
+        run: pnpm env:check
+
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: API E2E smoke gate
         run: pnpm api:e2e:release:gate -- --smoke --json
@@ -95,6 +114,7 @@ jobs:
             playwright-report/api-e2e
             test-results/api-e2e
             docs/api/evidence/e2e
+            docs/api/evidence/migrations
 
   api-e2e-full:
     if: github.event_name != 'pull_request'
@@ -130,8 +150,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Environment check
+        run: pnpm env:check
+
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: API E2E full gate
         run: pnpm api:e2e:release:gate -- --json
@@ -145,3 +174,4 @@ jobs:
             playwright-report/api-e2e
             test-results/api-e2e
             docs/api/evidence/e2e
+            docs/api/evidence/migrations

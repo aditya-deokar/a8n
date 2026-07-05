@@ -10,12 +10,17 @@ on:
       - "src/lib/db.ts"
       - "src/lib/encryption.ts"
       - "src/lib/polar.ts"
+      - "src/env.ts"
       - "src/inngest/**"
       - "prisma/**"
       - "tests/api/**"
       - "scripts/api-*.ts"
+      - "scripts/env-check.ts"
+      - "scripts/migration-preflight.ts"
       - "docs/TRPC_INTERNAL_API_TESTING_PLAN.md"
+      - "docs/DevOps/**"
       - "docs/api/**"
+      - ".env.example"
       - "package.json"
       - "pnpm-lock.yaml"
       - "vitest.api.config.mjs"
@@ -25,20 +30,27 @@ on:
       - "codex/**"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   api-static:
     runs-on: ubuntu-latest
     env:
       CI: "true"
+      A8N_ENV_PROFILE: test
       NODE_OPTIONS: "--max-old-space-size=4096"
       DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
       BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
       BETTER_AUTH_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       APP_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_WEBHOOK_BASE_URL: http://127.0.0.1:3000
       ENCRYPTION_KEY: test-api-encryption-key-32-characters
       POLAR_ACCESS_TOKEN: test-polar-token
-      MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32
+      POLAR_SUCCESS_URL: http://127.0.0.1:3000/success
+      MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32-chars
       MCP_OAUTH_TOKEN_HMAC_SECRET: ci-mcp-oauth-token-hmac-secret-32
     steps:
       - name: Checkout
@@ -57,8 +69,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Environment check
+        run: pnpm env:check
+
       - name: Prisma validate
         run: pnpm exec prisma validate
+
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
 
       - name: Typecheck
         run: pnpm typecheck
@@ -68,6 +86,13 @@ jobs:
 
       - name: API unit and contract tests
         run: pnpm test:api:unit
+
+      - name: Upload static migration evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-preflight-static
+          path: docs/api/evidence/migrations
 
   api-integration:
     runs-on: ubuntu-latest
@@ -89,15 +114,18 @@ jobs:
     env:
       CI: "true"
       NODE_ENV: test
+      A8N_ENV_PROFILE: test
       NODE_OPTIONS: "--max-old-space-size=4096"
       DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
       BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
       BETTER_AUTH_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       APP_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_WEBHOOK_BASE_URL: http://127.0.0.1:3000
       ENCRYPTION_KEY: test-api-encryption-key-32-characters
       POLAR_ACCESS_TOKEN: test-polar-token
-      MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32
+      POLAR_SUCCESS_URL: http://127.0.0.1:3000/success
+      MCP_API_KEY_HMAC_SECRET: ci-mcp-api-key-hmac-secret-32-chars
       MCP_OAUTH_TOKEN_HMAC_SECRET: ci-mcp-oauth-token-hmac-secret-32
     steps:
       - name: Checkout
@@ -116,11 +144,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Environment check
+        run: pnpm env:check
+
       - name: Generate Prisma client
         run: pnpm exec prisma generate
 
+      - name: Database migration preflight
+        run: pnpm db:migration:preflight -- --json
+
       - name: Apply migrations
         run: pnpm exec prisma migrate deploy
+
+      - name: Database migration status
+        run: pnpm db:migration:preflight -- --db --json
 
       - name: API integration, transport, and security tests
         run: pnpm test:api:integration
@@ -139,3 +176,10 @@ jobs:
         with:
           name: api-coverage
           path: coverage/api
+
+      - name: Upload migration evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-preflight-integration
+          path: docs/api/evidence/migrations

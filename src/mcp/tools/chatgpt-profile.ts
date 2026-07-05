@@ -33,6 +33,7 @@ import {
   registerTestWebhookSetup,
 } from "./integrations/integration-tools";
 import { getMcpRuntimeFeatureFlags } from "@/mcp/observability/runtime-guardrails";
+import { logger } from "@/lib/logging";
 
 /**
  * Register the app-facing tool profile used by ChatGPT Apps.
@@ -68,7 +69,15 @@ export function registerChatGptAppTools(
   registerChatGptRenderTools(server, context);
 
   if (flags.forceReadOnlyChatGptProfile) {
-    console.log("[MCP] ChatGPT app profile forced read-only by runtime guardrail");
+    logger.warn(
+      {
+        component: "mcp",
+        event: "mcp_runtime_guardrail_applied",
+        profile: "chatgpt",
+        guardrail: "force_read_only_chatgpt_profile",
+      },
+      "MCP ChatGPT app profile forced read-only by runtime guardrail.",
+    );
     return;
   }
 

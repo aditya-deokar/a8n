@@ -1,6 +1,6 @@
 'use client';
 
-import type React from 'react';
+import { createElement, type CSSProperties, type FC } from 'react';
 import { motion } from 'framer-motion';
 import { NumberTicker } from './counter';
 import { VARIANTS } from './pulse-card';
@@ -22,37 +22,27 @@ interface CardProps {
   number?: number;
 }
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'pixel-canvas': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      >;
-    }
-  }
-}
-
-const PixelCanvas: React.FC<PixelCanvasProps> = ({
+const PixelCanvas: FC<PixelCanvasProps> = ({
   gap = 5,
   speed = 30,
   colors = '#e0f2fe, #7dd3fc, #0ea5e9',
   noFocus = false,
 }) => {
-  return (
-    // @ts-ignore
-    <pixel-canvas
-      data-gap={gap}
-      data-speed={speed}
-      data-colors={colors}
-      {...(noFocus ? { 'data-no-focus': '' } : {})}
-      className="absolute inset-0 z-10 size-full"
-      style={{ position: 'absolute', width: '100%', height: '100%' }}
-    />
-  );
+  return createElement('pixel-canvas', {
+    'data-gap': gap,
+    'data-speed': speed,
+    'data-colors': colors,
+    ...(noFocus ? { 'data-no-focus': '' } : {}),
+    className: 'absolute inset-0 z-10 size-full',
+    style: {
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+    } satisfies CSSProperties,
+  });
 };
 
-export const PixelCard: React.FC<CardProps> = ({
+export const PixelCard: FC<CardProps> = ({
   icon,
   label,
   color,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runMcpProductionMaintenance } from "@/mcp/maintenance/production-maintenance";
+import { withRequestLogging } from "@/lib/logging";
 
 function isAuthorized(request: Request) {
   const configuredSecret =
@@ -19,10 +20,22 @@ async function handle(request: Request) {
   return NextResponse.json(report);
 }
 
-export async function GET(request: Request) {
+async function getHandler(request: Request) {
   return handle(request);
 }
 
-export async function POST(request: Request) {
+async function postHandler(request: Request) {
   return handle(request);
 }
+
+export const GET = withRequestLogging(getHandler, {
+  component: "mcp",
+  route: "/api/cron/mcp-maintenance",
+  eventPrefix: "mcp_maintenance_request",
+});
+
+export const POST = withRequestLogging(postHandler, {
+  component: "mcp",
+  route: "/api/cron/mcp-maintenance",
+  eventPrefix: "mcp_maintenance_request",
+});

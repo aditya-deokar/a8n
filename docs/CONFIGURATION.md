@@ -130,6 +130,53 @@ POLAR_SUCCESS_URL=http://localhost:3000/success?checkout_id={CHECKOUT_ID}
 
 ---
 
+#### Feature Flags, Canary, Experiments, And Kill Switches
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `FEATURE_FLAGS_ENABLED` | No | `true` | Global toggle for non-kill-switch feature flags |
+| `FEATURE_FLAG_OVERRIDES` | No | unset | Comma-separated overrides like `apiCanary=true,newWorkflowEditor=false` |
+| `CANARY_ROLLOUT_PERCENT` | No | `0` | Shared rollout percentage fallback from 0 to 100 |
+| `FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT` | No | `0` | Rollout percentage for `newWorkflowEditor` |
+| `FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT` | No | `0` | Rollout percentage for `apiCanary` |
+| `FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT` | No | `0` | Rollout percentage for `mcpEnhancedTooling` |
+| `FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT` | No | `0` | Rollout percentage for `credentialRotationFlow` |
+| `EXPERIMENT_EVENT_LOG_ENABLED` | No | `true` | Enables experiment exposure events |
+| `EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT` | No | unset | Forces `workflowOnboardingV2` to a valid variant such as `control` |
+| `KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION` | No | `false` | Blocks new workflow execution dispatches |
+| `KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING` | No | `false` | Returns controlled 503 responses for Google Form and Stripe webhooks |
+| `KILL_SWITCH_DISABLE_MCP_MUTATIONS` | No | `false` | Blocks MCP write, admin, and side-effect tools |
+| `KILL_SWITCH_READ_ONLY_MODE` | No | `false` | Reserved global read-only mode |
+
+**Where Used:**
+- `src/config/feature-flags.ts` - registry, owners, rollout env names, and experiment metadata
+- `src/lib/feature-flags.ts` - server-side evaluation, kill switches, and experiment assignment
+- `src/inngest/utils.ts` - workflow execution kill switch
+- `src/app/api/webhooks/*` - webhook processing kill switch
+- `src/app/api/mcp/route.ts` - MCP mutation kill switch
+
+---
+
+#### Incident, Disaster Recovery, And Performance Operations
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `BACKUP_PROVIDER` | No | unset | Backup/database provider name for restore drill evidence |
+| `RESTORE_DRILL_TARGET` | No | unset | Non-production restore target or drill ticket reference |
+| `BASE_URL` | No | unset | Target URL for local k6 performance/load testing |
+| `API_LOAD_PATH` | No | `/api/mcp` | API path used by k6 API load test |
+| `WEBHOOK_LOAD_PATH` | No | `/api/webhooks/google-form` | Webhook path used by k6 webhook burst test |
+| `MCP_BEARER_TOKEN` | No | unset | Staging MCP bearer token for authenticated load tests |
+| `WORKFLOW_ID` | No | unset | Staging workflow ID for workflow execution load tests |
+
+**Where Used:**
+- `scripts/incident-readiness-check.ts` - incident readiness evidence
+- `scripts/restore-drill-check.ts` - restore drill readiness evidence
+- `scripts/performance-readiness-check.ts` - performance budget and load-test readiness evidence
+- `tests/load/*.k6.js` - staged load-test targets
+
+---
+
 #### MCP Server
 
 | Variable | Required | Default | Description |
@@ -185,7 +232,7 @@ Application Start
 └── OAuth: Client IDs validated on OAuth flow initiation
 ```
 
-> **Note:** There is no centralized env validation (like `zod` parsing at startup). Variables are validated when first accessed by their respective libraries.
+> **Note:** Centralized validation now lives in `src/env.ts` and can be run with `pnpm env:check` or `pnpm env:check:production`.
 
 ---
 
@@ -211,6 +258,30 @@ GOOGLE_CLIENT_SECRET=
 NODE_ENV=development
 NGROK_URL=
 NGROK_AUTHTOKEN=
+
+# ===== OPTIONAL (Feature flags and rollout controls) =====
+FEATURE_FLAGS_ENABLED=true
+FEATURE_FLAG_OVERRIDES=
+CANARY_ROLLOUT_PERCENT=0
+FEATURE_FLAG_NEW_WORKFLOW_EDITOR_ROLLOUT_PERCENT=0
+FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT=0
+FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT=0
+FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT=0
+EXPERIMENT_EVENT_LOG_ENABLED=true
+EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT=
+KILL_SWITCH_DISABLE_WORKFLOW_EXECUTION=false
+KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING=false
+KILL_SWITCH_DISABLE_MCP_MUTATIONS=false
+KILL_SWITCH_READ_ONLY_MODE=false
+
+# ===== OPTIONAL (Incident, DR, and performance) =====
+BACKUP_PROVIDER=
+RESTORE_DRILL_TARGET=
+BASE_URL=
+API_LOAD_PATH=/api/mcp
+WEBHOOK_LOAD_PATH=/api/webhooks/google-form
+MCP_BEARER_TOKEN=
+WORKFLOW_ID=
 ```
 
 ---

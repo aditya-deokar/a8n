@@ -1,0 +1,95 @@
+name: Performance Nightly
+
+on:
+  schedule:
+    - cron: "30 21 * * *"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Staging or preview URL to load test"
+        required: false
+        type: string
+      run_load_tests:
+        description: "Run k6 load tests after readiness checks"
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  performance-readiness:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      NODE_ENV: test
+      A8N_ENV_PROFILE: test
+      DATABASE_URL: postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test
+      BETTER_AUTH_SECRET: test-better-auth-secret-32-characters
+      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+      APP_URL: http://127.0.0.1:3000
+      ENCRYPTION_KEY: test-performance-key-32-characters
+      BASE_URL: ${{ inputs.base_url || vars.STAGING_APP_URL }}
+      MCP_BEARER_TOKEN: ${{ secrets.STAGING_MCP_LOAD_TEST_BEARER_TOKEN }}
+      WEBHOOK_SHARED_SECRET: ${{ secrets.STAGING_A8N_WEBHOOK_SHARED_SECRET }}
+      WORKFLOW_ID: ${{ vars.STAGING_LOAD_TEST_WORKFLOW_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Performance readiness
+        run: pnpm performance:check -- --strict --json
+
+      - name: Setup k6
+        if: ${{ (github.event_name == 'schedule' || inputs.run_load_tests == true) && env.BASE_URL != '' }}
+        uses: grafana/setup-k6-action@v1
+
+      - name: Prepare k6 evidence directory
+        if: ${{ (github.event_name == 'schedule' || inputs.run_load_tests == true) && env.BASE_URL != '' }}
+        run: mkdir -p docs/api/evidence/performance/k6
+
+      - name: API load test
+        if: ${{ (github.event_name == 'schedule' || inputs.run_load_tests == true) && env.BASE_URL != '' }}
+        run: k6 run --summary-export docs/api/evidence/performance/k6/api-summary.json tests/load/api.k6.js
+
+      - name: Webhook burst test
+        if: ${{ (github.event_name == 'schedule' || inputs.run_load_tests == true) && env.BASE_URL != '' }}
+        run: k6 run --summary-export docs/api/evidence/performance/k6/webhooks-summary.json tests/load/webhooks.k6.js
+
+      - name: Workflow execution load test
+        if: ${{ (github.event_name == 'schedule' || inputs.run_load_tests == true) && env.BASE_URL != '' && env.MCP_BEARER_TOKEN != '' && env.WORKFLOW_ID != '' }}
+        run: k6 run --summary-export docs/api/evidence/performance/k6/workflow-summary.json tests/load/workflow-execution.k6.js
+
+      - name: Write performance summary
+        if: always()
+        run: |
+          echo "## Performance Nightly" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Target URL: ${BASE_URL:-not configured}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Readiness evidence: docs/api/evidence/performance" >> "$GITHUB_STEP_SUMMARY"
+          echo "Budgets: docs/DevOps/performance-budgets.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload performance evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: performance-evidence
+          path: docs/api/evidence/performance

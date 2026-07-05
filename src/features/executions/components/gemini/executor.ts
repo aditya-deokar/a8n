@@ -6,6 +6,7 @@ import type { NodeExecutor } from "@/features/executions/types";
 import { geminiChannel } from "@/inngest/channels/gemini";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
+import { aiTelemetryOptions, observeExternalProvider } from "@/lib/logging";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -98,19 +99,25 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
   });
 
   try {
-    const { steps } = await step.ai.wrap(
-      "gemini-generate-text",
-      generateText,
+    const { steps } = await observeExternalProvider(
       {
-        model: google("gemini-3-flash-preview"),
-        system: systemPrompt,
-        prompt: userPrompt,
-        experimental_telemetry: {
-          isEnabled: true,
-          recordInputs: true,
-          recordOutputs: true,
-        },
+        provider: "google",
+        operation: "generate_text",
+        nodeId,
+        nodeType: "GEMINI",
+        model: "gemini-3-flash-preview",
       },
+      () =>
+        step.ai.wrap(
+          "gemini-generate-text",
+          generateText,
+          {
+            model: google("gemini-3-flash-preview"),
+            system: systemPrompt,
+            prompt: userPrompt,
+            experimental_telemetry: aiTelemetryOptions(),
+          },
+        ),
     );
 
     const text = 

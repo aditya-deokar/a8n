@@ -1,0 +1,48 @@
+# CODEOWNERS keeps production-sensitive changes reviewable.
+# Replace @adity with the exact GitHub handle or team that owns this repo if needed.
+
+* @adity
+
+# Production and delivery controls
+.github/workflows/ @adity
+.github/ISSUE_TEMPLATE/ @adity
+.github/dependabot.yml @adity
+.github/CODEOWNERS @adity
+infra/ @adity
+package.json @adity
+pnpm-lock.yaml @adity
+
+# Runtime, security, and backend ownership
+src/config/feature-flags.ts @adity
+src/lib/auth.ts @adity
+src/lib/db.ts @adity
+src/lib/encryption.ts @adity
+src/lib/feature-flags.ts @adity
+src/lib/polar.ts @adity
+src/env.ts @adity
+src/trpc/ @adity
+src/app/api/ @adity
+src/mcp/ @adity
+src/inngest/ @adity
+
+# Data and release safety
+prisma/ @adity
+scripts/*release* @adity
+scripts/env-check.ts @adity
+scripts/environment-smoke.ts @adity
+scripts/feature-flag-check.ts @adity
+scripts/incident-readiness-check.ts @adity
+scripts/environment-drift-check.ts @adity
+scripts/governance-readiness-check.ts @adity
+scripts/migration-preflight.ts @adity
+scripts/observability-check.ts @adity
+scripts/performance-readiness-check.ts @adity
+scripts/release-manifest.ts @adity
+scripts/restore-drill-check.ts @adity
+scripts/security-release-check.ts @adity
+src/lib/observability.ts @adity
+src/instrumentation.ts @adity
+tests/load/ @adity
+docs/DevOps/ @adity
+docs/api/evidence/ @adity
+docs/releases/ @adity

@@ -1,4 +1,6 @@
 import { sendWorkflowExecution } from "@/inngest/utils";
+import { isKillSwitchEnabled } from "@/lib/feature-flags";
+import { logger, normalizeError, withRequestLogging } from "@/lib/logging";
 import { type NextRequest, NextResponse } from "next/server";
 import {
   verifySharedWebhookSecret,
@@ -10,17 +12,46 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
+  let workflowId: string | null = null;
+
   try {
+    if (isKillSwitchEnabled("disableWebhookProcessing")) {
+      return NextResponse.json(
+        { success: false, error: "Webhook processing is temporarily disabled" },
+        { status: 503 },
+      );
+    }
+
     const url = new URL(request.url);
-    const workflowId = url.searchParams.get("workflowId");
+    workflowId = url.searchParams.get("workflowId");
+
+    logger.info(
+      {
+        component: "webhook",
+        event: "webhook_received",
+        provider: "stripe",
+        workflowId,
+      },
+      "Stripe webhook received.",
+    );
 
     if (!workflowId) {
+      logger.warn(
+        {
+          component: "webhook",
+          event: "webhook_malformed_payload",
+          provider: "stripe",
+          reason: "missing_workflow_id",
+        },
+        "Stripe webhook is missing workflowId.",
+      );
+
       return NextResponse.json(
         { success: false, error: "Missing required query parameter: workflowId" },
         { status: 400 },
       );
-    };
+    }
 
     const rawBody = await request.text();
     const stripeVerification = verifyStripeSignature(
@@ -34,12 +65,49 @@ export async function POST(request: NextRequest) {
           "STRIPE_WEBHOOK_SHARED_SECRET",
           "A8N_WEBHOOK_SHARED_SECRET",
         ]);
-    if (!sharedVerification.ok) return webhookAuthError(sharedVerification);
+    if (!sharedVerification.ok) {
+      logger.warn(
+        {
+          component: "webhook",
+          event: "webhook_verification_failed",
+          provider: "stripe",
+          workflowId,
+          verificationMode: sharedVerification.mode,
+          verified: false,
+        },
+        "Stripe webhook verification failed.",
+      );
+
+      return webhookAuthError(sharedVerification);
+    }
+
+    logger.info(
+      {
+        component: "webhook",
+        event: "webhook_verification_completed",
+        provider: "stripe",
+        workflowId,
+        verificationMode: sharedVerification.mode,
+        verified: sharedVerification.enforced,
+      },
+      "Stripe webhook verification completed.",
+    );
 
     let body: Record<string, unknown>;
     try {
       const parsed = JSON.parse(rawBody) as unknown;
       if (!isRecord(parsed)) {
+        logger.warn(
+          {
+            component: "webhook",
+            event: "webhook_malformed_payload",
+            provider: "stripe",
+            workflowId,
+            reason: "invalid_json_object",
+          },
+          "Stripe webhook payload is malformed.",
+        );
+
         return NextResponse.json(
           { success: false, error: "Malformed Stripe payload" },
           { status: 400 },
@@ -47,6 +115,17 @@ export async function POST(request: NextRequest) {
       }
       body = parsed;
     } catch {
+      logger.warn(
+        {
+          component: "webhook",
+          event: "webhook_malformed_payload",
+          provider: "stripe",
+          workflowId,
+          reason: "invalid_json",
+        },
+        "Stripe webhook payload is malformed.",
+      );
+
       return NextResponse.json(
         { success: false, error: "Malformed Stripe payload" },
         { status: 400 },
@@ -63,6 +142,18 @@ export async function POST(request: NextRequest) {
       raw: data?.object,
     };
 
+    logger.info(
+      {
+        component: "webhook",
+        event: "webhook_event_identified",
+        provider: "stripe",
+        workflowId,
+        stripeEventId: typeof body.id === "string" ? body.id : undefined,
+        stripeEventType: typeof body.type === "string" ? body.type : undefined,
+      },
+      "Stripe webhook event identified.",
+    );
+
     // Trigger an Inngest job
     const event = await sendWorkflowExecution({
       workflowId,
@@ -70,6 +161,21 @@ export async function POST(request: NextRequest) {
         stripe: stripeData,
       },
     });
+
+    logger.info(
+      {
+        component: "webhook",
+        event: "webhook_dispatch_completed",
+        provider: "stripe",
+        workflowId,
+        inngestEventId: event.eventId,
+        stripeEventId: typeof body.id === "string" ? body.id : undefined,
+        stripeEventType: typeof body.type === "string" ? body.type : undefined,
+        verificationMode: sharedVerification.mode,
+        verified: sharedVerification.enforced,
+      },
+      "Stripe webhook dispatch completed.",
+    );
 
     return NextResponse.json(
       {
@@ -83,10 +189,26 @@ export async function POST(request: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
-    console.error("Stripe webhook error:" , error);
+    logger.error(
+      {
+        component: "webhook",
+        event: "webhook_processing_failed",
+        provider: "stripe",
+        workflowId,
+        error: normalizeError(error),
+      },
+      "Stripe webhook processing failed.",
+    );
     return NextResponse.json(
       { success: false, error: "Failed to process Stripe event" },
       { status: 500 },
     );
   }
-};
+}
+
+export const POST = withRequestLogging(postHandler, {
+  component: "webhook",
+  route: "/api/webhooks/stripe",
+  eventPrefix: "webhook_request",
+  fields: { provider: "stripe" },
+});

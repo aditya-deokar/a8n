@@ -18,6 +18,7 @@ import {
   oauthRateLimitResponse,
 } from "@/mcp/auth/oauth-route-guard";
 import { createAuditContext, extractRequestMeta } from "@/mcp/middleware/audit-logger";
+import { withRequestLogging } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
@@ -185,7 +186,7 @@ function withClearedCsrf(response: Response): Response {
   });
 }
 
-export async function GET(request: Request): Promise<Response> {
+async function getHandler(request: Request): Promise<Response> {
   const rateResult = checkOAuthRouteRateLimit(request, "authorize");
   if (!rateResult.allowed) return oauthRateLimitResponse(rateResult);
 
@@ -213,7 +214,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function postHandler(request: Request): Promise<Response> {
   const rateResult = checkOAuthRouteRateLimit(request, "authorize");
   if (!rateResult.allowed) return oauthRateLimitResponse(rateResult);
 
@@ -286,3 +287,15 @@ export async function POST(request: Request): Promise<Response> {
     return withClearedCsrf(badRequest(error instanceof Error ? error.message : "Invalid OAuth authorization request."));
   }
 }
+
+export const GET = withRequestLogging(getHandler, {
+  component: "auth",
+  route: "/api/oauth/authorize",
+  eventPrefix: "oauth_authorize_request",
+});
+
+export const POST = withRequestLogging(postHandler, {
+  component: "auth",
+  route: "/api/oauth/authorize",
+  eventPrefix: "oauth_authorize_request",
+});

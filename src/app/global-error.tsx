@@ -1,9 +1,16 @@
 "use client";
 
+import { reportClientError } from "@/lib/client-logging";
 import NextError from "next/error";
+import { useEffect } from "react";
 
 export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
-  // useEffect removed since Sentry is no longer used
+  useEffect(() => {
+    reportClientError(error, {
+      digest: error.digest,
+      source: "global_error_boundary",
+    });
+  }, [error]);
 
   return (
     <html>

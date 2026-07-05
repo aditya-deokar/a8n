@@ -43,6 +43,6 @@ Required test defaults:
 - `NODE_ENV=test`
 - `MCP_AUDIT_DB_ENABLED=false`
 - `MCP_AUDIT_LOG_ENABLED=false`
-- `MCP_API_KEY_HMAC_SECRET=test-mcp-api-key-hmac-secret-32`
+- `MCP_API_KEY_HMAC_SECRET=test-mcp-api-key-hmac-secret-32-chars`
 - `MCP_OAUTH_TOKEN_HMAC_SECRET=test-mcp-oauth-token-hmac-secret-32`
 - `DATABASE_URL=postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test`

@@ -7,6 +7,7 @@
  */
 
 import { assertMcpRuntimeGuardrailForTool } from "@/mcp/observability/runtime-guardrails";
+import { logger, normalizeError } from "@/lib/logging";
 
 /**
  * Known error categories with user-friendly messages
@@ -100,7 +101,15 @@ export async function withErrorBoundary<T>(
     }
 
     // Unknown error — log full details server-side, return generic message
-    console.error(`[MCP:ERROR] Tool "${toolName}" failed:`, error);
+    logger.error(
+      {
+        component: "mcp",
+        event: "mcp_tool_failed",
+        tool: toolName,
+        error: normalizeError(error),
+      },
+      "MCP tool failed.",
+    );
 
     const isDev = process.env.NODE_ENV === "development";
     const message = isDev && error instanceof Error
