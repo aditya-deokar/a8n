@@ -500,7 +500,7 @@ export function cn(...inputs: ClassValue[]) {
 | **eslint-config-next** | 16.2.2 | Next.js specific rules: Core Web Vitals + TypeScript |
 | **inngest-cli** | ^1.17.9 | Local Inngest development server for testing functions |
 | **mprocs** | ^0.9.2 | Run multiple processes in parallel (dev server + Inngest) |
-| **ngrok** | ^5.0.0-beta.2 | Expose local server for webhook testing |
+| **ngrok CLI** | External install | Expose local server for webhook testing without bundling the vulnerable npm wrapper |
 | **tsx** | ^4.21.0 | TypeScript execution for scripts |
 | **dotenv-cli** | ^11.0.0 | Load .env files for CLI commands |
 
