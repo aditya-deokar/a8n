@@ -62,7 +62,7 @@ jobs:
         run: pnpm observability:check -- --profile test --json
 
       - name: Upload observability evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: observability-readiness

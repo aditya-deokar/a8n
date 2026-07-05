@@ -77,7 +77,7 @@ jobs:
         run: pnpm build
 
       - name: Upload preview readiness evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: preview-readiness-evidence
@@ -121,7 +121,7 @@ jobs:
           echo "Evidence: docs/api/evidence/smoke/preview" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload preview smoke evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: preview-smoke-evidence
