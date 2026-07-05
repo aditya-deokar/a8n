@@ -1,0 +1,63 @@
+{
+  "suite": "governance-readiness-check",
+  "generatedAt": "2026-07-05T14:28:52.040Z",
+  "strict": false,
+  "passed": true,
+  "failedRequired": [],
+  "checks": [
+    {
+      "name": "infrastructure ownership",
+      "status": "passed",
+      "required": true,
+      "message": "Infrastructure documentation should define IaC ownership, environment boundaries, and review rules."
+    },
+    {
+      "name": "governance runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Governance runbook should cover operational reviews, access reviews, secret rotation, and threat model refresh."
+    },
+    {
+      "name": "operational review template",
+      "status": "passed",
+      "required": true,
+      "message": "Operational review template should include SLOs, error budget review, action items, and owners."
+    },
+    {
+      "name": "access review template",
+      "status": "passed",
+      "required": true,
+      "message": "Access review template should cover GitHub, Vercel, database access, and least privilege."
+    },
+    {
+      "name": "error budget policy",
+      "status": "passed",
+      "required": true,
+      "message": "Error budget policy should define SLOs, freeze behavior, and rollback expectations."
+    },
+    {
+      "name": "release calendar",
+      "status": "passed",
+      "required": true,
+      "message": "Release calendar should define normal release windows, freezes, hotfixes, and ownership."
+    },
+    {
+      "name": "quarterly governance checklist",
+      "status": "passed",
+      "required": true,
+      "message": "Quarterly checklist should include restore drill, secret rotation, access review, and threat model refresh."
+    },
+    {
+      "name": "release checklist governance coverage",
+      "status": "passed",
+      "required": true,
+      "message": "Release checklist should include governance and drift detection checks."
+    },
+    {
+      "name": "governance workflow",
+      "status": "passed",
+      "required": false,
+      "message": "Governance workflow should run readiness and environment drift checks."
+    }
+  ]
+}

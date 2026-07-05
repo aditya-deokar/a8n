@@ -4,16 +4,32 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local-docker": "dotenv -e docker/env/local.host.env -- next dev",
     "build": "node scripts/next-build-with-memory.cjs",
     "start": "next start",
     "env:check": "tsx scripts/env-check.ts",
     "env:check:production": "tsx scripts/env-check.ts --profile production",
+    "env:check:local-docker": "dotenv -e docker/env/local.host.env -- tsx scripts/env-check.ts",
     "verify": "pnpm env:check && pnpm typecheck && pnpm lint && pnpm test",
     "verify:backend": "pnpm env:check && pnpm db:migration:preflight && pnpm security:release:check -- --strict && pnpm feature-flags:check -- --strict && pnpm incident:check -- --strict && pnpm restore:drill:check -- --strict && pnpm performance:check -- --strict && pnpm governance:check -- --strict && pnpm environment:drift:check -- --strict && pnpm api:release:gate -- --strict --json && pnpm api:e2e:release:gate -- --smoke --json",
     "db:migration:preflight": "tsx scripts/migration-preflight.ts",
     "db:migration:preflight:db": "tsx scripts/migration-preflight.ts --db",
     "db:migration:preflight:strict": "tsx scripts/migration-preflight.ts --changed-only --strict",
     "db:migration:status": "prisma migrate status",
+    "db:local:up": "docker compose up -d db-local",
+    "db:local:wait": "dotenv -e docker/env/local.host.env -- tsx scripts/wait-for-postgres.ts --timeout-ms 90000",
+    "db:local:migrate": "pnpm db:local:wait && dotenv -e docker/env/local.host.env -- prisma migrate deploy",
+    "db:local:generate": "dotenv -e docker/env/local.host.env -- prisma generate",
+    "db:test:up": "docker compose --profile test up -d db-test",
+    "db:test:wait": "dotenv -e docker/env/test.host.env -- tsx scripts/wait-for-postgres.ts --timeout-ms 90000",
+    "db:test:migrate": "pnpm db:test:wait && dotenv -e docker/env/test.host.env -- prisma migrate deploy",
+    "db:neon:restore:local": "tsx scripts/neon-to-local.ts",
+    "docker:dev": "docker compose --profile dev up app-dev",
+    "docker:test:env": "docker compose --profile test run --rm app-test",
+    "build:local-docker": "dotenv -e docker/env/build.local.env -- node scripts/next-build-with-memory.cjs",
+    "typecheck:local-docker": "dotenv -e docker/env/local.host.env -- node --max-old-space-size=4096 ./node_modules/typescript/bin/tsc --noEmit --pretty false",
+    "test:api:docker-db": "dotenv -e docker/env/test.host.env -- vitest run --config vitest.api.config.mjs",
+    "api:release:gate:docker-db": "dotenv -e docker/env/test.host.env -- tsx scripts/api-release-gate.ts --strict --db --json",
     "smoke:preview": "tsx scripts/environment-smoke.ts --profile preview",
     "smoke:staging": "tsx scripts/environment-smoke.ts --profile staging",
     "smoke:production": "tsx scripts/environment-smoke.ts --profile production",
@@ -207,13 +223,5 @@
   "overrides": {
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/engines",
-      "esbuild",
-      "prisma",
-      "inngest-cli"
-    ]
   }
 }
