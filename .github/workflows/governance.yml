@@ -29,7 +29,7 @@ jobs:
       DATABASE_URL: postgresql://a8n_governance:a8n_governance@127.0.0.1:5432/a8n_governance
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4

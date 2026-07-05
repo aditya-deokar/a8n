@@ -52,7 +52,7 @@ jobs:
       RESTORE_DRILL_TARGET: ${{ inputs.restore_target }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4

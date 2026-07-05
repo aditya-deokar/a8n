@@ -40,7 +40,7 @@ jobs:
       WORKFLOW_ID: ${{ vars.STAGING_LOAD_TEST_WORKFLOW_ID }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v4
