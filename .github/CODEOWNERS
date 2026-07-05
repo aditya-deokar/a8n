@@ -1,48 +1,47 @@
 # CODEOWNERS keeps production-sensitive changes reviewable.
-# Replace @adity with the exact GitHub handle or team that owns this repo if needed.
 
-* @adity
+* @aditya-deokar
 
 # Production and delivery controls
-.github/workflows/ @adity
-.github/ISSUE_TEMPLATE/ @adity
-.github/dependabot.yml @adity
-.github/CODEOWNERS @adity
-infra/ @adity
-package.json @adity
-pnpm-lock.yaml @adity
+.github/workflows/ @aditya-deokar
+.github/ISSUE_TEMPLATE/ @aditya-deokar
+.github/dependabot.yml @aditya-deokar
+.github/CODEOWNERS @aditya-deokar
+infra/ @aditya-deokar
+package.json @aditya-deokar
+pnpm-lock.yaml @aditya-deokar
 
 # Runtime, security, and backend ownership
-src/config/feature-flags.ts @adity
-src/lib/auth.ts @adity
-src/lib/db.ts @adity
-src/lib/encryption.ts @adity
-src/lib/feature-flags.ts @adity
-src/lib/polar.ts @adity
-src/env.ts @adity
-src/trpc/ @adity
-src/app/api/ @adity
-src/mcp/ @adity
-src/inngest/ @adity
+src/config/feature-flags.ts @aditya-deokar
+src/lib/auth.ts @aditya-deokar
+src/lib/db.ts @aditya-deokar
+src/lib/encryption.ts @aditya-deokar
+src/lib/feature-flags.ts @aditya-deokar
+src/lib/polar.ts @aditya-deokar
+src/env.ts @aditya-deokar
+src/trpc/ @aditya-deokar
+src/app/api/ @aditya-deokar
+src/mcp/ @aditya-deokar
+src/inngest/ @aditya-deokar
 
 # Data and release safety
-prisma/ @adity
-scripts/*release* @adity
-scripts/env-check.ts @adity
-scripts/environment-smoke.ts @adity
-scripts/feature-flag-check.ts @adity
-scripts/incident-readiness-check.ts @adity
-scripts/environment-drift-check.ts @adity
-scripts/governance-readiness-check.ts @adity
-scripts/migration-preflight.ts @adity
-scripts/observability-check.ts @adity
-scripts/performance-readiness-check.ts @adity
-scripts/release-manifest.ts @adity
-scripts/restore-drill-check.ts @adity
-scripts/security-release-check.ts @adity
-src/lib/observability.ts @adity
-src/instrumentation.ts @adity
-tests/load/ @adity
-docs/DevOps/ @adity
-docs/api/evidence/ @adity
-docs/releases/ @adity
+prisma/ @aditya-deokar
+scripts/*release* @aditya-deokar
+scripts/env-check.ts @aditya-deokar
+scripts/environment-smoke.ts @aditya-deokar
+scripts/feature-flag-check.ts @aditya-deokar
+scripts/incident-readiness-check.ts @aditya-deokar
+scripts/environment-drift-check.ts @aditya-deokar
+scripts/governance-readiness-check.ts @aditya-deokar
+scripts/migration-preflight.ts @aditya-deokar
+scripts/observability-check.ts @aditya-deokar
+scripts/performance-readiness-check.ts @aditya-deokar
+scripts/release-manifest.ts @aditya-deokar
+scripts/restore-drill-check.ts @aditya-deokar
+scripts/security-release-check.ts @aditya-deokar
+src/lib/observability.ts @aditya-deokar
+src/instrumentation.ts @aditya-deokar
+tests/load/ @aditya-deokar
+docs/DevOps/ @aditya-deokar
+docs/api/evidence/ @aditya-deokar
+docs/releases/ @aditya-deokar

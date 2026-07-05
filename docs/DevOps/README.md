@@ -50,6 +50,8 @@ This folder contains the production DevOps roadmap, runbooks, readiness checks, 
 | `performance-budgets.json` | API, webhook, workflow, frontend, and cost budgets |
 | `cost-control-runbook.md` | Cloud, database, AI/provider, observability, and release cost controls |
 | `slow-query-review-template.md` | Database slow-query investigation template |
+| `docker-runbook.md` | Docker local, development, test, and Neon restore workflow |
+| `cicd-flow-scenarios.md` | End-to-end CI/CD flow with real production scenarios |
 | `governance-runbook.md` | Operational governance cadence, evidence, and action item rules |
 | `operational-review-template.md` | Monthly operational review template with SLO and error budget review |
 | `access-review-template.md` | Quarterly access review template for GitHub, Vercel, database, and providers |
@@ -64,6 +66,15 @@ This folder contains the production DevOps roadmap, runbooks, readiness checks, 
 
 ```powershell
 pnpm env:check
+pnpm env:check:local-docker
+pnpm db:local:up
+pnpm db:local:migrate
+pnpm dev:local-docker
+pnpm build:local-docker
+pnpm db:test:up
+pnpm db:test:migrate
+pnpm test:api:docker-db
+pnpm db:neon:restore:local -- --yes
 pnpm env:check:production
 pnpm db:migration:preflight
 pnpm db:migration:preflight:db

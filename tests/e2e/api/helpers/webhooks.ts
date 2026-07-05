@@ -1,7 +1,9 @@
 import { createHmac } from "node:crypto";
 
-export const GOOGLE_FORM_WEBHOOK_SECRET = "test-google-form-webhook-secret";
-export const STRIPE_WEBHOOK_SECRET = "test-stripe-webhook-secret";
+export const GOOGLE_FORM_WEBHOOK_SECRET =
+  process.env.GOOGLE_FORM_WEBHOOK_SECRET || "test-google-form-webhook-secret";
+export const STRIPE_WEBHOOK_SECRET =
+  process.env.STRIPE_WEBHOOK_SECRET || "test-stripe-webhook-secret";
 
 export function buildGoogleFormPayload() {
   return {

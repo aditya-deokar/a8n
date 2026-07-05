@@ -904,7 +904,7 @@ Because this project targets Vercel, containers are optional. Still, many indust
 - Reproducible dev environment.
 - Load testing environment.
 
-### Future Docker Setup
+### Current Docker Setup
 
 | File | Purpose |
 |---|---|
@@ -913,7 +913,15 @@ Because this project targets Vercel, containers are optional. Still, many indust
 | `.dockerignore` | Reduce image size |
 | `docs/DevOps/docker-runbook.md` | How to run/debug containers |
 
-Since Vercel already handles deployment packaging, Docker should not block the next DevOps phases.
+Current implementation:
+
+- `docker-compose.yml` provides local Postgres, test Postgres, containerized development app, and containerized test environment profiles.
+- `docker/env/local.host.env`, `docker/env/test.host.env`, `docker/env/app.development.env`, and `docker/env/app.test.env` keep host-side and container-side connection strings separate.
+- `pnpm dev:local-docker`, `pnpm build:local-docker`, `pnpm test:api:docker-db`, and `pnpm docker:dev` provide local development and verification commands.
+- `scripts/neon-to-local.ts` uses Dockerized `pg_dump` and `pg_restore` to copy Neon data into the local Docker database without requiring local Postgres tools.
+- `docs/DevOps/docker-runbook.md` documents local, test, containerized app, and Neon restore flows.
+
+Since Vercel already handles deployment packaging, Docker is mainly used for reproducible local development, test databases, and optional self-hosting.
 
 ---
 

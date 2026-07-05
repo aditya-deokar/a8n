@@ -133,17 +133,18 @@ function isEnvironmentDefinition(value: unknown): value is EnvironmentDefinition
 
 function isBaseline(value: unknown): value is Baseline {
   if (!isRecord(value)) return false;
+  const environments = value.environments;
   if (
     typeof value.version !== "number" ||
     typeof value.owner !== "string" ||
     typeof value.reviewCadence !== "string" ||
-    !isRecord(value.environments)
+    !isRecord(environments)
   ) {
     return false;
   }
 
   return REQUIRED_ENVIRONMENTS.every((environment) =>
-    isEnvironmentDefinition(value.environments[environment]),
+    isEnvironmentDefinition(environments[environment]),
   );
 }
 

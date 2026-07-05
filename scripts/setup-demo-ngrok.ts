@@ -3,6 +3,8 @@
  *
  * Run:
  *   pnpm demo:ngrok
+ *
+ * Requires the ngrok CLI on PATH, or set NGROK_BIN to the executable path.
  */
 
 import "dotenv/config";
@@ -16,7 +18,7 @@ const ALL_NODES_WORKFLOW_NAME = "All Nodes Demo - AI Operations Command Center";
 const EXAM_WORKFLOW_NAME = "Exam Result Flow - Google Form to Gemini Email Sheet";
 const PORT = Number(process.env.DEMO_PORT || process.env.PORT || 3000);
 const ENV_PATH = path.join(process.cwd(), ".env");
-const NGROK_BIN_DIR = path.join(process.cwd(), "node_modules", "ngrok", "bin");
+const NGROK_BIN = process.env.NGROK_BIN || "ngrok";
 let ngrokProcess: ChildProcessWithoutNullStreams | undefined;
 
 const quoteEnvValue = (value: string) => `"${value.replace(/"/g, '\\"')}"`;
@@ -49,28 +51,6 @@ function updateEnvFile(updates: Record<string, string>) {
   fs.writeFileSync(ENV_PATH, updatedLines.join(newline));
 }
 
-function ensureNgrokWindowsBinary() {
-  if (process.platform !== "win32") return;
-
-  const extensionlessBinary = path.join(NGROK_BIN_DIR, "ngrok");
-  const windowsBinary = path.join(NGROK_BIN_DIR, "ngrok.exe");
-
-  if (fs.existsSync(windowsBinary) || !fs.existsSync(extensionlessBinary)) {
-    return;
-  }
-
-  fs.copyFileSync(extensionlessBinary, windowsBinary);
-}
-
-function getNgrokBinaryPath() {
-  ensureNgrokWindowsBinary();
-
-  return path.join(
-    NGROK_BIN_DIR,
-    process.platform === "win32" ? "ngrok.exe" : "ngrok",
-  );
-}
-
 function parseNgrokUrl(line: string) {
   try {
     const parsed = JSON.parse(line) as { url?: unknown; msg?: unknown };
@@ -99,7 +79,7 @@ function startNgrokCli() {
         args.push(`--authtoken=${process.env.NGROK_AUTHTOKEN}`);
       }
 
-      const child = spawn(getNgrokBinaryPath(), args, {
+      const child = spawn(NGROK_BIN, args, {
         windowsHide: true,
       });
 
@@ -121,7 +101,13 @@ function startNgrokCli() {
 
       child.stdout.on("data", handleOutput);
       child.stderr.on("data", handleOutput);
-      child.on("error", reject);
+      child.on("error", (error) => {
+        reject(
+          new Error(
+            `Failed to start ngrok CLI "${NGROK_BIN}". Install ngrok from https://ngrok.com/download or set NGROK_BIN to the full executable path. ${error.message}`,
+          ),
+        );
+      });
       child.on("exit", (code) => {
         if (!resolved) {
           reject(

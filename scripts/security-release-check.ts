@@ -91,6 +91,11 @@ function readJson(relativePath: string): unknown {
   return JSON.parse(fs.readFileSync(fullPath, "utf8")) as unknown;
 }
 
+function readTextIfExists(relativePath: string) {
+  const fullPath = path.join(process.cwd(), relativePath);
+  return fs.existsSync(fullPath) ? fs.readFileSync(fullPath, "utf8") : "";
+}
+
 function walkFiles(root: string): string[] {
   const absoluteRoot = path.join(process.cwd(), root);
   if (!fs.existsSync(absoluteRoot)) return [];
@@ -180,7 +185,14 @@ function hasPackageManagerControls() {
     pnpm?: { onlyBuiltDependencies?: string[] };
   };
 
-  return Boolean(pkg.pnpm?.onlyBuiltDependencies?.length);
+  if (pkg.pnpm?.onlyBuiltDependencies?.length) return true;
+
+  const workspaceConfig = readTextIfExists("pnpm-workspace.yaml");
+  const onlyBuiltDependencies = workspaceConfig.match(
+    /(?:^|\n)onlyBuiltDependencies:\s*\n((?:\s+-\s+["']?[^"'\n]+["']?\s*\n?)+)/,
+  );
+
+  return Boolean(onlyBuiltDependencies?.[1]?.trim());
 }
 
 function buildChecks(options: Options): SecurityCheck[] {

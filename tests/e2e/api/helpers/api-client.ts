@@ -7,7 +7,7 @@ export async function postRawJson(
   headers: Record<string, string> = {},
 ) {
   return request.post(path, {
-    data: body,
+    data: Buffer.from(body, "utf8"),
     headers: {
       "content-type": "application/json",
       ...headers,

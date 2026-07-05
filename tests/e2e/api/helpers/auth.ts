@@ -40,7 +40,12 @@ export async function signInEmail(request: APIRequestContext, user: E2EUserFixtu
 }
 
 export async function signOut(request: APIRequestContext) {
-  const response = await request.post("/api/auth/sign-out");
+  const response = await request.post("/api/auth/sign-out", {
+    data: {},
+    headers: {
+      Origin: baseURL(),
+    },
+  });
   await expectNoSecretLeakInResponse(response);
   expect(response.ok(), await response.text()).toBe(true);
   return response;

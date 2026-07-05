@@ -1,12 +1,81 @@
 import { defineConfig } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
+
+const DEFAULT_E2E_DATABASE_URL =
+  "postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test";
+const TEST_DATABASE_NAME_PATTERN = /(^|[_-])test($|[_-])|a8n_test/i;
+const LOCAL_DOCKER_TEST_ENV_PATH = path.join(
+  process.cwd(),
+  "docker",
+  "env",
+  "test.host.env",
+);
+
+function isSafeE2EDatabaseUrl(databaseUrl) {
+  if (!databaseUrl) return false;
+
+  try {
+    const parsed = new URL(databaseUrl);
+    const databaseName = parsed.pathname.replace(/^\//, "");
+    return TEST_DATABASE_NAME_PATTERN.test(databaseName);
+  } catch {
+    return false;
+  }
+}
+
+function isHostedCi() {
+  return process.env.GITHUB_ACTIONS === "true" || process.env.VERCEL === "1";
+}
+
+function readEnvFileValue(filePath, key) {
+  if (!fs.existsSync(filePath)) return undefined;
+
+  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const separatorIndex = trimmed.indexOf("=");
+    if (separatorIndex < 0) continue;
+
+    const envKey = trimmed.slice(0, separatorIndex).trim();
+    if (envKey !== key) continue;
+
+    return trimmed.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, "");
+  }
+
+  return undefined;
+}
+
+function localDockerTestDatabaseUrl() {
+  if (isHostedCi()) return undefined;
+
+  const dockerDatabaseUrl = readEnvFileValue(
+    LOCAL_DOCKER_TEST_ENV_PATH,
+    "DATABASE_URL",
+  );
+
+  return isSafeE2EDatabaseUrl(dockerDatabaseUrl) ? dockerDatabaseUrl : undefined;
+}
+
+function e2eDatabaseUrl() {
+  const explicitDatabaseUrl =
+    process.env.API_E2E_DATABASE_URL || process.env.E2E_DATABASE_URL;
+  if (explicitDatabaseUrl) return explicitDatabaseUrl;
+  if (isSafeE2EDatabaseUrl(process.env.DATABASE_URL)) return process.env.DATABASE_URL;
+
+  const dockerDatabaseUrl = localDockerTestDatabaseUrl();
+  if (dockerDatabaseUrl) return dockerDatabaseUrl;
+
+  return DEFAULT_E2E_DATABASE_URL;
+}
 
 const e2eEnv = {
   NODE_ENV: process.env.NODE_ENV || "test",
   E2E_TESTS: process.env.E2E_TESTS || "true",
   E2E_EXTERNAL_SERVICES: process.env.E2E_EXTERNAL_SERVICES || "mock",
-  DATABASE_URL:
-    process.env.DATABASE_URL ||
-    "postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test",
+  DATABASE_URL: e2eDatabaseUrl(),
   BETTER_AUTH_SECRET:
     process.env.BETTER_AUTH_SECRET ||
     "test-better-auth-secret-32-characters",
@@ -44,6 +113,7 @@ for (const [key, value] of Object.entries(e2eEnv)) {
 
 export default defineConfig({
   testDir: "tests/e2e/api/specs",
+  testMatch: "**/*.e2e.ts",
   timeout: 45_000,
   expect: {
     timeout: 10_000,

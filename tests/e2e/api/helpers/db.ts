@@ -15,6 +15,14 @@ function assertE2EIdentifier(value: string) {
   }
 }
 
+function assertE2EOwner(owner: { id: string; email: string }, resourceId: string) {
+  if (!owner.id.startsWith(E2E_PREFIX) && !owner.email.startsWith(E2E_PREFIX)) {
+    throw new Error(
+      `Refusing to operate on generated resource "${resourceId}" owned by non-E2E user "${owner.email}".`,
+    );
+  }
+}
+
 export async function cleanupE2EData() {
   await prisma.user.deleteMany({
     where: {
@@ -130,10 +138,23 @@ export async function getWorkflowById(id: string) {
 }
 
 export async function getCredentialById(id: string) {
-  assertE2EIdentifier(id);
-  return prisma.credential.findUniqueOrThrow({
+  const credential = await prisma.credential.findUniqueOrThrow({
     where: { id },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
   });
+
+  if (!id.startsWith(E2E_PREFIX)) {
+    assertE2EOwner(credential.user, id);
+  }
+
+  return credential;
 }
 
 export async function getExecutionById(id: string) {

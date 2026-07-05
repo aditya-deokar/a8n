@@ -63,8 +63,8 @@ function vitestCli() {
   return cliPath("vitest", "vitest.mjs");
 }
 
-function pnpmCli() {
-  return process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+function tsxCli() {
+  return cliPath("tsx", "dist", "cli.mjs");
 }
 
 function dateStamp() {
@@ -111,34 +111,6 @@ function run(
     name,
     required,
     command: `${process.execPath} ${args.join(" ")}`,
-    status: result.status === 0 ? "passed" : "failed",
-    exitCode: result.status,
-    durationMs,
-    stdout: redact(result.stdout?.trim()),
-    stderr: redact(result.error ? result.error.message : result.stderr?.trim()),
-  };
-}
-
-function runCommand(
-  name: string,
-  command: string,
-  args: string[],
-  required = true,
-  env: NodeJS.ProcessEnv = process.env,
-): GateCheck {
-  const started = Date.now();
-  const result = spawnSync(command, args, {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    env,
-    timeout: checkTimeoutMs,
-  });
-  const durationMs = Date.now() - started;
-
-  return {
-    name,
-    required,
-    command: `${command} ${args.join(" ")}`,
     status: result.status === 0 ? "passed" : "failed",
     exitCode: result.status,
     durationMs,
@@ -221,12 +193,11 @@ function main() {
 
   const checks: GateCheck[] = [
     run("prisma validate", [prismaCli(), "validate", "--schema", "prisma/schema.prisma"], true, env),
-    runCommand(
+    run(
       "database migration preflight",
-      pnpmCli(),
       [
-        "db:migration:preflight",
-        "--",
+        tsxCli(),
+        "scripts/migration-preflight.ts",
         "--json",
         ...(options.db ? ["--db"] : []),
       ],
