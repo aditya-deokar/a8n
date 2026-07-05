@@ -91,6 +91,10 @@ jobs:
       (github.event.deployment.environment == 'Preview' || github.event.deployment.environment == 'preview')
     runs-on: ubuntu-latest
     env:
+      CI: "true"
+      NODE_ENV: test
+      A8N_ENV_PROFILE: test
+      DATABASE_URL: postgresql://a8n_preview:a8n_preview@127.0.0.1:5432/a8n_preview
       PREVIEW_URL: ${{ github.event.deployment_status.environment_url }}
     steps:
       - name: Checkout
