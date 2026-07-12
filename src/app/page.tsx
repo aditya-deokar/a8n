@@ -7,6 +7,20 @@ import HowItWorks from "@/components/landing/how-it-works";
 import Pricing from "@/components/landing/pricing";
 import Footer from "@/components/landing/footer";
 import Navbar from "@/components/landing/navbar";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "a8n | Advanced Visual Workflow Automation",
+  description: "Build, automate, and orchestrate complex workflows with our intuitive visual editor and powerful AI nodes. Connect your favorite tools seamlessly.",
+  keywords: [
+    "workflow automation",
+    "visual editor",
+    "AI nodes",
+    "no-code automation",
+    "developer tools",
+    "API integration"
+  ],
+};
 
 export default function LandingPage() {
   return (

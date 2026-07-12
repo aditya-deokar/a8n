@@ -1,0 +1,2032 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\@playwright\\test\\cli.js",
+      "test",
+      "--config",
+      "playwright.api-e2e.config.mjs"
+    ],
+    "configFile": "C:\\Users\\adity\\Documents\\final-year project\\n8n\\playwright.api-e2e.config.mjs",
+    "rootDir": "C:/Users/adity/Documents/final-year project/n8n/tests/e2e/api/specs",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/adity/Documents/final-year project/n8n/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/adity/Documents/final-year project/n8n/tests/e2e/api/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.e2e.ts"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report/api-e2e",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/api-e2e/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "pnpm dev",
+      "url": "http://127.0.0.1:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "NODE_ENV": "test",
+        "E2E_TESTS": "true",
+        "E2E_EXTERNAL_SERVICES": "mock",
+        "DATABASE_URL": "postgresql://a8n_test:a8n_test@127.0.0.1:5433/a8n_test",
+        "BETTER_AUTH_SECRET": "JUQTXhMBDvngGgR9Y20Vd9ntyFXsOHnN",
+        "BETTER_AUTH_URL": "http://localhost:3000",
+        "NEXT_PUBLIC_APP_URL": "http://localhost:3000",
+        "APP_URL": "http://127.0.0.1:3000",
+        "NEXT_PUBLIC_WEBHOOK_BASE_URL": "https://trudy-sheddable-dino.ngrok-free.dev",
+        "ENCRYPTION_KEY": "1cCwxQZNbmUuaTfPhWHoJyOYEjAFD49G",
+        "POLAR_ACCESS_TOKEN": "polar_oat_kECT788aqIib6GcR4HN98Uyj8oQEWxAoxiaDB0ciiIF",
+        "MCP_API_KEY_HMAC_SECRET": "ci-mcp-api-key-hmac-secret-32-chars",
+        "MCP_OAUTH_TOKEN_HMAC_SECRET": "ci-mcp-oauth-token-hmac-secret-32",
+        "WEBHOOK_SHARED_SECRET": "test-webhook-secret",
+        "A8N_WEBHOOK_SHARED_SECRET": "test-a8n-shared-webhook-secret",
+        "GOOGLE_FORM_WEBHOOK_SECRET": "test-google-form-webhook-secret",
+        "STRIPE_WEBHOOK_SECRET": "test-stripe-webhook-secret",
+        "STRIPE_WEBHOOK_SHARED_SECRET": "test-stripe-shared-webhook-secret"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.e2e.ts",
+      "file": "auth.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E auth and sessions",
+          "file": "auth.e2e.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [
+            {
+              "title": "signs up a user and uses the session cookie for protected tRPC",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9356,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:06.426Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "65d9d70fa9f74045cfc5-5db8061f9c839a236cb7",
+              "file": "auth.e2e.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "logs in with email/password and persists session cookies",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 942,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:15.845Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "65d9d70fa9f74045cfc5-6d78a8ccfd82b16ef93a",
+              "file": "auth.e2e.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "rejects protected tRPC calls without a session",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 111,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:16.825Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "65d9d70fa9f74045cfc5-5e61ba148073883a468e",
+              "file": "auth.e2e.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "logout invalidates protected tRPC access",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 450,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:16.966Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "65d9d70fa9f74045cfc5-3a3d70cf5589fef6c383",
+              "file": "auth.e2e.ts",
+              "line": 69,
+              "column": 7
+            },
+            {
+              "title": "invalid login returns a safe error response",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 148,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:17.439Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "65d9d70fa9f74045cfc5-7c4b342f6a9ebb82ca91",
+              "file": "auth.e2e.ts",
+              "line": 86,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "credentials.e2e.ts",
+      "file": "credentials.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E credential lifecycle",
+          "file": "credentials.e2e.ts",
+          "line": 19,
+          "column": 6,
+          "specs": [
+            {
+              "title": "pro test user creates an encrypted credential through real HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 450,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:17.669Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa9df36eac1a70818225-552156d5810bc5266607",
+              "file": "credentials.e2e.ts",
+              "line": 29,
+              "column": 7
+            },
+            {
+              "title": "free test user cannot create a premium credential",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 307,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:18.136Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa9df36eac1a70818225-19495e0de4df89d69c2c",
+              "file": "credentials.e2e.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "lists and filters credential records without raw secret exposure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 517,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:18.462Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa9df36eac1a70818225-ce489ac22305f5d87c1d",
+              "file": "credentials.e2e.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "updates credential secret and changes encrypted persistence value",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 538,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:18.999Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa9df36eac1a70818225-b4d5dc6f63f7aa0d02f3",
+              "file": "credentials.e2e.ts",
+              "line": 102,
+              "column": 7
+            },
+            {
+              "title": "deletes a credential through real HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 531,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:19.558Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa9df36eac1a70818225-a5edd0bcc643bcbdc065",
+              "file": "credentials.e2e.ts",
+              "line": 132,
+              "column": 7
+            },
+            {
+              "title": "another user cannot read, update, or delete a credential",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1481,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:20.113Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "aa9df36eac1a70818225-53ee4baa8e349451223e",
+              "file": "credentials.e2e.ts",
+              "line": 152,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "error-safety.e2e.ts",
+      "file": "error-safety.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E error safety and abuse handling",
+          "file": "error-safety.e2e.ts",
+          "line": 41,
+          "column": 6,
+          "specs": [
+            {
+              "title": "rejects malformed JSON and unknown tRPC procedures safely",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 994,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:21.711Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-d7a9d0694f02e931b0f9",
+              "file": "error-safety.e2e.ts",
+              "line": 53,
+              "column": 7
+            },
+            {
+              "title": "rejects large bad tRPC requests without leaking payload data",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 585,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:22.730Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-52daa46be2a4d658b1d6",
+              "file": "error-safety.e2e.ts",
+              "line": 65,
+              "column": 7
+            },
+            {
+              "title": "rejects invalid enum input without echoing raw credential values",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 387,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:23.338Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-c2bdf915680397426b61",
+              "file": "error-safety.e2e.ts",
+              "line": 80,
+              "column": 7
+            },
+            {
+              "title": "rejects invalid graph references and keeps the previous graph intact",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 667,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:23.752Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-33533ce2d3cbd3756f5c",
+              "file": "error-safety.e2e.ts",
+              "line": 94,
+              "column": 7
+            },
+            {
+              "title": "simulated Prisma failures are safe at the HTTP layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 448,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:24.439Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-63bcba09398add08b661",
+              "file": "error-safety.e2e.ts",
+              "line": 133,
+              "column": 7
+            },
+            {
+              "title": "simulated Inngest failures do not create dispatch records",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 628,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:24.912Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-47fa852e68614534f885",
+              "file": "error-safety.e2e.ts",
+              "line": 146,
+              "column": 7
+            },
+            {
+              "title": "simulated Polar failures are safe at the HTTP layer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 492,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:25.564Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4303d935c68b321a5830-28bddb281cb99e787947",
+              "file": "error-safety.e2e.ts",
+              "line": 167,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "executions.e2e.ts",
+      "file": "executions.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E execution and side-effect dispatch",
+          "file": "executions.e2e.ts",
+          "line": 20,
+          "column": 6,
+          "specs": [
+            {
+              "title": "records workflow execution dispatch in E2E mock mode",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 421,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:26.126Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1332dc4aabdf30453fe6-e41d4dbf8c438508774f",
+              "file": "executions.e2e.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "does not dispatch when another user executes an owned workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 667,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:26.566Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1332dc4aabdf30453fe6-df82c992bc4d14b52936",
+              "file": "executions.e2e.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "lists and reads seeded execution history safely",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 576,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:27.255Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1332dc4aabdf30453fe6-e411884640c8b03e3818",
+              "file": "executions.e2e.ts",
+              "line": 101,
+              "column": 7
+            },
+            {
+              "title": "another user cannot read an execution record",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 710,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:27.849Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1332dc4aabdf30453fe6-c1a24e7ebf48924fa3be",
+              "file": "executions.e2e.ts",
+              "line": 159,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "mcp-dashboard.e2e.ts",
+      "file": "mcp-dashboard.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E MCP dashboard API",
+          "file": "mcp-dashboard.e2e.ts",
+          "line": 27,
+          "column": 6,
+          "specs": [
+            {
+              "title": "creates an MCP API key and only returns the raw key once",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 568,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:28.650Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0a140590e0ed1746833e-c670c0536ab6764034a0",
+              "file": "mcp-dashboard.e2e.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "revokes an MCP API key and removes it from active listings",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 646,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:29.240Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0a140590e0ed1746833e-a951e556e05ccc92fbe2",
+              "file": "mcp-dashboard.e2e.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "another user cannot revoke an MCP API key",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 740,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:29.905Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0a140590e0ed1746833e-0d03bf4c711a8163d431",
+              "file": "mcp-dashboard.e2e.ts",
+              "line": 102,
+              "column": 7
+            },
+            {
+              "title": "lists and revokes an MCP OAuth connection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1232,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:30.668Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0a140590e0ed1746833e-96500e9f3d2fbfa25238",
+              "file": "mcp-dashboard.e2e.ts",
+              "line": 131,
+              "column": 7
+            },
+            {
+              "title": "another user cannot list or revoke an MCP OAuth connection",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1539,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:31.928Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0a140590e0ed1746833e-a4a4844b9152a713f1a9",
+              "file": "mcp-dashboard.e2e.ts",
+              "line": 180,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tenant-isolation.e2e.ts",
+      "file": "tenant-isolation.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E tenant isolation",
+          "file": "tenant-isolation.e2e.ts",
+          "line": 32,
+          "column": 6,
+          "specs": [
+            {
+              "title": "blocks cross-tenant reads, writes, revokes, and dispatches",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2237,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:33.609Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "66953328c86e939d3d8b-e2e04c5ea486fb2cfe9f",
+              "file": "tenant-isolation.e2e.ts",
+              "line": 43,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "trpc-transport.e2e.ts",
+      "file": "trpc-transport.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E tRPC transport",
+          "file": "trpc-transport.e2e.ts",
+          "line": 20,
+          "column": 6,
+          "specs": [
+            {
+              "title": "executes a real protected tRPC query over HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 309,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:35.912Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-0e6c36ce13f66a3a60f1",
+              "file": "trpc-transport.e2e.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "executes a real protected tRPC mutation over HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 353,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:36.235Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-b684b6fbc3b122ae4dc0",
+              "file": "trpc-transport.e2e.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "executes batched tRPC queries over one HTTP transport",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 423,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:36.607Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-de9df3543078e60fc3f3",
+              "file": "trpc-transport.e2e.ts",
+              "line": 86,
+              "column": 7
+            },
+            {
+              "title": "rejects invalid tRPC input through the real route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 289,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:37.046Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-c5f3175df9c4b163b8d4",
+              "file": "trpc-transport.e2e.ts",
+              "line": 118,
+              "column": 7
+            },
+            {
+              "title": "rejects unknown procedures safely",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 290,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:37.350Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-fee434b9859feeed41b8",
+              "file": "trpc-transport.e2e.ts",
+              "line": 129,
+              "column": 7
+            },
+            {
+              "title": "rejects malformed JSON safely",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 241,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:37.655Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-fdd8bb0ff6ea69c31d2d",
+              "file": "trpc-transport.e2e.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "saves valid workflow graph input through real HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 381,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:37.913Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "9241a77f6321ee10604f-a5a68d0f68aced0230a3",
+              "file": "trpc-transport.e2e.ts",
+              "line": 154,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "webhooks.e2e.ts",
+      "file": "webhooks.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E public webhooks",
+          "file": "webhooks.e2e.ts",
+          "line": 69,
+          "column": 6,
+          "specs": [
+            {
+              "title": "rejects Google Form webhook without shared secret",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 420,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:38.341Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-50fe966452be45d9b2f7",
+              "file": "webhooks.e2e.ts",
+              "line": 80,
+              "column": 7
+            },
+            {
+              "title": "rejects Google Form webhook with wrong shared secret",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 413,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:38.771Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-e93364bf092a40599077",
+              "file": "webhooks.e2e.ts",
+              "line": 99,
+              "column": 7
+            },
+            {
+              "title": "accepts valid Google Form webhook and records dispatch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 370,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:39.196Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-8be72bece3a72eac1745",
+              "file": "webhooks.e2e.ts",
+              "line": 121,
+              "column": 7
+            },
+            {
+              "title": "rejects malformed Google Form payload safely",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 425,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:39.578Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-e22731bdbb928500e9bc",
+              "file": "webhooks.e2e.ts",
+              "line": 165,
+              "column": 7
+            },
+            {
+              "title": "rejects Stripe webhook without signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 598,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:40.021Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-880ff0770ef53517c327",
+              "file": "webhooks.e2e.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "rejects Stripe webhook with wrong signature",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 837,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:40.639Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-2db5b2fae7a2eec27860",
+              "file": "webhooks.e2e.ts",
+              "line": 205,
+              "column": 7
+            },
+            {
+              "title": "rejects Stripe webhook outside timestamp tolerance",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 623,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:41.499Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-a7a7a9edfa4a357c648c",
+              "file": "webhooks.e2e.ts",
+              "line": 229,
+              "column": 7
+            },
+            {
+              "title": "accepts valid Stripe signature and records dispatch",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 706,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:42.154Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-e63c21e1b2a977f11150",
+              "file": "webhooks.e2e.ts",
+              "line": 253,
+              "column": 7
+            },
+            {
+              "title": "rejects signed malformed Stripe payload safely",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 440,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:42.887Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4c16935bc5f4875cd9cd-8c26d7971c2e11a8beee",
+              "file": "webhooks.e2e.ts",
+              "line": 300,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "workflows.e2e.ts",
+      "file": "workflows.e2e.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "backend E2E workflow lifecycle",
+          "file": "workflows.e2e.ts",
+          "line": 19,
+          "column": 6,
+          "specs": [
+            {
+              "title": "pro test user creates a workflow through real HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 286,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:43.378Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-8168e73ec09655d9467a",
+              "file": "workflows.e2e.ts",
+              "line": 29,
+              "column": 7
+            },
+            {
+              "title": "free test user cannot create a premium workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 256,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:43.677Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-90a0f424d197d7e00199",
+              "file": "workflows.e2e.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "lists and fetches only the signed-in user's workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 393,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:43.950Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-f2babeae95234171d639",
+              "file": "workflows.e2e.ts",
+              "line": 51,
+              "column": 7
+            },
+            {
+              "title": "renames a workflow and persists the change",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 363,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:44.358Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-22cff57ede6c2375998a",
+              "file": "workflows.e2e.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "saves a valid workflow graph atomically",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 394,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:44.738Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-0ea28ad3116de1522bf1",
+              "file": "workflows.e2e.ts",
+              "line": 105,
+              "column": 7
+            },
+            {
+              "title": "rejects invalid graph input without changing the existing graph",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 315,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:45.155Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-ee9015105e4aae98281c",
+              "file": "workflows.e2e.ts",
+              "line": 135,
+              "column": 7
+            },
+            {
+              "title": "deletes a workflow through real HTTP",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 632,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:45.486Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-6d354bc1a3011fd13146",
+              "file": "workflows.e2e.ts",
+              "line": 170,
+              "column": 7
+            },
+            {
+              "title": "another user cannot read, rename, save, or delete a workflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 45000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 717,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-05T15:44:46.137Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "46c153fd766cb4964ad5-ec944b55a515a8b48978",
+              "file": "workflows.e2e.ts",
+              "line": 196,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-05T15:43:50.900Z",
+    "duration": 56487.850999999995,
+    "expected": 52,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

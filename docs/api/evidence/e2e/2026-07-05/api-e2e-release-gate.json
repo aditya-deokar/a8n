@@ -1,0 +1,65 @@
+{
+  "suite": "api-e2e-release-gate",
+  "generatedAt": "2026-07-05T15:44:47.564Z",
+  "mode": "full",
+  "includeMcp": false,
+  "checkTimeoutMs": 900000,
+  "passed": true,
+  "failedRequired": [],
+  "stopShipCriteria": [
+    "Anonymous users cannot reach protected backend data.",
+    "Free users cannot call premium-only backend mutations.",
+    "Cross-tenant workflow, credential, execution, API-key, and OAuth access cannot succeed.",
+    "Raw credential values, API key hashes, OAuth token hashes, and webhook secrets are absent from responses and artifacts.",
+    "Workflow dispatch happens only after ownership checks pass.",
+    "Webhooks reject missing, wrong, malformed, stale, or unsigned traffic.",
+    "Malformed requests and simulated backend failures do not expose environment secrets.",
+    "The E2E database schema matches committed Prisma migrations."
+  ],
+  "artifacts": [
+    "playwright-report/api-e2e",
+    "test-results/api-e2e",
+    "docs/api/evidence/e2e"
+  ],
+  "checks": [
+    {
+      "name": "prisma validate",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\prisma\\build\\index.js validate --schema prisma/schema.prisma",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 3177,
+      "stdout": "The schema at prisma\\schema.prisma is valid 🚀",
+      "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from prisma\\schema.prisma."
+    },
+    {
+      "name": "prisma migrate status",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\prisma\\build\\index.js migrate status --schema prisma/schema.prisma",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2352,
+      "stdout": "Datasource \"db\": PostgreSQL database \"a8n_test\", schema \"public\" at \"127.0.0.1:5433\"\n\n14 migrations found in prisma/migrations\n\nDatabase schema is up to date!",
+      "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from prisma\\schema.prisma."
+    },
+    {
+      "name": "API E2E full",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\@playwright\\test\\cli.js test --config playwright.api-e2e.config.mjs",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 57875,
+      "stdout": "Running 52 tests using 1 worker\n\n  ok  1 tests\\e2e\\api\\specs\\auth.e2e.ts:25:7 › backend E2E auth and sessions › signs up a user and uses the session cookie for protected tRPC (9.4s)\n  ok  2 tests\\e2e\\api\\specs\\auth.e2e.ts:44:7 › backend E2E auth and sessions › logs in with email/password and persists session cookies (942ms)\n  ok  3 tests\\e2e\\api\\specs\\auth.e2e.ts:60:7 › backend E2E auth and sessions › rejects protected tRPC calls without a session (111ms)\n  ok  4 tests\\e2e\\api\\specs\\auth.e2e.ts:69:7 › backend E2E auth and sessions › logout invalidates protected tRPC access (450ms)\n  ok  5 tests\\e2e\\api\\specs\\auth.e2e.ts:86:7 › backend E2E auth and sessions › invalid login returns a safe error response (148ms)\n  ok  6 tests\\e2e\\api\\specs\\credentials.e2e.ts:29:7 › backend E2E credential lifecycle › pro test user creates an encrypted credential through real HTTP (450ms)\n  ok  7 tests\\e2e\\api\\specs\\credentials.e2e.ts:52:7 › backend E2E credential lifecycle › free test user cannot create a premium credential (307ms)\n  ok  8 tests\\e2e\\api\\specs\\credentials.e2e.ts:67:7 › backend E2E credential lifecycle › lists and filters credential records without raw secret exposure (517ms)\n  ok  9 tests\\e2e\\api\\specs\\credentials.e2e.ts:102:7 › backend E2E credential lifecycle › updates credential secret and changes encrypted persistence value (538ms)\n  ok 10 tests\\e2e\\api\\specs\\credentials.e2e.ts:132:7 › backend E2E credential lifecycle › deletes a credential through real HTTP (531ms)\n  ok 11 tests\\e2e\\api\\specs\\credentials.e2e.ts:152:7 › backend E2E credential lifecycle › another user cannot read, update, or delete a credential (1.5s)\n  ok 12 tests\\e2e\\api\\specs\\error-safety.e2e.ts:53:7 › backend E2E error safety and abuse handling › rejects malformed JSON and unknown tRPC procedures safely (994ms)\n  ok 13 tests\\e2e\\api\\specs\\error-safety.e2e.ts:65:7 › backend E2E error safety and abuse handling › rejects large bad tRPC requests without leaking payload data (585ms)\n  ok 14 tests\\e2e\\api\\specs\\error-safety.e2e.ts:80:7 › backend E2E error safety and abuse handling › rejects invalid enum input without echoing raw credential values (387ms)\n  ok 15 tests\\e2e\\api\\specs\\error-safety.e2e.ts:94:7 › backend E2E error safety and abuse handling › rejects invalid graph references and keeps the previous graph intact (667ms)\n  ok 16 tests\\e2e\\api\\specs\\error-safety.e2e.ts:133:7 › backend E2E error safety and abuse handling › simulated Prisma failures are safe at the HTTP layer (448ms)\n  ok 17 tests\\e2e\\api\\specs\\error-safety.e2e.ts:146:7 › backend E2E error safety and abuse handling › simulated Inngest failures do not create dispatch records (628ms)\n  ok 18 tests\\e2e\\api\\specs\\error-safety.e2e.ts:167:7 › backend E2E error safety and abuse handling › simulated Polar failures are safe at the HTTP layer (492ms)\n  ok 19 tests\\e2e\\api\\specs\\executions.e2e.ts:31:7 › backend E2E execution and side-effect dispatch › records workflow execution dispatch in E2E mock mode (421ms)\n  ok 20 tests\\e2e\\api\\specs\\executions.e2e.ts:71:7 › backend E2E execution and side-effect dispatch › does not dispatch when another user executes an owned workflow (667ms)\n  ok 21 tests\\e2e\\api\\specs\\executions.e2e.ts:101:7 › backend E2E execution and side-effect dispatch › lists and reads seeded execution history safely (576ms)\n  ok 22 tests\\e2e\\api\\specs\\executions.e2e.ts:159:7 › backend E2E execution and side-effect dispatch › another user cannot read an execution record (710ms)\n  ok 23 tests\\e2e\\api\\specs\\mcp-dashboard.e2e.ts:37:7 › backend E2E MCP dashboard API › creates an MCP API key and only returns the raw key once (568ms)\n  ok 24 tests\\e2e\\api\\specs\\mcp-dashboard.e2e.ts:82:7 › backend E2E MCP dashboard API › revokes an MCP API key and removes it from active listings (646ms)\n  ok 25 tests\\e2e\\api\\specs\\mcp-dashboard.e2e.ts:102:7 › backend E2E MCP dashboard API › another user cannot revoke an MCP API key (740ms)\n  ok 26 tests\\e2e\\api\\specs\\mcp-dashboard.e2e.ts:131:7 › backend E2E MCP dashboard API › lists and revokes an MCP OAuth connection (1.2s)\n  ok 27 tests\\e2e\\api\\specs\\mcp-dashboard.e2e.ts:180:7 › backend E2E MCP dashboard API › another user cannot list or revoke an MCP OAuth connection (1.5s)\n  ok 28 tests\\e2e\\api\\specs\\tenant-isolation.e2e.ts:43:7 › backend E2E tenant isolation › blocks cross-tenant reads, writes, revokes, and dispatches (2.2s)\n  ok 29 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:30:7 › backend E2E tRPC transport › executes a real protected tRPC query over HTTP (309ms)\n  ok 30 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:60:7 › backend E2E tRPC transport › executes a real protected tRPC mutation over HTTP (353ms)\n  ok 31 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:86:7 › backend E2E tRPC transport › executes batched tRPC queries over one HTTP transport (423ms)\n  ok 32 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:118:7 › backend E2E tRPC transport › rejects invalid tRPC input through the real route (289ms)\n  ok 33 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:129:7 › backend E2E tRPC transport › rejects unknown procedures safely (290ms)\n  ok 34 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:144:7 › backend E2E tRPC transport › rejects malformed JSON safely (241ms)\n  ok 35 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:154:7 › backend E2E tRPC transport › saves valid workflow graph input through real HTTP (381ms)\n  ok 36 tests\\e2e\\api\\specs\\webhooks.e2e.ts:80:7 › backend E2E public webhooks › rejects Google Form webhook without shared secret (420ms)\n  ok 37 tests\\e2e\\api\\specs\\webhooks.e2e.ts:99:7 › backend E2E public webhooks › rejects Google Form webhook with wrong shared secret (413ms)\n  ok 38 tests\\e2e\\api\\specs\\webhooks.e2e.ts:121:7 › backend E2E public webhooks › accepts valid Google Form webhook and records dispatch (370ms)\n  ok 39 tests\\e2e\\api\\specs\\webhooks.e2e.ts:165:7 › backend E2E public webhooks › rejects malformed Google Form payload safely (425ms)\n  ok 40 tests\\e2e\\api\\specs\\webhooks.e2e.ts:186:7 › backend E2E public webhooks › rejects Stripe webhook without signature (598ms)\n  ok 41 tests\\e2e\\api\\specs\\webhooks.e2e.ts:205:7 › backend E2E public webhooks › rejects Stripe webhook with wrong signature (837ms)\n  ok 42 tests\\e2e\\api\\specs\\webhooks.e2e.ts:229:7 › backend E2E public webhooks › rejects Stripe webhook outside timestamp tolerance (623ms)\n  ok 43 tests\\e2e\\api\\specs\\webhooks.e2e.ts:253:7 › backend E2E public webhooks › accepts valid Stripe signature and records dispatch (706ms)\n  ok 44 tests\\e2e\\api\\specs\\webhooks.e2e.ts:300:7 › backend E2E public webhooks › rejects signed malformed Stripe payload safely (440ms)\n  ok 45 tests\\e2e\\api\\specs\\workflows.e2e.ts:29:7 › backend E2E workflow lifecycle › pro test user creates a workflow through real HTTP (286ms)\n  ok 46 tests\\e2e\\api\\specs\\workflows.e2e.ts:43:7 › backend E2E workflow lifecycle › free test user cannot create a premium workflow (256ms)\n  ok 47 tests\\e2e\\api\\specs\\workflows.e2e.ts:51:7 › backend E2E workflow lifecycle › lists and fetches only the signed-in user's workflow (393ms)\n  ok 48 tests\\e2e\\api\\specs\\workflows.e2e.ts:79:7 › backend E2E workflow lifecycle › renames a workflow and persists the change (363ms)\n  ok 49 tests\\e2e\\api\\specs\\workflows.e2e.ts:105:7 › backend E2E workflow lifecycle › saves a valid workflow graph atomically (394ms)\n  ok 50 tests\\e2e\\api\\specs\\workflows.e2e.ts:135:7 › backend E2E workflow lifecycle › rejects invalid graph input without changing the existing graph (315ms)\n  ok 51 tests\\e2e\\api\\specs\\workflows.e2e.ts:170:7 › backend E2E workflow lifecycle › deletes a workflow through real HTTP (632ms)\n  ok 52 tests\\e2e\\api\\specs\\workflows.e2e.ts:196:7 › backend E2E workflow lifecycle › another user cannot read, rename, save, or delete a workflow (717ms)\n\n  52 passed (56.5s)",
+      "stderr": "[WebServer] 2026-07-05T15:44:17.583Z ERROR [Better Auth]: User not found { email: 'e2e_missing_user@example.com' }"
+    },
+    {
+      "name": "MCP widget E2E",
+      "required": false,
+      "command": "",
+      "status": "skipped",
+      "exitCode": null,
+      "durationMs": 0,
+      "reason": "Pass --include-mcp to include MCP browser E2E."
+    }
+  ]
+}

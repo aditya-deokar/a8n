@@ -6,11 +6,16 @@ export const AuthLayout = ({ children }: { children: React.ReactNode; }) => {
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
-          <Link href="/" className="flex items-center gap-2 font-medium">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-              <Image src="/logos/logo.svg" alt="a8n" width={20} height={20} className="invert dark:invert-0" style={{ width: 'auto', height: 'auto' }} />
-            </div>
-            <span className="text-xl font-bold tracking-tight">a8n</span>
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/logos/logo.svg"
+              alt="a8n logo"
+              width={32}
+              height={32}
+              className="dark:brightness-0 dark:invert transition-all"
+              style={{ width: 'auto', height: 'auto' }}
+            />
+            <span className="font-bold text-xl tracking-tight">a8n</span>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-center">
