@@ -1,0 +1,52 @@
+{
+  "suite": "security-release-check",
+  "generatedAt": "2026-07-05T15:33:17.140Z",
+  "strict": true,
+  "passed": true,
+  "failedRequired": [],
+  "checks": [
+    {
+      "name": "security workflow",
+      "status": "passed",
+      "required": true,
+      "message": "GitHub security workflow exists."
+    },
+    {
+      "name": "dependabot configuration",
+      "status": "passed",
+      "required": true,
+      "message": "Dependabot keeps npm and GitHub Actions dependencies current."
+    },
+    {
+      "name": "supply-chain policy",
+      "status": "passed",
+      "required": true,
+      "message": "Supply-chain policy exists."
+    },
+    {
+      "name": "security release checklist",
+      "status": "passed",
+      "required": true,
+      "message": "Security release checklist exists."
+    },
+    {
+      "name": "threat model",
+      "status": "passed",
+      "required": true,
+      "message": "Threat model exists for production-sensitive surfaces."
+    },
+    {
+      "name": "package manager build controls",
+      "status": "passed",
+      "required": true,
+      "message": "pnpm onlyBuiltDependencies is configured to reduce install-script risk."
+    },
+    {
+      "name": "local secret scan",
+      "status": "passed",
+      "required": true,
+      "message": "No obvious raw secrets were found in source-controlled security scan paths.",
+      "details": []
+    }
+  ]
+}
