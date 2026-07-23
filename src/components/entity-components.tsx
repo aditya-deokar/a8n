@@ -64,10 +64,10 @@ export const EntityHeader = ({
           size="default"
           onClick={onNew}
           className={cn(
-            "rounded-xl px-5 gap-2 h-11 transition-all",
+            "px-5 gap-2 h-11 transition-all duration-300 border-0 text-sm font-medium",
             isOpen 
               ? "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-none"
-              : "bg-[#5c54a4] hover:bg-[#4a4387] text-white shadow-sm shadow-[#5c54a4]/20"
+              : "bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset]"
           )}
         >
           {isOpen ? (
@@ -87,7 +87,7 @@ export const EntityHeader = ({
         <Button
           size="default"
           asChild
-          className="bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-5 shadow-sm shadow-[#5c54a4]/20 gap-2 h-11"
+          className="bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-5 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] gap-2 h-11 transition-all duration-300 border-0 text-sm font-medium"
         >
           <Link href={newButtonHref} prefetch>
             <PlusIcon className="size-4" />
@@ -113,9 +113,9 @@ export const EntityContainer = ({
   pagination,
 }: EntityContainerProps) => {
   return (
-    <div className="h-full w-full bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden flex flex-col">
-      <div className="p-4 md:px-10 md:py-6 flex-1 overflow-y-auto min-h-0">
-        <div className="mx-auto max-w-screen-xl w-full flex flex-col gap-y-8 h-full">
+    <div className="h-full w-full bg-[#f6f8fb] dark:bg-zinc-900 rounded-2xl border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden flex flex-col">
+      <div className="p-4 md:p-6 flex-1 overflow-y-auto min-h-0">
+        <div className="w-full flex flex-col gap-y-8 h-full">
           {header}
           <div className="flex flex-col gap-y-4 h-full">
             {search}
@@ -252,7 +252,7 @@ export const EmptyView = ({
       )}
       {!!onNew && (
         <EmptyContent>
-          <Button onClick={onNew} className="bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-5 shadow-sm shadow-[#5c54a4]/20 gap-2 transition-all">
+          <Button onClick={onNew} className="bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-5 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] gap-2 transition-all duration-300 border-0 text-sm font-medium">
             Add item
           </Button>
         </EmptyContent>
@@ -308,7 +308,7 @@ export const EntitySkeletonList = ({
       {Array.from({ length: count }).map((_, index) => (
         <Card
           key={index}
-          className="h-full p-5 bg-white dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm rounded-[1.5rem]"
+          className="h-full p-5 bg-white dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm rounded-2xl"
         >
           <CardContent className="flex flex-row items-center justify-between p-0">
             <div className="flex items-center gap-3 w-full">
@@ -366,7 +366,7 @@ export const EntityItem = ({
   const InnerCard = (
     <Card
       className={cn(
-        "h-full p-5 bg-white dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm hover:shadow-md dark:shadow-none hover:bg-gray-50 dark:hover:bg-[#1c1c1e]/80 rounded-[1.5rem] cursor-pointer transition-all duration-300 group",
+        "h-full p-5 bg-white dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm hover:shadow-md dark:shadow-none hover:bg-gray-50 dark:hover:bg-[#1c1c1e]/80 rounded-2xl cursor-pointer transition-all duration-300 group",
         isRemoving && "opacity-50 cursor-not-allowed",
         isSelected && "ring-2 ring-[#5c54a4] dark:ring-indigo-500 bg-gray-50 dark:bg-[#1c1c1e]/80",
         className,

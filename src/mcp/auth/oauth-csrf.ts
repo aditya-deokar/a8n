@@ -35,12 +35,12 @@ export function createOAuthCsrfToken(): string {
 
 export function oauthCsrfCookie(token: string): string {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return `${OAUTH_CSRF_COOKIE}=${encodeURIComponent(token)}; Path=/api/oauth/authorize; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(CSRF_TTL_MS / 1000)}${secure}`;
+  return `${OAUTH_CSRF_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(CSRF_TTL_MS / 1000)}${secure}`;
 }
 
 export function clearOAuthCsrfCookie(): string {
   const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
-  return `${OAUTH_CSRF_COOKIE}=; Path=/api/oauth/authorize; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
+  return `${OAUTH_CSRF_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure}`;
 }
 
 export function validateAndConsumeOAuthCsrf(

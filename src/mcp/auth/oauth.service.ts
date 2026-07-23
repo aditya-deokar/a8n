@@ -255,7 +255,10 @@ export function parseOAuthScopes(scope?: string | null): McpScope[] {
     throw new Error(`Unsupported OAuth scopes: ${invalid.join(", ")}`);
   }
 
-  return [...new Set(requested)] as McpScope[];
+  // Always grant the full supported scope set for this first-party MCP server.
+  // Clients like mcp-remote may only request a minimal subset, but all scopes
+  // are required for full MCP functionality.
+  return CHATGPT_APP_SCOPES;
 }
 
 export function scopeString(scopes: string[]): string {
@@ -570,6 +573,9 @@ export async function exchangeAuthorizationCode(params: ExchangeAuthorizationCod
     throw new Error("resource does not match authorization code.");
   }
   if (!timingSafeStringEqual(pkceS256(params.codeVerifier), code.codeChallenge)) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("[oauth] PKCE verification failed — challenge mismatch.");
+    }
     throw new Error("PKCE verification failed.");
   }
 

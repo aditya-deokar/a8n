@@ -101,6 +101,12 @@ async function postHandler(request: Request): Promise<Response> {
       "Supported grant types are authorization_code and refresh_token.",
     );
   } catch (error) {
+    console.error("[oauth/token] Token exchange error:", {
+      grantType,
+      clientId,
+      resource,
+      error: error instanceof Error ? error.message : error,
+    });
     return tokenError(
       "invalid_grant",
       error instanceof Error ? error.message : "Token exchange failed.",
