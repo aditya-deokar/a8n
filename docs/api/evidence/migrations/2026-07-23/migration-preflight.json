@@ -1,0 +1,509 @@
+{
+  "suite": "database-migration-preflight",
+  "generatedAt": "2026-07-23T16:40:44.208Z",
+  "strict": false,
+  "changedOnly": false,
+  "baseRef": "origin/main",
+  "db": false,
+  "migrationsScanned": [
+    "prisma/migrations/20251108181021_add_auth_models/migration.sql",
+    "prisma/migrations/20251111183350_workflow_table/migration.sql",
+    "prisma/migrations/20251116050310_update_workflows/migration.sql",
+    "prisma/migrations/20251202055259_react_flow_table/migration.sql",
+    "prisma/migrations/20251202133058_new_nodes/migration.sql",
+    "prisma/migrations/20260619090000_credentials_and_executions_base/migration.sql",
+    "prisma/migrations/20260620053000_email_google_sheets_nodes/migration.sql",
+    "prisma/migrations/20260623090000_workflow_drafts_and_versions/migration.sql",
+    "prisma/migrations/20260624090000_mcp_audit_logs/migration.sql",
+    "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+    "prisma/migrations/20260702090000_mcp_oauth_consent_hardening/migration.sql",
+    "prisma/migrations/20260702120000_mcp_distributed_infrastructure/migration.sql",
+    "prisma/migrations/20260703120000_mcp_api_keys/migration.sql",
+    "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql"
+  ],
+  "summary": {
+    "failures": 0,
+    "warnings": 25,
+    "info": 26,
+    "failedChecks": []
+  },
+  "passed": true,
+  "stopShipCriteria": [
+    "Migration drops a table or column without a documented expand-contract plan.",
+    "Migration deletes, truncates, or rewrites production data without bounded review.",
+    "Migration status reports schema drift or unapplied migrations in the target environment.",
+    "Production migration lacks backup or restore-point confirmation.",
+    "Old and new application versions cannot both run safely during rollout."
+  ],
+  "checks": [
+    {
+      "name": "prisma migrate status",
+      "command": "",
+      "status": "skipped",
+      "exitCode": null,
+      "durationMs": 0,
+      "reason": "Pass --db when DATABASE_URL points at a disposable CI/staging database."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20251108181021_add_auth_models/migration.sql",
+      "line": 60,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"user_email_key\" ON \"user\"(\"email\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20251108181021_add_auth_models/migration.sql",
+      "line": 63,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"session_token_key\" ON \"session\"(\"token\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_PRISMA_WARNING",
+      "migration": "prisma/migrations/20251116050310_update_workflows/migration.sql",
+      "line": 2,
+      "message": "Prisma generated a migration warning.",
+      "evidence": "Warnings:",
+      "recommendation": "Read the generated warning and document why the migration is safe for current production data."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ADD_REQUIRED_COLUMN",
+      "migration": "prisma/migrations/20251116050310_update_workflows/migration.sql",
+      "line": 10,
+      "message": "Migration adds a required column without a default.",
+      "evidence": "ADD COLUMN     \"userId\" TEXT NOT NULL;",
+      "recommendation": "Prefer expand-contract: add the column nullable or with a safe default, backfill, then enforce NOT NULL in a later migration."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20251202055259_react_flow_table/migration.sql",
+      "line": 33,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"Connection_fromNodeId_toNodeId_fromOutput_toInput_key\" ON \"Connection\"(\"fromNodeId\", \"toNodeId\", \"fromOutput\", \"toInput\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20251202133058_new_nodes/migration.sql",
+      "line": 9,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE 'MANUAL_TRIGGER';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20251202133058_new_nodes/migration.sql",
+      "line": 10,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE 'HTTP_REQUEST';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260619090000_credentials_and_executions_base/migration.sql",
+      "line": 49,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX IF NOT EXISTS \"Execution_inngestEventId_key\"",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260620053000_email_google_sheets_nodes/migration.sql",
+      "line": 1,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"CredentialType\" ADD VALUE IF NOT EXISTS 'SMTP_EMAIL';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260620053000_email_google_sheets_nodes/migration.sql",
+      "line": 2,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"CredentialType\" ADD VALUE IF NOT EXISTS 'GOOGLE_SHEETS';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260620053000_email_google_sheets_nodes/migration.sql",
+      "line": 4,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'EMAIL';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260620053000_email_google_sheets_nodes/migration.sql",
+      "line": 5,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'GOOGLE_SHEETS';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260623090000_workflow_drafts_and_versions/migration.sql",
+      "line": 51,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"WorkflowDraft_userId_idx\" ON \"WorkflowDraft\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260623090000_workflow_drafts_and_versions/migration.sql",
+      "line": 54,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"WorkflowDraft_workflowId_idx\" ON \"WorkflowDraft\"(\"workflowId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260623090000_workflow_drafts_and_versions/migration.sql",
+      "line": 57,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"WorkflowDraftRevision_draftId_idx\" ON \"WorkflowDraftRevision\"(\"draftId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260623090000_workflow_drafts_and_versions/migration.sql",
+      "line": 60,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"WorkflowVersion_workflowId_idx\" ON \"WorkflowVersion\"(\"workflowId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260623090000_workflow_drafts_and_versions/migration.sql",
+      "line": 63,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"WorkflowVersion_userId_idx\" ON \"WorkflowVersion\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260624090000_mcp_audit_logs/migration.sql",
+      "line": 19,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_audit_log_userId_timestamp_idx\" ON \"mcp_audit_log\"(\"userId\", \"timestamp\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260624090000_mcp_audit_logs/migration.sql",
+      "line": 20,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_audit_log_tool_idx\" ON \"mcp_audit_log\"(\"tool\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260624090000_mcp_audit_logs/migration.sql",
+      "line": 21,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_audit_log_status_idx\" ON \"mcp_audit_log\"(\"status\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 63,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"mcp_oauth_client_clientId_key\" ON \"mcp_oauth_client\"(\"clientId\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 66,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"mcp_oauth_authorization_code_codeHash_key\" ON \"mcp_oauth_authorization_code\"(\"codeHash\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 71,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"mcp_oauth_access_token_tokenHash_key\" ON \"mcp_oauth_access_token\"(\"tokenHash\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 77,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"mcp_oauth_refresh_token_tokenHash_key\" ON \"mcp_oauth_refresh_token\"(\"tokenHash\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 64,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_client_clientId_idx\" ON \"mcp_oauth_client\"(\"clientId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 67,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_authorization_code_userId_idx\" ON \"mcp_oauth_authorization_code\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 68,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_authorization_code_clientId_idx\" ON \"mcp_oauth_authorization_code\"(\"clientId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 69,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_authorization_code_expiresAt_idx\" ON \"mcp_oauth_authorization_code\"(\"expiresAt\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 72,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_access_token_tokenHash_idx\" ON \"mcp_oauth_access_token\"(\"tokenHash\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 73,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_access_token_userId_idx\" ON \"mcp_oauth_access_token\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 74,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_access_token_clientId_idx\" ON \"mcp_oauth_access_token\"(\"clientId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 75,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_access_token_expiresAt_idx\" ON \"mcp_oauth_access_token\"(\"expiresAt\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 78,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_refresh_token_tokenHash_idx\" ON \"mcp_oauth_refresh_token\"(\"tokenHash\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 79,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_refresh_token_userId_idx\" ON \"mcp_oauth_refresh_token\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 80,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_refresh_token_clientId_idx\" ON \"mcp_oauth_refresh_token\"(\"clientId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260625090000_mcp_oauth_account_linking/migration.sql",
+      "line": 81,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_refresh_token_expiresAt_idx\" ON \"mcp_oauth_refresh_token\"(\"expiresAt\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260702090000_mcp_oauth_consent_hardening/migration.sql",
+      "line": 14,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_consent_userId_idx\" ON \"mcp_oauth_consent\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260702090000_mcp_oauth_consent_hardening/migration.sql",
+      "line": 15,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_consent_clientId_idx\" ON \"mcp_oauth_consent\"(\"clientId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260702090000_mcp_oauth_consent_hardening/migration.sql",
+      "line": 16,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_oauth_consent_userId_clientId_revokedAt_idx\" ON \"mcp_oauth_consent\"(\"userId\", \"clientId\", \"revokedAt\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260702120000_mcp_distributed_infrastructure/migration.sql",
+      "line": 17,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX \"mcp_rate_limit_bucket_identifier_tier_windowStart_key\"",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260702120000_mcp_distributed_infrastructure/migration.sql",
+      "line": 20,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX \"mcp_rate_limit_bucket_expiresAt_idx\"",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_CREATE_UNIQUE_INDEX",
+      "migration": "prisma/migrations/20260703120000_mcp_api_keys/migration.sql",
+      "line": 20,
+      "message": "Migration creates a unique index.",
+      "evidence": "CREATE UNIQUE INDEX IF NOT EXISTS \"api_key_keyHash_key\" ON \"api_key\"(\"keyHash\");",
+      "recommendation": "Verify duplicate production data cannot exist. For large tables, consider a concurrent index workflow outside a transaction."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260703120000_mcp_api_keys/migration.sql",
+      "line": 21,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX IF NOT EXISTS \"api_key_keyHash_idx\" ON \"api_key\"(\"keyHash\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "info",
+      "ruleId": "DB_CREATE_INDEX_NON_CONCURRENT",
+      "migration": "prisma/migrations/20260703120000_mcp_api_keys/migration.sql",
+      "line": 22,
+      "message": "Migration creates a non-concurrent index.",
+      "evidence": "CREATE INDEX IF NOT EXISTS \"api_key_userId_idx\" ON \"api_key\"(\"userId\");",
+      "recommendation": "For large production tables, consider a concurrent index migration plan to reduce write locking."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 4,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'GOOGLE_FORM_TRIGGER';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 5,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'STRIPE_TRIGGER';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 6,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'ANTHROPIC';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 7,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'GEMINI';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 8,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'OPENAI';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 9,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'DISCORD';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    },
+    {
+      "severity": "warning",
+      "ruleId": "DB_ENUM_VALUE",
+      "migration": "prisma/migrations/20260704120000_backfill_node_type_values/migration.sql",
+      "line": 10,
+      "message": "Migration changes a PostgreSQL enum.",
+      "evidence": "ALTER TYPE \"NodeType\" ADD VALUE IF NOT EXISTS 'SLACK';",
+      "recommendation": "Ensure old and new app versions tolerate the enum value. Removing enum values later is not a simple rollback."
+    }
+  ]
+}

@@ -265,9 +265,7 @@ export function scopeString(scopes: string[]): string {
   return scopes.join(" ");
 }
 
-function isAllowedRedirectUri(redirectUri: string, allowedUris: string[]): boolean {
-  return validateOAuthRedirectUri(redirectUri, allowedUris).ok;
-}
+
 
 export function validateOAuthClientMetadata(input: OAuthClientInput): {
   clientName: string | null;
@@ -574,6 +572,7 @@ export async function exchangeAuthorizationCode(params: ExchangeAuthorizationCod
   }
   if (!timingSafeStringEqual(pkceS256(params.codeVerifier), code.codeChallenge)) {
     if (process.env.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
       console.error("[oauth] PKCE verification failed — challenge mismatch.");
     }
     throw new Error("PKCE verification failed.");

@@ -27,9 +27,13 @@ describe("MCP OAuth helper functions", () => {
     expect(left).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  it("parses and de-duplicates supported OAuth scopes", () => {
+  it("grants all supported scopes for valid requests", () => {
     expect(parseOAuthScopes("workflows:read workflows:read system:read")).toEqual([
       "workflows:read",
+      "workflows:write",
+      "workflows:execute",
+      "credentials:read",
+      "executions:read",
       "system:read",
     ]);
   });
