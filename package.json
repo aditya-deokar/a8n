@@ -172,16 +172,16 @@
     "jotai": "^2.19.1",
     "ky": "^2.0.0",
     "lucide-react": "^1.7.0",
-    "next": "16.2.6",
+    "next": "16.2.11",
     "next-themes": "^0.4.6",
     "nodemailer": "^9.0.1",
     "nuqs": "^2.8.9",
     "pg": "^8.21.0",
     "pino": "^10.3.1",
     "random-word-slugs": "^0.1.7",
-    "react": "19.2.4",
+    "react": "19.2.8",
     "react-day-picker": "^9.14.0",
-    "react-dom": "19.2.4",
+    "react-dom": "19.2.8",
     "react-error-boundary": "^6.1.1",
     "react-hook-form": "^7.72.1",
     "react-resizable-panels": "^4.9.0",
@@ -202,7 +202,7 @@
     "@types/node": "^25",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@types/toposort": "^2.0.7",
     "@types/ws": "^8.18.1",
@@ -222,7 +222,7 @@
     "vitest": "^4.0.0"
   },
   "overrides": {
-    "@types/react": "19.2.14",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "tar": ">=7.5.19"
   }
