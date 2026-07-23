@@ -1,7 +1,7 @@
 "use client";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { SearchIcon, PlusIcon, CalendarIcon } from "lucide-react";
+import { SearchIcon, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -126,11 +126,6 @@ export const AppHeaderActions = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : null}
-
-      <Button className="h-10 bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-4 shadow-md shadow-[#5c54a4]/20 gap-2 transition-all duration-300 hover:shadow-lg">
-        <PlusIcon className="size-4" />
-        <span>New Action</span>
-      </Button>
     </div>
   );
 };

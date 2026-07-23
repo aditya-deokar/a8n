@@ -2,6 +2,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import prisma from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
 import { MCP_CONFIG } from "@/mcp/config";
+import { logger } from "@/lib/logging";
 import {
   MCP_SCOPES,
   type McpScope,
@@ -255,16 +256,17 @@ export function parseOAuthScopes(scope?: string | null): McpScope[] {
     throw new Error(`Unsupported OAuth scopes: ${invalid.join(", ")}`);
   }
 
-  return [...new Set(requested)] as McpScope[];
+  // Always grant the full supported scope set for this first-party MCP server.
+  // Clients like mcp-remote may only request a minimal subset, but all scopes
+  // are required for full MCP functionality.
+  return CHATGPT_APP_SCOPES;
 }
 
 export function scopeString(scopes: string[]): string {
   return scopes.join(" ");
 }
 
-function isAllowedRedirectUri(redirectUri: string, allowedUris: string[]): boolean {
-  return validateOAuthRedirectUri(redirectUri, allowedUris).ok;
-}
+
 
 export function validateOAuthClientMetadata(input: OAuthClientInput): {
   clientName: string | null;
@@ -570,6 +572,9 @@ export async function exchangeAuthorizationCode(params: ExchangeAuthorizationCod
     throw new Error("resource does not match authorization code.");
   }
   if (!timingSafeStringEqual(pkceS256(params.codeVerifier), code.codeChallenge)) {
+    if (process.env.NODE_ENV === "development") {
+      logger.warn({ event: "oauth_pkce_challenge_mismatch" }, "[oauth] PKCE verification failed — challenge mismatch.");
+    }
     throw new Error("PKCE verification failed.");
   }
 

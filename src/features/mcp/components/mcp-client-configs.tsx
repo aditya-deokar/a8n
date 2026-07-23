@@ -24,9 +24,20 @@ export const McpClientConfigs = () => {
     antigravity: {
       title: "Antigravity",
       logo: "/logos/gemini.svg",
-      desc: "Connect Google Gemini and the Antigravity agentic framework to a8n operations.",
-      filename: ".gemini/settings.json",
+      desc: "Connects via OAuth — a browser window will open for account linking on first use. No API key needed.",
+      filename: "mcp_config.json",
       code: JSON.stringify(
+        {
+          mcpServers: {
+            a8n: {
+              command: "npx",
+              args: ["-y", "mcp-remote", endpointUrl],
+            },
+          },
+        },
+        null,
+        2
+      ) + "\n\n// OAuth is recommended (above). For API key auth instead:\n" + JSON.stringify(
         {
           mcpServers: {
             a8n: {
@@ -44,7 +55,7 @@ export const McpClientConfigs = () => {
     },
     cursor: {
       title: "Cursor IDE",
-      desc: "Integrate a8n directly into Cursor's Composer and Agent Chat.",
+      desc: "Integrate a8n directly into Cursor's Composer and Agent Chat via Streamable HTTP.",
       filename: ".cursor/mcp.json",
       code: JSON.stringify(
         {
@@ -65,9 +76,20 @@ export const McpClientConfigs = () => {
     claude: {
       title: "Claude Code",
       logo: "/logos/anthropic.svg",
-      desc: "Provide Anthropic Claude Desktop and Claude Code CLI with complete a8n capabilities.",
+      desc: "Provide Anthropic Claude Desktop and Claude Code CLI with complete a8n capabilities via OAuth.",
       filename: "claude_desktop_config.json",
       code: JSON.stringify(
+        {
+          mcpServers: {
+            a8n: {
+              command: "npx",
+              args: ["-y", "mcp-remote", endpointUrl],
+            },
+          },
+        },
+        null,
+        2
+      ) + "\n\n// For API key auth instead of OAuth:\n" + JSON.stringify(
         {
           mcpServers: {
             a8n: {
@@ -82,6 +104,11 @@ export const McpClientConfigs = () => {
         null,
         2
       ),
+    },
+    chatgpt: {
+      title: "ChatGPT",
+      desc: "Connect a8n to OpenAI ChatGPT as a remote MCP action.",
+      code: `# In ChatGPT Settings → Actions → Add MCP:\n# MCP Server URL:  ${endpointUrl}\n#\n# ChatGPT uses OAuth for authentication.\n# It will discover the authorization server via:\n#   ${origin}/.well-known/oauth-protected-resource\n#\n# No manual token configuration needed —\n# ChatGPT handles the OAuth flow automatically.`,
     },
     inspector: {
       title: "MCP Inspector",
@@ -101,7 +128,7 @@ export const McpClientConfigs = () => {
       <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 ml-1">Client Integration Presets</h3>
 
       <Tabs defaultValue="antigravity" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full h-auto gap-1 bg-white/40 dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] p-1.5 rounded-2xl shadow-sm">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full h-auto gap-1 bg-white/40 dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] p-1.5 rounded-2xl shadow-sm">
           {Object.entries(presets).map(([key, preset]) => (
             <TabsTrigger key={key} value={key} className="text-xs py-2 gap-1.5 font-medium rounded-xl data-[state=active]:bg-[#5c54a4]/10 data-[state=active]:text-[#5c54a4] dark:data-[state=active]:bg-[#2a2a2c] dark:data-[state=active]:text-white transition-all">
               {preset.logo && (

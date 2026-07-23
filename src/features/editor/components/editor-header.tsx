@@ -15,8 +15,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
 import { useAtomValue } from "jotai";
-import { editorAtom } from "../store/atoms";
+import { editorAtom, nodeSelectorOpenAtom } from "../store/atoms";
 import { AddNodeButton } from "./add-node-button";
+import { cn } from "@/lib/utils";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   const editor = useAtomValue(editorAtom);
@@ -44,11 +45,11 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
 
   return (
     <div className="ml-auto">
-      <Button 
-        size="sm" 
-        onClick={handleSave} 
+      <Button
+        size="sm"
+        onClick={handleSave}
         disabled={saveWorkflow.isPending}
-        className="h-9 bg-[#5c54a4] hover:bg-[#4b448a] text-white rounded-xl px-4 shadow-md shadow-[#5c54a4]/20 gap-2 transition-all"
+        className="h-9 bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-4 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] gap-2 transition-all duration-300 border-0"
       >
         <SaveIcon className="size-4" />
         <span className="font-medium hidden sm:inline">Save Workflow</span>
@@ -147,19 +148,21 @@ export const EditorBreadcrumbs = ({ workflowId }: { workflowId: string }) => {
 };
 
 export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
+  const selectorOpen = useAtomValue(nodeSelectorOpenAtom);
+
   return (
     <div className="flex items-stretch gap-2 shrink-0">
-      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
+      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-2xl border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
         <SidebarTrigger className="bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 shadow-sm border border-gray-100 dark:border-zinc-800 rounded-xl size-10 [&>svg]:size-5" />
       </div>
-      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex-1 flex items-center px-8 h-[88px]">
+      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-2xl border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex-1 flex items-center px-8 h-[88px]">
         <div className="flex flex-row items-center justify-between gap-x-4 w-full">
           <EditorBreadcrumbs workflowId={workflowId} />
-          <EditorSaveButton workflowId={workflowId} />
+          <div className="flex items-center gap-4">
+            <AddNodeButton />
+            <EditorSaveButton workflowId={workflowId} />
+          </div>
         </div>
-      </div>
-      <div className="bg-[#f6f8fb] dark:bg-zinc-900 rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm flex items-center justify-center px-6 shrink-0 h-[88px]">
-        <AddNodeButton />
       </div>
     </div>
   );

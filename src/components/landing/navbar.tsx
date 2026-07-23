@@ -87,7 +87,7 @@ export default function Navbar() {
           ) : user ? (
             <div className="flex items-center gap-3">
               <Link href="/workflows">
-                <Button className="h-10 bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-4 shadow-md shadow-[#5c54a4]/20 transition-all duration-300 hover:shadow-lg border-0 text-sm font-medium">
+                <Button className="h-10 bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-4 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] transition-all duration-300 border-0 text-sm font-medium">
                   Dashboard
                 </Button>
               </Link>
@@ -135,7 +135,7 @@ export default function Navbar() {
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button className="h-10 bg-[#5c54a4] hover:bg-[#4a4387] text-white rounded-xl px-4 shadow-md shadow-[#5c54a4]/20 transition-all duration-300 hover:shadow-lg border-0 text-sm font-medium">
+                <Button className="h-10 bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-4 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] transition-all duration-300 border-0 text-sm font-medium">
                   Get Started
                 </Button>
               </Link>

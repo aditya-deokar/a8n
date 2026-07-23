@@ -1,0 +1,88 @@
+{
+  "suite": "observability-check",
+  "generatedAt": "2026-07-23T17:02:16.173Z",
+  "profile": "test",
+  "strict": false,
+  "passed": true,
+  "failedRequired": [],
+  "checks": [
+    {
+      "name": "observability utility",
+      "status": "passed",
+      "message": "Central observability utility exists.",
+      "required": true
+    },
+    {
+      "name": "logging foundation",
+      "status": "passed",
+      "message": "Shared logger, redaction, request logging, and external provider helpers exist.",
+      "required": true
+    },
+    {
+      "name": "observability uses shared logger",
+      "status": "passed",
+      "message": "Existing observability API routes through the shared logger and redaction layer.",
+      "required": true
+    },
+    {
+      "name": "client log endpoint",
+      "status": "passed",
+      "message": "Client error log endpoint exists.",
+      "required": true
+    },
+    {
+      "name": "logging environment controls",
+      "status": "passed",
+      "message": ".env.example includes logging controls.",
+      "required": true
+    },
+    {
+      "name": "runtime console guard",
+      "status": "passed",
+      "message": "Runtime source has no direct console usage outside the allowlist.",
+      "required": true
+    },
+    {
+      "name": "eslint console guard",
+      "status": "passed",
+      "message": "ESLint guards runtime source against direct console usage.",
+      "required": true
+    },
+    {
+      "name": "next instrumentation",
+      "status": "passed",
+      "message": "Next.js instrumentation file exists.",
+      "required": true
+    },
+    {
+      "name": "observability runbook",
+      "status": "passed",
+      "message": "Observability runbook covers logs, metrics, traces, dashboards, and SLOs.",
+      "required": true
+    },
+    {
+      "name": "alert rules",
+      "status": "passed",
+      "message": "Alert rules cover API, latency, workflow, webhook, MCP, and database alerts.",
+      "required": true
+    },
+    {
+      "name": "logging dashboard specs",
+      "status": "passed",
+      "message": "Logging dashboard specs cover API, workflow, webhook, MCP, database, and client health.",
+      "required": true
+    },
+    {
+      "name": "release observability evidence",
+      "status": "passed",
+      "message": "Production release runbook includes observability, smoke, and rollback.",
+      "required": true
+    },
+    {
+      "name": "telemetry provider configuration",
+      "status": "warning",
+      "message": "Telemetry provider is optional outside production.",
+      "required": false
+    }
+  ]
+}

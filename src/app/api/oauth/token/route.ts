@@ -6,7 +6,7 @@ import {
   checkOAuthRouteRateLimit,
   oauthRateLimitResponse,
 } from "@/mcp/auth/oauth-route-guard";
-import { withRequestLogging } from "@/lib/logging";
+import { withRequestLogging, logger } from "@/lib/logging";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +101,13 @@ async function postHandler(request: Request): Promise<Response> {
       "Supported grant types are authorization_code and refresh_token.",
     );
   } catch (error) {
+    logger.error({
+      event: "oauth_token_exchange_error",
+      grantType,
+      clientId,
+      resource,
+      error: error instanceof Error ? error.message : error,
+    }, "[oauth/token] Token exchange error");
     return tokenError(
       "invalid_grant",
       error instanceof Error ? error.message : "Token exchange failed.",

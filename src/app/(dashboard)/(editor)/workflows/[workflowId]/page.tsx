@@ -1,6 +1,6 @@
-import { 
-  Editor, 
-  EditorError, 
+import {
+  Editor,
+  EditorError,
   EditorLoading
 } from "@/features/editor/components/editor";
 import { EditorHeader } from "@/features/editor/components/editor-header";
@@ -29,16 +29,15 @@ const Page = async ({ params }: PageProps) => {
       <ErrorBoundary fallback={<EditorError />}>
         <Suspense fallback={<EditorLoading />}>
           <ReactFlowProvider>
-            <div className="flex flex-col h-full w-full gap-2 overflow-hidden min-h-0">
+            <div className="flex flex-col h-full w-full min-h-0 gap-2 relative z-10">
               <EditorHeader workflowId={workflowId} />
-              <div className="flex-1 flex flex-row w-full overflow-hidden min-h-0">
-                <main className="relative flex-1 h-full flex flex-col bg-[#f6f8fb] dark:bg-[#18181b] rounded-[1.5rem] border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden min-w-0 min-h-0">
-                  <div className="flex-1 w-full h-full">
-                    <Editor workflowId={workflowId} />
-                  </div>
-                </main>
+              <main className="relative flex-1 h-full flex flex-col bg-[#f6f8fb] dark:bg-[#18181b] rounded-2xl border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden min-w-0 min-h-0">
+                <div className="flex-1 w-full h-full relative z-0">
+                  <Editor workflowId={workflowId} />
+                </div>
+                {/* Floating Node Selector placed inside main to overlay the grid */}
                 <NodeSelector />
-              </div>
+              </main>
             </div>
           </ReactFlowProvider>
         </Suspense>
