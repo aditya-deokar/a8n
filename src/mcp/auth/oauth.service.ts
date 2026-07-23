@@ -2,6 +2,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "crypto";
 import prisma from "@/lib/db";
 import { Prisma } from "@/generated/prisma";
 import { MCP_CONFIG } from "@/mcp/config";
+import { logger } from "@/lib/logging";
 import {
   MCP_SCOPES,
   type McpScope,
@@ -572,8 +573,7 @@ export async function exchangeAuthorizationCode(params: ExchangeAuthorizationCod
   }
   if (!timingSafeStringEqual(pkceS256(params.codeVerifier), code.codeChallenge)) {
     if (process.env.NODE_ENV === "development") {
-      // eslint-disable-next-line no-console
-      console.error("[oauth] PKCE verification failed — challenge mismatch.");
+      logger.warn({ event: "oauth_pkce_challenge_mismatch" }, "[oauth] PKCE verification failed — challenge mismatch.");
     }
     throw new Error("PKCE verification failed.");
   }
