@@ -33,44 +33,44 @@ const features = [
     title: 'Real-time Execution',
     description: 'Watch your data flow across nodes with sub-second latency and live visual debugging.',
     icon: Activity,
-    color: 'text-rose-500',
-    bgColor: 'bg-rose-500/10',
-    borderColor: 'group-hover:border-rose-500/50',
-    glowColor: 'bg-rose-500/20',
+    color: 'text-[#9187ce]',
+    bgColor: 'bg-[#9187ce]/10',
+    borderColor: 'group-hover:border-[#9187ce]/50',
+    glowColor: 'bg-[#9187ce]/20',
   },
   {
     title: 'AI-Powered Mapping',
     description: 'Automatically map data between complex JSON structures with intelligent type-safety.',
     icon: Bot,
-    color: 'text-violet-500',
-    bgColor: 'bg-violet-500/10',
-    borderColor: 'group-hover:border-violet-500/50',
-    glowColor: 'bg-violet-500/20',
+    color: 'text-[#5c54a4]',
+    bgColor: 'bg-[#5c54a4]/10',
+    borderColor: 'group-hover:border-[#5c54a4]/50',
+    glowColor: 'bg-[#5c54a4]/20',
   },
   {
     title: 'Durable State',
     description: 'Every execution step is persisted. Recover from failures with one-click retries.',
     icon: Zap,
-    color: 'text-amber-500',
-    bgColor: 'bg-amber-500/10',
-    borderColor: 'group-hover:border-amber-500/50',
-    glowColor: 'bg-amber-500/20',
+    color: 'text-[#9187ce]',
+    bgColor: 'bg-[#9187ce]/10',
+    borderColor: 'group-hover:border-[#9187ce]/50',
+    glowColor: 'bg-[#9187ce]/20',
   },
 ];
 
-// --- Custom React Flow Node ---
 const VisualNode = ({ data, selected }: any) => {
   return (
     <div className={cn(
-      "relative p-4 rounded-2xl bg-card/60 backdrop-blur-2xl border shadow-2xl min-w-[200px] transition-all duration-500 group overflow-hidden",
-      selected ? "border-primary shadow-[0_0_30px_rgba(255,75,75,0.15)] ring-1 ring-primary/30" : "border-white/5 hover:border-white/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]",
-      data.isActive ? "scale-[1.02]" : "scale-100"
+      "relative p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-card/60 backdrop-blur-2xl border shadow-2xl min-w-[200px] transition-all duration-500 group overflow-hidden",
+      selected ? "border-[#5c54a4] shadow-[0_0_30px_rgba(92,84,164,0.15)] ring-1 ring-[#5c54a4]/30" : "border-white/5 hover:border-white/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]",
+      data.isActive ? "scale-[1.02]" : "scale-100",
+      data.className
     )}>
       {/* Glare effect */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       
-      <Handle type="target" position={Position.Left} className="w-2 h-2 !bg-primary border-none opacity-0 group-hover:opacity-100 transition-opacity" />
-      <Handle type="source" position={Position.Right} className="w-2 h-2 !bg-primary border-none opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Handle type="target" position={Position.Left} className="w-2 h-2 !bg-[#9187ce] border-none opacity-0 group-hover:opacity-100 transition-opacity" />
+      <Handle type="source" position={Position.Right} className="w-2 h-2 !bg-[#9187ce] border-none opacity-0 group-hover:opacity-100 transition-opacity" />
       
       <div className="flex items-center gap-3 mb-4 relative z-10">
         <div className={cn(
@@ -136,9 +136,9 @@ const nodeTypes = { custom: VisualNode };
 const edgeTypes = { animated: AnimatedEdge };
 
 const initialNodes = [
-  { id: '1', type: 'custom', position: { x: 30, y: 180 }, data: { title: 'Webhook', subtitle: 'Production Event', type: 'trigger', icon: Webhook, color: 'text-emerald-500', barColor: 'bg-emerald-500' } },
-  { id: '2', type: 'custom', position: { x: 340, y: 180 }, data: { title: 'AI Analysis', subtitle: 'GPT-4o Model', type: 'action', icon: Bot, color: 'text-violet-500', barColor: 'bg-violet-500' } },
-  { id: '3', type: 'custom', position: { x: 650, y: 80 }, data: { title: 'Slack Notify', subtitle: 'Alert Channel', type: 'action', icon: MessageSquare, color: 'text-rose-500', barColor: 'bg-rose-500' } },
+  { id: '1', type: 'custom', position: { x: 30, y: 180 }, data: { title: 'Webhook', subtitle: 'Production Event', type: 'trigger', icon: Webhook, color: 'text-[#9187ce]', barColor: 'bg-[#9187ce]', className: 'w-[220px]' } },
+  { id: '2', type: 'custom', position: { x: 340, y: 180 }, data: { title: 'AI Analysis', subtitle: 'GPT-4o Model', type: 'action', icon: Bot, color: 'text-[#5c54a4]', barColor: 'bg-[#5c54a4]', className: 'w-[220px]' } },
+  { id: '3', type: 'custom', position: { x: 650, y: 80 }, data: { title: 'Slack Notify', subtitle: 'Alert Channel', type: 'action', icon: MessageSquare, color: 'text-[#9187ce]', barColor: 'bg-[#9187ce]', className: 'w-[220px]' } },
 ];
 
 const initialEdges = [
@@ -186,8 +186,8 @@ export default function VisualEditorSection() {
       className="relative overflow-hidden py-24 sm:py-32 bg-background"
     >
       {/* Premium Background Ambient Glows */}
-      <div className="absolute top-1/4 -left-24 h-[500px] w-[500px] rounded-full bg-rose-600/10 blur-[150px] pointer-events-none mix-blend-screen" />
-      <div className="absolute bottom-1/4 -right-24 h-[500px] w-[500px] rounded-full bg-violet-600/10 blur-[150px] pointer-events-none mix-blend-screen" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-1/4 -left-24 h-[500px] w-[500px] rounded-full bg-[#5c54a4]/10 blur-[150px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-1/4 -right-24 h-[500px] w-[500px] rounded-full bg-[#9187ce]/10 blur-[150px] pointer-events-none mix-blend-screen" style={{ animationDelay: '2s' }} />
 
       <div className="container mx-auto px-4 lg:px-8  relative z-10">
         
@@ -200,8 +200,8 @@ export default function VisualEditorSection() {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-card border border-border backdrop-blur-sm text-muted-foreground text-xs font-medium mb-8 shadow-sm"
           >
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9187ce] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#9187ce]"></span>
             </span>
             Next-Gen Workflow Engine
           </motion.div>
@@ -211,7 +211,7 @@ export default function VisualEditorSection() {
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.1 }}
             className={cn(
-              'text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-8',
+              'text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 sm:mb-8',
               geist.className
             )}
           >
@@ -225,7 +225,7 @@ export default function VisualEditorSection() {
                 repeat: Infinity, 
                 ease: "linear" 
               }}
-              className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-violet-500 to-rose-500 bg-[length:200%_auto]"
+              className="text-transparent bg-clip-text bg-gradient-to-r from-[#5c54a4] via-[#9187ce] to-[#5c54a4] bg-[length:200%_auto]"
             >
               Visual Precision.
             </motion.span>
@@ -235,7 +235,7 @@ export default function VisualEditorSection() {
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-muted-foreground text-lg md:text-xl max-w-2xl leading-relaxed"
+            className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed px-4 sm:px-0"
           >
             Stop wrestling with scripts. Our DAG-based visual editor provides the depth of code with the speed of drag-and-drop. Fully interactive and real-time.
           </motion.p>
@@ -245,55 +245,59 @@ export default function VisualEditorSection() {
           
           {/* Main Visual Editor React Flow Canvas */}
           <motion.div
-            className="lg:col-span-7 relative h-[500px] md:h-[650px] w-full"
+            className="lg:col-span-7 relative h-[400px] sm:h-[500px] md:h-[650px] w-full"
             initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
             animate={isInView ? { opacity: 1, scale: 1, filter: "blur(0px)" } : {}}
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           >
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl rounded-[2rem] border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden ring-1 ring-white/10 group">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-3xl rounded-2xl sm:rounded-[2rem] border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden ring-1 ring-white/10 group">
               
               {/* Editor Header Bar */}
-              <div className="absolute top-0 inset-x-0 h-14 bg-card/60 backdrop-blur-md border-b border-border flex items-center justify-between px-6 z-20">
-                <div className="flex items-center gap-4">
+              <div className="absolute top-0 inset-x-0 h-12 sm:h-14 bg-card/60 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-6 z-20">
+                <div className="flex items-center gap-2 sm:gap-4">
                   <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-zinc-600/50 hover:bg-red-400 transition-colors" />
-                    <div className="w-3 h-3 rounded-full bg-zinc-600/50 hover:bg-amber-400 transition-colors" />
+                    <div className="w-3 h-3 rounded-full bg-zinc-600/50 hover:bg-[#5c54a4] transition-colors" />
+                    <div className="w-3 h-3 rounded-full bg-zinc-600/50 hover:bg-[#9187ce] transition-colors" />
                     <div className="w-3 h-3 rounded-full bg-zinc-600/50 hover:bg-emerald-400 transition-colors" />
                   </div>
-                  <span className="text-xs font-semibold text-muted-foreground tracking-wide font-mono">workflow_v2.json</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground tracking-wide font-mono truncate max-w-[100px] sm:max-w-none">workflow_v2.json</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="px-3 py-1.5 rounded-full bg-rose-500/10 text-rose-500 text-[10px] font-bold uppercase tracking-wider border border-rose-500/20 flex items-center gap-2 shadow-sm">
-                    <Play className="w-3 h-3 fill-current" /> Live Sync
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                  <div className="px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-full bg-[#9187ce]/10 text-[#9187ce] text-[10px] font-bold uppercase tracking-wider border border-[#9187ce]/20 flex items-center gap-1.5 sm:gap-2 shadow-sm whitespace-nowrap">
+                    <Play className="w-3 h-3 fill-current" /> <span className="hidden xs:inline">Live</span> Sync
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-card flex items-center justify-center border border-border shadow-sm hover:bg-accent transition-colors cursor-pointer">
-                    <Settings className="w-4 h-4 text-muted-foreground" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-full bg-card flex items-center justify-center border border-border shadow-sm hover:bg-accent transition-colors cursor-pointer shrink-0">
+                    <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
                   </div>
                 </div>
               </div>
 
               {/* Interactive React Flow Area */}
               {mounted && (
-                <div className="w-full h-full pt-14">
+                <div className="w-full h-full pt-12 sm:pt-14">
                   <ReactFlow
                     nodes={rfNodes}
                     edges={rfEdges}
                     nodeTypes={nodeTypes}
                     edgeTypes={edgeTypes}
                     fitView
-                    fitViewOptions={{ padding: 0.3 }}
+                    fitViewOptions={{ padding: 0.25 }}
                     proOptions={{ hideAttribution: true }}
                     className="bg-transparent"
                     minZoom={0.5}
                     maxZoom={1.5}
+                    panOnDrag={true}
+                    zoomOnPinch={true}
+                    zoomOnScroll={false}
+                    preventScrolling={false}
                   >
                     {/* Define Gradient for Animated Edges */}
                     <svg style={{ position: 'absolute', width: 0, height: 0 }}>
                       <defs>
                         <linearGradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#f43f5e" stopOpacity="0" />
-                          <stop offset="50%" stopColor="#8b5cf6" />
-                          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#5c54a4" stopOpacity="0" />
+                          <stop offset="50%" stopColor="#9187ce" />
+                          <stop offset="100%" stopColor="#5c54a4" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -307,21 +311,23 @@ export default function VisualEditorSection() {
                         WebkitMaskImage: 'radial-gradient(50% 50% at 50% 50%, black 70%, transparent 100%)'
                       }}
                     />
-                    <Controls className="!bg-card/80 !backdrop-blur-md !border-border !fill-foreground shadow-xl rounded-lg overflow-hidden m-4" />
+                    <div className="hidden sm:block">
+                      <Controls className="!bg-card/80 !backdrop-blur-md !border-border !fill-foreground shadow-xl rounded-lg overflow-hidden m-4" />
+                    </div>
                   </ReactFlow>
                 </div>
               )}
 
               {/* Floating System Status Card */}
               <motion.div 
-                className="absolute bottom-8 right-8 p-4 rounded-2xl bg-card/80 border border-white/5 backdrop-blur-xl shadow-2xl z-40 pointer-events-none"
+                className="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-card/80 border border-white/5 backdrop-blur-xl shadow-2xl z-40 pointer-events-none"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 1 }}
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full border border-rose-500/30 bg-rose-500/10 flex items-center justify-center shadow-inner">
-                    <Activity className="w-5 h-5 text-rose-500 animate-pulse" />
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-[#9187ce]/30 bg-[#9187ce]/10 flex items-center justify-center shadow-inner">
+                    <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#9187ce] animate-pulse" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-foreground">System Status</div>
@@ -366,7 +372,7 @@ export default function VisualEditorSection() {
                         {activeStep === i && (
                           <motion.span 
                             layoutId="indicator"
-                            className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]"
+                            className="w-2 h-2 rounded-full bg-[#9187ce] shadow-[0_0_10px_rgba(145,135,206,0.5)]"
                           />
                         )}
                       </h3>
@@ -389,7 +395,7 @@ export default function VisualEditorSection() {
                 <span className="relative z-10 flex items-center gap-2">
                   Explore Editor <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-rose-500 to-violet-600 opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#5c54a4] to-[#9187ce] opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
               </button>
             </motion.div>
           </div>

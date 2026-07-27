@@ -50,10 +50,10 @@ export const EntityHeader = ({
 }: EntityHeaderProps) => {
   return (
     <div className="flex flex-row items-center justify-between gap-x-4 w-full">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{title}</h1>
+      <div className="flex flex-col gap-0.5">
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{title}</h1>
         {description && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+          <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 font-medium">
             {description}
           </p>
         )}
@@ -64,7 +64,7 @@ export const EntityHeader = ({
           size="default"
           onClick={onNew}
           className={cn(
-            "px-5 gap-2 h-11 transition-all duration-300 border-0 text-sm font-medium",
+            "px-4 gap-1.5 h-9 md:h-10 transition-all duration-300 border-0 text-xs md:text-sm font-medium",
             isOpen 
               ? "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-none"
               : "bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset]"
@@ -87,7 +87,7 @@ export const EntityHeader = ({
         <Button
           size="default"
           asChild
-          className="bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-5 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] gap-2 h-11 transition-all duration-300 border-0 text-sm font-medium"
+          className="bg-gradient-to-b from-[#5c54a4] to-[#9187ce] hover:opacity-90 text-white px-4 shadow-[0px_2px_0px_0px_rgba(255,255,255,0.3)_inset] gap-1.5 h-9 md:h-10 transition-all duration-300 border-0 text-xs md:text-sm font-medium"
         >
           <Link href={newButtonHref} prefetch>
             <PlusIcon className="size-4" />
@@ -113,8 +113,8 @@ export const EntityContainer = ({
   pagination,
 }: EntityContainerProps) => {
   return (
-    <div className="h-full w-full bg-[#f6f8fb] dark:bg-zinc-900 rounded-2xl border-4 border-white/40 dark:border-zinc-800/40 shadow-sm overflow-hidden flex flex-col">
-      <div className="p-4 md:p-6 flex-1 overflow-y-auto min-h-0">
+    <div className="h-full w-full bg-background sm:bg-[#f6f8fb] sm:dark:bg-zinc-900 sm:rounded-2xl sm:border-4 border-white/40 dark:border-zinc-800/40 sm:shadow-sm overflow-hidden flex flex-col">
+      <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0">
         <div className="w-full flex flex-col gap-y-8 h-full">
           {header}
           <div className="flex flex-col gap-y-4 h-full">
@@ -140,10 +140,10 @@ export const EntitySearch = ({
   placeholder = "Search",
 }: EntitySearchProps) => {
   return (
-    <div className="relative ml-auto">
-      <SearchIcon className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+    <div className="relative ml-auto w-full sm:w-auto">
+      <SearchIcon className="size-3.5 md:size-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
       <Input
-        className="max-w-[200px] bg-white dark:bg-zinc-900 h-10 pl-10 pr-4 rounded-xl text-sm border-gray-100 dark:border-zinc-800 shadow-[0_2px_10px_rgba(0,0,0,0.02)] focus-visible:ring-2 focus-visible:ring-[#6b62bd]/20 focus-visible:ring-offset-0 transition-all placeholder:text-gray-400 dark:text-zinc-100"
+        className="w-full sm:max-w-[200px] bg-white dark:bg-zinc-900 h-9 md:h-10 pl-9 md:pl-10 pr-4 rounded-xl text-xs md:text-sm border-gray-100 dark:border-zinc-800 shadow-[0_2px_10px_rgba(0,0,0,0.02)] focus-visible:ring-2 focus-visible:ring-[#6b62bd]/20 focus-visible:ring-offset-0 transition-all placeholder:text-gray-400 dark:text-zinc-100"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -286,7 +286,7 @@ export function EntityList<T>({
 
   return (
     <div className={cn(
-      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6",
       className,
     )}>
       {items.map((item, index) => (
@@ -366,7 +366,7 @@ export const EntityItem = ({
   const InnerCard = (
     <Card
       className={cn(
-        "h-full p-5 bg-white dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm hover:shadow-md dark:shadow-none hover:bg-gray-50 dark:hover:bg-[#1c1c1e]/80 rounded-2xl cursor-pointer transition-all duration-300 group",
+        "h-full p-4 sm:p-5 bg-white dark:bg-[#111111]/80 backdrop-blur-xl border border-gray-100 dark:border-white/[0.08] shadow-sm hover:shadow-md dark:shadow-none hover:bg-gray-50 dark:hover:bg-[#1c1c1e]/80 rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-300 group",
         isRemoving && "opacity-50 cursor-not-allowed",
         isSelected && "ring-2 ring-[#5c54a4] dark:ring-indigo-500 bg-gray-50 dark:bg-[#1c1c1e]/80",
         className,
@@ -376,11 +376,11 @@ export const EntityItem = ({
         <div className="flex items-center gap-3">
           {image}
           <div>
-            <CardTitle className="text-base font-semibold tracking-tight text-gray-900 dark:text-gray-100 group-hover:text-[#6b62bd] dark:group-hover:text-[#8b82dd] transition-colors">
+            <CardTitle className="text-sm md:text-base font-semibold tracking-tight text-gray-900 dark:text-gray-100 group-hover:text-[#6b62bd] dark:group-hover:text-[#8b82dd] transition-colors leading-tight">
               {title}
             </CardTitle>
             {!!subtitle && (
-              <CardDescription className="text-[13px] text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+              <CardDescription className="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 font-medium mt-1 leading-tight">
                 {subtitle}
               </CardDescription>
             )}

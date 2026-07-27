@@ -107,7 +107,7 @@ export default function AINodesSection() {
               
               <motion.h2 
                 className={cn(
-                  "text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-8 leading-[1.1]",
+                  "text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 sm:mb-8 leading-[1.1]",
                   geist.className
                 )}
               >
@@ -123,7 +123,7 @@ export default function AINodesSection() {
                 </motion.span>
               </motion.h2>
               
-              <p className="text-muted-foreground text-lg md:text-xl max-w-xl mb-12 leading-relaxed">
+              <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-xl mb-8 sm:mb-12 leading-relaxed">
                 Connect your logic to the world&apos;s most advanced LLMs. 
                 Our native AI nodes handle prompt engineering, context management, and rate-limiting automatically.
               </p>

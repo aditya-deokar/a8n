@@ -41,7 +41,7 @@ export default function Navbar() {
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className={cn(
-        'fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-6 py-3 transition-all duration-300 w-[calc(100%-2rem)] max-w-[1400px] rounded-2xl',
+        'fixed top-3 sm:top-6 left-1/2 -translate-x-1/2 z-50 flex items-center justify-between px-4 sm:px-6 py-3 transition-all duration-300 w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-[1400px] rounded-2xl',
         scrolled
           ? 'bg-background/80 backdrop-blur-lg border border-border/50 shadow-lg'
           : 'bg-background/30 backdrop-blur-md border border-border/20 shadow-sm'

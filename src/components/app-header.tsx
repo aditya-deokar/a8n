@@ -26,7 +26,7 @@ export const AppHeader = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   return (
-    <header className="flex h-20 shrink-0 items-center justify-between gap-4 px-8 bg-transparent">
+    <div className="flex items-center justify-between gap-4 w-full bg-transparent">
       <div className="flex items-center gap-4 flex-1">
         <div className="relative hidden md:flex items-center w-full max-w-md group">
           <SearchIcon className="absolute left-3.5 size-[1.1rem] text-gray-400 dark:text-zinc-500 group-focus-within:text-[#5c54a4] transition-colors duration-300" />
@@ -74,7 +74,7 @@ export const AppHeader = () => {
           </PopoverContent>
         </Popover>
       </div>
-    </header>
+    </div>
   );
 };
 
