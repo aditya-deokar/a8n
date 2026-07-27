@@ -122,11 +122,11 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
       >
         <Background variant={BackgroundVariant.Dots} gap={24} size={2} color={mounted && resolvedTheme === 'dark' ? '#27272a' : '#e2e4f0'} />
         <Controls 
-          className="!bg-white/80 dark:!bg-zinc-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-zinc-800/50 !shadow-sm !rounded-2xl overflow-hidden [&>button]:!border-b-white/50 dark:[&>button]:!border-b-zinc-800/50 hover:[&>button]:!bg-white/90 dark:hover:[&>button]:!bg-zinc-800/90 transition-all [&>button]:dark:!bg-zinc-900/50 [&>button>svg]:dark:!fill-zinc-400" 
+          className="hidden md:flex !bg-white/80 dark:!bg-zinc-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-zinc-800/50 !shadow-sm !rounded-2xl overflow-hidden [&>button]:!border-b-white/50 dark:[&>button]:!border-b-zinc-800/50 hover:[&>button]:!bg-white/90 dark:hover:[&>button]:!bg-zinc-800/90 transition-all [&>button]:dark:!bg-zinc-900/50 [&>button>svg]:dark:!fill-zinc-400" 
           showInteractive={false} 
         />
         <MiniMap 
-          className="!bg-white/80 dark:!bg-zinc-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-zinc-800/50 !shadow-sm !rounded-2xl overflow-hidden" 
+          className="hidden md:block !bg-white/80 dark:!bg-zinc-900/80 !backdrop-blur-xl !border !border-white/50 dark:!border-zinc-800/50 !shadow-sm !rounded-2xl overflow-hidden" 
           maskColor={mounted && resolvedTheme === 'dark' ? "rgba(24, 24, 27, 0.6)" : "rgba(246, 248, 251, 0.6)"}
         />
 
