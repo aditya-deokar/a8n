@@ -244,7 +244,7 @@ export default function KeyFeatures() {
           </div>
           <motion.h2 
             className={cn(
-              "text-4xl md:text-8xl font-bold tracking-tighter text-white mb-10 leading-[0.9]",
+              "text-3xl sm:text-4xl md:text-8xl font-bold tracking-tighter text-white mb-6 sm:mb-10 leading-[0.9]",
               geist.className
             )}
           >
@@ -259,7 +259,7 @@ export default function KeyFeatures() {
               Absolute Reliability.
             </motion.span>
           </motion.h2>
-          <p className="text-zinc-500 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+          <p className="text-zinc-500 text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
             Every layer of a8n is engineered for deterministic performance and 
             industrial-grade security in high-stakes automation.
           </p>

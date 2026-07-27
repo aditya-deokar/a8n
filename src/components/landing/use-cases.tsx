@@ -30,15 +30,16 @@ const CustomNode = ({ data, selected }: any) => {
   return (
     <div className={cn(
       "flex flex-col items-center justify-center p-4 rounded-2xl bg-card/60 backdrop-blur-2xl border border-white/5 shadow-2xl min-w-[150px] relative transition-all duration-300 group overflow-hidden",
-      selected ? "border-primary/50 shadow-[0_0_30px_rgba(255,75,75,0.15)] ring-1 ring-primary/30" : "hover:border-primary/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
+      selected ? "border-[#5c54a4]/50 shadow-[0_0_20px_rgba(92,84,164,0.1)] ring-1 ring-[#9187ce]/30" : "hover:border-[#9187ce]/30 hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)]",
+      data.className
     )}>
       {/* Subtle top glare for glass effect */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
       
-      <Handle type="target" position={Position.Left} className="w-2 h-2 !bg-primary border-none opacity-0" />
-      <Handle type="source" position={Position.Right} id="right" className="w-2 h-2 !bg-primary border-none opacity-0" />
-      <Handle type="source" position={Position.Bottom} id="bottom" className="w-2 h-2 !bg-primary border-none opacity-0" />
-      <Handle type="target" position={Position.Top} id="top" className="w-2 h-2 !bg-primary border-none opacity-0" />
+      <Handle type="target" position={Position.Left} className="w-2 h-2 !bg-[#9187ce] border-none opacity-0" />
+      <Handle type="source" position={Position.Right} id="right" className="w-2 h-2 !bg-[#9187ce] border-none opacity-0" />
+      <Handle type="source" position={Position.Bottom} id="bottom" className="w-2 h-2 !bg-[#9187ce] border-none opacity-0" />
+      <Handle type="target" position={Position.Top} id="top" className="w-2 h-2 !bg-[#9187ce] border-none opacity-0" />
       
       {data.icon && (
         <div className="w-12 h-12 rounded-full bg-background border border-border/50 shadow-inner flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-500 ease-out">
@@ -55,7 +56,7 @@ const SubNode = ({ data }: any) => {
   return (
     <div className={cn("flex flex-col items-center relative group", data.className)}>
       <Handle type="target" position={Position.Top} className="opacity-0" />
-      <div className="w-10 h-10 rounded-full bg-card/80 backdrop-blur-md border border-white/5 flex items-center justify-center mb-2 shadow-xl transition-all duration-300 group-hover:border-primary/30 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+      <div className="w-10 h-10 rounded-full bg-card/80 backdrop-blur-md border border-white/5 flex items-center justify-center mb-2 shadow-xl transition-all duration-300 group-hover:border-[#9187ce]/30 group-hover:shadow-[0_0_15px_rgba(145,135,206,0.1)]">
         {data.icon && <data.icon className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />}
       </div>
       <span className="text-[10px] text-muted-foreground font-medium text-center w-24 leading-tight group-hover:text-foreground/80 transition-colors">{data.title}</span>
@@ -71,7 +72,7 @@ const nodeTypes = {
 // Data for IT Ops
 const itOpsNodes = [
   { id: '1', type: 'custom', position: { x: 40, y: 140 }, data: { icon: FileText, title: "On 'Create User'\nsubmission", className: "w-[160px]" } },
-  { id: '2', type: 'custom', position: { x: 300, y: 140 }, data: { icon: Bot, title: "AI Agent", subtitle: "Tools Agent", className: "w-[160px] border-primary/50 shadow-[0_0_20px_rgba(255,75,75,0.1)]" } },
+  { id: '2', type: 'custom', position: { x: 300, y: 140 }, data: { icon: Bot, title: "AI Agent", subtitle: "Tools Agent", className: "w-[160px] border-[#5c54a4]/50 shadow-[0_0_20px_rgba(92,84,164,0.1)]" } },
   { id: '3', type: 'custom', position: { x: 540, y: 150 }, data: { icon: GitBranch, title: "Is a manager?", className: "w-[140px]" } },
   { id: '4', type: 'custom', position: { x: 760, y: 50 }, data: { icon: MessageSquare, title: "Add to channel", subtitle: "invite: channel", className: "w-[160px]" } },
   { id: '5', type: 'custom', position: { x: 760, y: 250 }, data: { icon: MessageSquare, title: "Update profile", subtitle: "updateProfile: user", className: "w-[160px]" } },
@@ -116,7 +117,7 @@ const secOpsRawEdges = [
 // Data for Dev Ops
 const devOpsNodes = [
   { id: '1', type: 'custom', position: { x: 20, y: 140 }, data: { icon: Webhook, title: "Webhook", className: "w-[120px]" } },
-  { id: '2', type: 'custom', position: { x: 200, y: 140 }, data: { icon: Bot, title: "AI Agent", subtitle: "Tools Agent", className: "w-[160px] border-primary/50 shadow-[0_0_20px_rgba(255,75,75,0.1)]" } },
+  { id: '2', type: 'custom', position: { x: 200, y: 140 }, data: { icon: Bot, title: "AI Agent", subtitle: "Tools Agent", className: "w-[160px] border-[#5c54a4]/50 shadow-[0_0_20px_rgba(92,84,164,0.1)]" } },
   { id: '3', type: 'custom', position: { x: 440, y: 150 }, data: { icon: GitBranch, title: "Switch", className: "w-[120px]" } },
   
   { id: '4', type: 'custom', position: { x: 680, y: -20 }, data: { icon: Globe, title: "Get properties", className: "w-[140px]" } },
@@ -131,7 +132,7 @@ const devOpsNodes = [
   { id: 's3', type: 'sub', position: { x: 280, y: 330 }, data: { icon: Globe, title: "Proxmox API Wiki" } },
   { id: 's4', type: 'sub', position: { x: 380, y: 330 }, data: { icon: Globe, title: "Proxmox Server" } },
   
-  { id: 'inner1', type: 'custom', position: { x: 480, y: 320 }, data: { icon: Bot, title: "Auto-fixing Parser", className: "w-[160px] border-primary/30" } },
+  { id: 'inner1', type: 'custom', position: { x: 480, y: 320 }, data: { icon: Bot, title: "Auto-fixing Parser", className: "w-[160px] border-[#9187ce]/30" } },
   { id: 's5', type: 'sub', position: { x: 460, y: 460 }, data: { icon: BrainCircuit, title: "Groq Chat Model" } },
   { id: 's6', type: 'sub', position: { x: 560, y: 460 }, data: { icon: Code, title: "Structured Output" } },
 ];
@@ -159,7 +160,7 @@ const salesNodes = [
   { id: '1', type: 'custom', position: { x: 80, y: 80 }, data: { icon: Globe, title: "Get reviews", subtitle: "POST: /api/reviews", className: "w-[160px]" } },
   { id: '2', type: 'custom', position: { x: 360, y: 80 }, data: { icon: Code, title: "Apply K-means", subtitle: "clustering", className: "w-[160px]" } },
   { id: '3', type: 'custom', position: { x: 360, y: 220 }, data: { icon: List, title: "Clusters To List", className: "w-[140px]" } },
-  { id: '4', type: 'custom', position: { x: 600, y: 220 }, data: { icon: Bot, title: "Insights Agent", className: "w-[160px] border-primary/50 shadow-[0_0_20px_rgba(255,75,75,0.1)]" } },
+  { id: '4', type: 'custom', position: { x: 600, y: 220 }, data: { icon: Bot, title: "Insights Agent", className: "w-[160px] border-[#5c54a4]/50 shadow-[0_0_20px_rgba(92,84,164,0.1)]" } },
   { id: '5', type: 'custom', position: { x: 860, y: 220 }, data: { icon: Database, title: "GSheets Export", subtitle: "append: sheet", className: "w-[160px]" } },
   { id: 's1', type: 'sub', position: { x: 640, y: 380 }, data: { icon: BrainCircuit, title: "OpenAI Model" } },
 ];
@@ -216,14 +217,14 @@ function FlowViewer({ nodes, rawEdges, theme }: { nodes: any[], rawEdges: any[],
       edges={edges}
       nodeTypes={nodeTypes}
       fitView
-      fitViewOptions={{ padding: 0.2 }}
+      fitViewOptions={{ padding: 0.25 }}
       proOptions={{ hideAttribution: true }}
       nodesDraggable={false}
       nodesConnectable={false}
       elementsSelectable={false}
-      panOnDrag={false}
+      panOnDrag={true}
       zoomOnScroll={false}
-      zoomOnPinch={false}
+      zoomOnPinch={true}
       zoomOnDoubleClick={false}
       preventScrolling={false}
       className="bg-transparent"
@@ -253,26 +254,26 @@ export default function UseCasesSection() {
   const currentTheme = mounted ? (resolvedTheme || 'dark') : 'dark';
 
   return (
-    <section className="w-full bg-transparent py-24 relative ">
+    <section className="w-full bg-transparent py-24 relative overflow-hidden">
       {/* Immersive Background Glows */}
-      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
-      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#5c54a4]/15 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#9187ce]/15 rounded-full blur-[140px] pointer-events-none mix-blend-screen" />
       
       <div className="container mx-auto px-4 lg:px-8 max-w-[1200px] relative z-10">
         
         {/* Header */}
-        <div className="mb-16 text-center max-w-4xl mx-auto">
-           <h2 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-foreground">
-             Automate <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff4b4b] to-[#ff994b]">everything.</span>
+        <div className="mb-10 sm:mb-16 text-center max-w-4xl mx-auto px-2">
+           <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-4 sm:mb-6 tracking-tight text-foreground">
+             Automate <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#5c54a4] to-[#9187ce]">everything.</span>
            </h2>
-           <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+           <p className="text-base sm:text-lg md:text-xl text-muted-foreground leading-relaxed">
              Connect your tools, deploy AI agents, and build powerful workflows visually. <br className="hidden md:block"/>
              Turn natural language into robust automations without breaking a sweat.
            </p>
         </div>
 
         {/* Horizontal Nav Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-10 z-20 relative">
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:flex-wrap justify-start sm:justify-center gap-2 mb-8 sm:mb-10 z-20 relative snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {tabs.map((tab, idx) => {
             const isActive = activeTab === idx;
             return (
@@ -280,16 +281,16 @@ export default function UseCasesSection() {
                 key={tab.id}
                 onClick={() => setActiveTab(idx)}
                 className={cn(
-                  "px-6 py-2.5 rounded-full transition-all duration-300 relative font-medium text-sm border overflow-hidden",
+                  "px-5 sm:px-6 py-2.5 rounded-full transition-all duration-300 relative font-medium text-xs sm:text-sm border overflow-hidden shrink-0 snap-center",
                   isActive 
-                    ? "text-primary-foreground border-primary shadow-[0_0_20px_rgba(255,75,75,0.2)]" 
+                    ? "text-white border-[#5c54a4] shadow-[0_0_20px_rgba(92,84,164,0.3)]" 
                     : "text-muted-foreground border-border bg-card/40 hover:bg-card hover:text-foreground backdrop-blur-md"
                 )}
               >
                 {isActive && (
                   <motion.div 
                     layoutId="activeTabPill"
-                    className="absolute inset-0 bg-primary -z-10"
+                    className="absolute inset-0 bg-gradient-to-r from-[#5c54a4] to-[#9187ce] -z-10"
                     transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
                   />
                 )}
@@ -303,7 +304,7 @@ export default function UseCasesSection() {
 
         {/* Interactive Canvas Area */}
         <div 
-          className="w-full h-[650px] bg-black/10 overflow-hidden relative group"
+          className="w-full h-[450px] sm:h-[650px] bg-black/10 overflow-hidden relative group rounded-3xl sm:rounded-none"
         >
            
            {mounted && (
@@ -318,17 +319,17 @@ export default function UseCasesSection() {
                >
                  
                  {/* Floating Description Card */}
-                 <div className="absolute top-8 left-8 z-20 max-w-[320px] pointer-events-none">
-                    <div className="p-6 rounded-2xl bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shadow-inner">
-                           <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                 <div className="absolute top-4 left-4 right-4 sm:top-8 sm:left-8 sm:right-auto z-20 sm:max-w-[320px] pointer-events-none">
+                    <div className="p-4 sm:p-6 rounded-2xl bg-card/60 backdrop-blur-xl border border-white/10 shadow-2xl">
+                      <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                        <div className="w-8 h-8 rounded-full bg-[#9187ce]/20 flex items-center justify-center border border-[#9187ce]/30 shadow-inner">
+                           <div className="w-2.5 h-2.5 rounded-full bg-[#9187ce] animate-pulse" />
                         </div>
-                        <h3 className="text-lg font-semibold text-foreground">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground">
                           {tabs[activeTab].prefix} {tabs[activeTab].suffix}
                         </h3>
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                         {tabs[activeTab].description}
                       </p>
                     </div>
@@ -352,15 +353,15 @@ export default function UseCasesSection() {
                          WebkitMaskImage: 'radial-gradient(50% 50% at 50% 50%, black 70%, transparent 100%)'
                        }}
                      />
-                     <div className="z-10 bg-card/60 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 text-center max-w-md shadow-2xl relative overflow-hidden group cursor-pointer hover:border-primary/50 transition-colors duration-500">
-                       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
+                     <div className="z-10 bg-card/60 backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 text-center max-w-md shadow-2xl relative overflow-hidden group cursor-pointer hover:border-[#9187ce]/50 transition-colors duration-500">
+                       <div className="absolute inset-0 bg-gradient-to-br from-[#9187ce]/10 to-transparent pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity duration-500" />
                        
-                       <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6 relative z-10 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                         <Play className="w-8 h-8 text-primary ml-1" fill="currentColor" />
+                       <div className="w-20 h-20 rounded-full bg-[#9187ce]/10 border border-[#9187ce]/20 flex items-center justify-center mx-auto mb-6 relative z-10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                         <Play className="w-8 h-8 text-[#9187ce] ml-1" fill="currentColor" />
                        </div>
                        
-                       <h3 className="text-2xl font-semibold text-foreground mb-3 relative z-10">See it in action</h3>
-                       <p className="text-muted-foreground relative z-10 leading-relaxed">
+                       <h3 className="text-xl sm:text-2xl font-semibold text-foreground mb-2 sm:mb-3 relative z-10">See it in action</h3>
+                       <p className="text-sm sm:text-base text-muted-foreground relative z-10 leading-relaxed">
                          Watch our quick 2-minute pitch to see how teams use these workflows to completely transform their daily operations.
                        </p>
                      </div>

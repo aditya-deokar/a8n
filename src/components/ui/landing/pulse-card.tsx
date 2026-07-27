@@ -206,9 +206,15 @@ export function CardHoverEffect({
       </div>
 
       {/* Shine Effect */}
-      <div className="absolute inset-0 z-20 overflow-hidden rounded-[inherit] opacity-100 transition-all duration-500">
+      <div 
+        className="absolute inset-0 z-20 overflow-hidden rounded-[inherit] opacity-100 transition-all duration-500"
+        style={{
+          maskImage: 'linear-gradient(to bottom, black 10%, transparent 80%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 10%, transparent 80%)',
+        }}
+      >
         <div
-          className="absolute bottom-[55%] left-1/2 aspect-square w-[200%] -translate-x-1/2 rounded-[50%]"
+          className="absolute top-0 left-1/2 h-[150%] w-[200%] -translate-x-1/2 -translate-y-1/2 rounded-[50%]"
           style={{
             background: `conic-gradient(from ${variantConfig.shine}, transparent 360deg)`,
             filter: 'blur(40px)',

@@ -17,7 +17,7 @@ export default function HomeBadge() {
       )}
     >
       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <Sparkles className="h-3.5 w-3.5 text-rose-500 animate-pulse" />
+      {/* <Sparkles className="h-3.5 w-3.5 text-rose-500 animate-pulse" /> */}
       <span className="text-xs font-medium tracking-wide text-zinc-800 dark:text-zinc-200">
         Introducing a8n Advanced
       </span>

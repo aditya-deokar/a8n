@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between">
+    <main className="flex min-h-screen flex-col items-center justify-between overflow-x-hidden w-full">
       <Navbar />
       <Hero />
       <UseCasesSection />
