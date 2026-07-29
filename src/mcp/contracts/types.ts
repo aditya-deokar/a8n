@@ -15,7 +15,7 @@ export type McpToolPolicy = {
   note: string;
 };
 
-export type McpToolProfile = "default" | "chatgpt";
+export type McpToolProfile = "default" | "chatgpt" | "embedded_agent";
 
 export type McpToolDomain =
   | "api_keys"

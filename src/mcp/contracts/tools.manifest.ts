@@ -7,7 +7,7 @@ import type {
 } from "./types";
 import type { McpContractOutputSchemaName } from "./schemas";
 
-const chatgptProfiles: McpToolProfile[] = ["default", "chatgpt"];
+const chatgptProfiles: McpToolProfile[] = ["default", "chatgpt", "embedded_agent"];
 const defaultOnly: McpToolProfile[] = ["default"];
 const chatgptOnly: McpToolProfile[] = ["chatgpt"];
 

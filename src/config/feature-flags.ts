@@ -2,13 +2,19 @@ export type FeatureFlagKey =
   | "newWorkflowEditor"
   | "apiCanary"
   | "mcpEnhancedTooling"
-  | "credentialRotationFlow";
+  | "credentialRotationFlow"
+  | "embeddedAgent"
+  | "embeddedAgentApply"
+  | "agentLongTermMemory"
+  | "agentProviderFallback";
 
 export type KillSwitchKey =
   | "disableWorkflowExecution"
   | "disableWebhookProcessing"
   | "disableMcpMutations"
-  | "readOnlyMode";
+  | "readOnlyMode"
+  | "disableAgentRuns"
+  | "disableAgentMutations";
 
 export type ExperimentKey = "workflowOnboardingV2";
 
@@ -74,6 +80,38 @@ export const featureFlags: Record<FeatureFlagKey, FeatureFlagDefinition> = {
     owner: "security",
     description: "Enables credential rotation workflow improvements.",
   },
+  embeddedAgent: {
+    key: "embeddedAgent",
+    defaultEnabled: false,
+    rolloutPercent: 0,
+    rolloutEnv: "FEATURE_FLAG_EMBEDDED_AGENT_ROLLOUT_PERCENT",
+    owner: "ai-platform",
+    description: "Enables the embedded workflow agent in the editor.",
+  },
+  embeddedAgentApply: {
+    key: "embeddedAgentApply",
+    defaultEnabled: false,
+    rolloutPercent: 0,
+    rolloutEnv: "FEATURE_FLAG_EMBEDDED_AGENT_APPLY_ROLLOUT_PERCENT",
+    owner: "ai-platform",
+    description: "Enables approval-gated agent workflow application.",
+  },
+  agentLongTermMemory: {
+    key: "agentLongTermMemory",
+    defaultEnabled: false,
+    rolloutPercent: 0,
+    rolloutEnv: "FEATURE_FLAG_AGENT_LONG_TERM_MEMORY_ROLLOUT_PERCENT",
+    owner: "ai-platform",
+    description: "Enables user-scoped long-term agent memory.",
+  },
+  agentProviderFallback: {
+    key: "agentProviderFallback",
+    defaultEnabled: false,
+    rolloutPercent: 0,
+    rolloutEnv: "FEATURE_FLAG_AGENT_PROVIDER_FALLBACK_ROLLOUT_PERCENT",
+    owner: "ai-platform",
+    description: "Enables configured model-provider fallback behavior.",
+  },
 };
 
 export const killSwitches: Record<KillSwitchKey, KillSwitchDefinition> = {
@@ -100,6 +138,18 @@ export const killSwitches: Record<KillSwitchKey, KillSwitchDefinition> = {
     env: "KILL_SWITCH_READ_ONLY_MODE",
     owner: "platform",
     description: "Reserved global read-only mode for high-risk incidents.",
+  },
+  disableAgentRuns: {
+    key: "disableAgentRuns",
+    env: "KILL_SWITCH_DISABLE_AGENT_RUNS",
+    owner: "ai-platform",
+    description: "Stops new embedded agent runs during incidents.",
+  },
+  disableAgentMutations: {
+    key: "disableAgentMutations",
+    env: "KILL_SWITCH_DISABLE_AGENT_MUTATIONS",
+    owner: "ai-platform",
+    description: "Blocks embedded agent draft and workflow mutations.",
   },
 };
 

@@ -19,10 +19,11 @@ import { registerSystemTools } from "./system";
 import { registerApiKeyTools } from "./api-keys";
 import { registerIntegrationTools } from "./integrations";
 import type { McpToolContext } from "@/mcp/shared/auth-context";
-import { isChatGptAppProfile } from "@/mcp/app-profile";
+import { isChatGptAppProfile, isEmbeddedAgentProfile } from "@/mcp/app-profile";
 import { CHATGPT_APP_TOOL_COUNT } from "@/mcp/safety/app-tool-policy";
 import { registerChatGptAppTools } from "./chatgpt-profile";
 import { logger } from "@/lib/logging";
+import { registerEmbeddedAgentTools } from "./embedded-agent-profile";
 
 /**
  * Register all MCP tools from all domains.
@@ -51,6 +52,20 @@ export function registerAllTools(
         count: CHATGPT_APP_TOOL_COUNT,
       },
       "MCP ChatGPT app tools registered.",
+    );
+    return;
+  }
+
+  if (isEmbeddedAgentProfile(context.appProfile)) {
+    registerEmbeddedAgentTools(server, context);
+    logger.info(
+      {
+        component: "mcp",
+        event: "mcp_registry_registered",
+        registry: "tools",
+        profile: "embedded_agent",
+      },
+      "MCP embedded-agent tools registered.",
     );
     return;
   }
