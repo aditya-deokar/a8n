@@ -3,7 +3,7 @@ import {
   EditorError,
   EditorLoading
 } from "@/features/editor/components/editor";
-import { EditorHeader, EditorSaveButton } from "@/features/editor/components/editor-header";
+import { EditorHeader, EditorSaveButton, EditorAgentButton } from "@/features/editor/components/editor-header";
 import { AddNodeButton } from "@/features/editor/components/add-node-button";
 import { prefetchWorkflow } from "@/features/workflows/server/prefetch";
 import { requireAuth } from "@/lib/auth-utils";
@@ -44,6 +44,9 @@ const Page = async ({ params }: PageProps) => {
               </main>
               {/* Mobile Bottom Action Bar */}
               <div className="md:hidden flex items-center justify-between gap-3 p-3 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-gray-100 dark:border-zinc-800 shrink-0 safe-area-bottom z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                <div className="shrink-0">
+                  <EditorAgentButton />
+                </div>
                 <div className="flex-1 min-w-0">
                   <AddNodeButton />
                 </div>
