@@ -143,8 +143,16 @@ const envSchema = z.object({
   KILL_SWITCH_DISABLE_AGENT_MUTATIONS: optionalBoolean,
 
   OPENAI_API_KEY: optionalString,
+  GOOGLE_API_KEY: optionalString,
+
+  // LangSmith tracing
+  LANGSMITH_TRACING: optionalBoolean,
+  LANGSMITH_ENDPOINT: optionalString,
+  LANGSMITH_API_KEY: optionalString,
+  LANGSMITH_PROJECT: optionalString,
+
   AGENT_MODEL_PROVIDER: z
-    .preprocess(emptyToUndefined, z.enum(["openai", "mock"]).optional())
+    .preprocess(emptyToUndefined, z.enum(["google", "openai", "mock"]).optional())
     .optional(),
   AGENT_MODEL_NAME: optionalString,
   AGENT_FALLBACK_MODEL_NAME: optionalString,
@@ -156,6 +164,13 @@ const envSchema = z.object({
   AGENT_EMBEDDING_MODEL: optionalString,
   AGENT_EMBEDDING_DIMENSIONS: optionalPositiveInt,
   AGENT_TOOL_TIMEOUT_MS: optionalPositiveInt,
+  AGENT_MAX_CONCURRENT_RUNS: optionalPositiveInt,
+  AGENT_MAX_RUN_COST_USD: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().positive().optional(),
+  ).optional(),
+  AGENT_APPROVAL_EXPIRY_MINUTES: optionalPositiveInt,
+  AGENT_STALE_RUN_TIMEOUT_MS: optionalPositiveInt,
 
   MCP_APP_PROFILE: optionalString,
   MCP_AUDIT_LOG_ENABLED: optionalBoolean,

@@ -12,6 +12,8 @@ import {
   assertEmbeddedAgentToolAllowed,
   assertEmbeddedAgentToolSet,
 } from "./tool-policy";
+import { agentSpan } from "@/agent/observability/tracing";
+import { recordToolCall } from "@/agent/observability/metrics";
 
 export type EmbeddedMcpClientOptions = {
   authInfo: McpAuthInfo;
@@ -108,7 +110,36 @@ export async function createEmbeddedMcpClient(
 
             options.onToolCallStarted?.(sourceTool.name);
 
-            return sourceTool.invoke(input);
+            const toolStartedAt = Date.now();
+            try {
+              const result = await agentSpan(
+                `tool.call.${sourceTool.name}`,
+                {
+                  toolName: sourceTool.name,
+                  userId: options.authInfo.userId,
+                },
+                () => sourceTool.invoke(input),
+              );
+
+              recordToolCall({
+                userId: options.authInfo.userId,
+                runId: "unknown",
+                toolName: sourceTool.name,
+                durationMs: Date.now() - toolStartedAt,
+                status: "completed",
+              });
+
+              return result;
+            } catch (error) {
+              recordToolCall({
+                userId: options.authInfo.userId,
+                runId: "unknown",
+                toolName: sourceTool.name,
+                durationMs: Date.now() - toolStartedAt,
+                status: "failed",
+              });
+              throw error;
+            }
           },
         }),
     );

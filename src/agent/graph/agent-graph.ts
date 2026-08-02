@@ -20,6 +20,7 @@ import { finalizeNode } from "./nodes/finalize";
 import { humanApprovalNode } from "./nodes/human-approval";
 import { createApplyNode } from "./nodes/apply";
 import { syncEditorNode } from "./nodes/sync-editor";
+import { createExtractMemoryNode } from "./nodes/extract-memory";
 
 /**
  * Build the full agent state machine graph.
@@ -47,6 +48,7 @@ export function createAgentGraph(params: {
   const validateNode = createValidateNode(model, tools);
   const previewNode = createPreviewNode(model, tools);
   const applyNode = createApplyNode(tools);
+  const extractMemoryNode = createExtractMemoryNode(model);
 
   // The main agent decision node — the model decides what to do next
   const modelWithTools = model.bindTools ? model.bindTools(tools) : model;
@@ -163,6 +165,7 @@ export function createAgentGraph(params: {
     .addNode("apply", applyNode)
     .addNode("sync_editor", syncEditorNode)
     .addNode("finalize", finalizeNode)
+    .addNode("extract_memory", extractMemoryNode)
 
     // Wire the edges
     .addEdge(START, "load_context")
@@ -195,7 +198,8 @@ export function createAgentGraph(params: {
       "finalize",
     ])
     .addEdge("sync_editor", "finalize")
-    .addEdge("finalize", END)
+    .addEdge("finalize", "extract_memory")
+    .addEdge("extract_memory", END)
 
     // Compile with checkpointer for durable state
     .compile({ checkpointer });

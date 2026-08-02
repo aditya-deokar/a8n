@@ -80,6 +80,11 @@ export const featureFlags: Record<FeatureFlagKey, FeatureFlagDefinition> = {
     owner: "security",
     description: "Enables credential rotation workflow improvements.",
   },
+  /**
+   * Embedded agent — staged rollout:
+   * Stage 1 (dev): 100% | Stage 2 (internal): 100% | Stage 3 (staging): 100%
+   * Stage 4 (canary): 5% | Stage 5 (small cohort): 10% | Stage 6 (GA): 25→50→75→100%
+   */
   embeddedAgent: {
     key: "embeddedAgent",
     defaultEnabled: false,
@@ -88,6 +93,11 @@ export const featureFlags: Record<FeatureFlagKey, FeatureFlagDefinition> = {
     owner: "ai-platform",
     description: "Enables the embedded workflow agent in the editor.",
   },
+  /**
+   * Agent apply — staged rollout:
+   * Stages 1-2: 0% (read-only) | Stage 3 (staging): 100% | Stage 4 (canary): 0%
+   * Stage 5: 10% | Stage 6 (GA): matches embeddedAgent rollout
+   */
   embeddedAgentApply: {
     key: "embeddedAgentApply",
     defaultEnabled: false,
@@ -96,6 +106,11 @@ export const featureFlags: Record<FeatureFlagKey, FeatureFlagDefinition> = {
     owner: "ai-platform",
     description: "Enables approval-gated agent workflow application.",
   },
+  /**
+   * Agent memory — staged rollout:
+   * Stages 1-2: 0% | Stage 3 (staging): 50% | Stage 4 (canary): 0%
+   * Stage 5: 10% | Stage 6 (GA): matches embeddedAgent rollout
+   */
   agentLongTermMemory: {
     key: "agentLongTermMemory",
     defaultEnabled: false,

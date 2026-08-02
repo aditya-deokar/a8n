@@ -147,6 +147,14 @@ export const AgentGraphAnnotation = Annotation.Root({
     reducer: (_prev, next) => next,
     default: () => null,
   }),
+
+  /** Retrieved long-term memories for context assembly */
+  retrievedMemories: Annotation<
+    Array<{ content: string; score: number; namespace: string[] }>
+  >({
+    reducer: (_prev, next) => next,
+    default: () => [],
+  }),
 });
 
 export type AgentGraphState = typeof AgentGraphAnnotation.State;

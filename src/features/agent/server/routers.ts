@@ -4,6 +4,8 @@ import prisma from "@/lib/db";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { createAgentThread } from "@/agent/service";
 import { approvalService } from "@/agent/safety/approval-service";
+import { agentMemoryStore } from "@/agent/memory/store";
+import { MEMORY_CATEGORIES, buildMemoryNamespace, type MemoryCategory } from "@/agent/memory/namespaces";
 import { z } from "zod";
 
 export const agentRouter = createTRPCRouter({
@@ -123,4 +125,69 @@ export const agentRouter = createTRPCRouter({
         reason: input.reason,
       }),
     ),
+
+  // --- Memory management procedures ---
+
+  listMemories: protectedProcedure
+    .input(
+      z.object({
+        category: z.enum(["workflow-preferences", "workflow-patterns", "conversation-summaries"]).optional(),
+        limit: z.number().int().min(1).max(100).default(50),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.auth.user.id;
+      const categories: MemoryCategory[] = input.category
+        ? [input.category]
+        : [...MEMORY_CATEGORIES];
+
+      const results = await Promise.all(
+        categories.map(async (category) => {
+          const namespace = buildMemoryNamespace(userId, category);
+          // Use a broad query to list all memories in the namespace
+          const items = await agentMemoryStore.search({
+            userId,
+            namespace,
+            query: "workflow automation preferences patterns",
+            limit: input.limit,
+          });
+          return items.map((item) => ({
+            id: item.id,
+            content: item.content,
+            category,
+            score: item.score,
+            expiresAt: item.expiresAt,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          }));
+        }),
+      );
+
+      return results.flat().sort((a, b) =>
+        b.createdAt.getTime() - a.createdAt.getTime(),
+      );
+    }),
+
+  deleteMemory: protectedProcedure
+    .input(z.object({ memoryId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await agentMemoryStore.delete({
+        userId: ctx.auth.user.id,
+        id: input.memoryId,
+      });
+      return { deleted: true };
+    }),
+
+  deleteAllMemories: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const userId = ctx.auth.user.id;
+      // Soft-delete all memories for this user across all namespaces
+      const deleted = await prisma.$executeRaw`
+        UPDATE "agent_memory_item"
+        SET "deletedAt" = NOW(), "consentStatus" = 'deleted', "updatedAt" = NOW()
+        WHERE "userId" = ${userId} AND "deletedAt" IS NULL
+      `;
+      return { deleted: Number(deleted) };
+    }),
 });
+
