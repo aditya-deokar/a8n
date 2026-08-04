@@ -24,13 +24,15 @@
 
 | Category | Technology | Version | Purpose |
 |---|---|---|---|
-| **Framework** | Next.js | 16.2.2 | Full-stack React framework (App Router) |
+| **Framework** | Next.js | 16.2.6 | Full-stack React framework (App Router) |
 | **UI Library** | React | 19.2.4 | Component-based UI with Server Components |
-| **Language** | TypeScript | 6.x | Static typing with strict mode |
+| **Language** | TypeScript | 6.0.2 | Static typing with strict mode |
 | **API Layer** | tRPC | 11.16.0 | End-to-end type-safe RPC |
-| **Database** | Neon PostgreSQL | — | Serverless PostgreSQL |
+| **Database** | Neon PostgreSQL | — | Serverless PostgreSQL with `pgvector` |
 | **ORM** | Prisma | 7.7.0 | Type-safe database client |
-| **Auth** | Better Auth | 1.6.0 | Lightweight authentication |
+| **AI Agent Engine** | LangGraph | 1.4.8 | State-graph autonomous AI agent orchestration |
+| **MCP Apps** | `@modelcontextprotocol/ext-apps` | 1.7.5 | Standardized MCP Apps tools, resources & PostMessage bridge |
+| **Auth** | Better Auth | 1.6.11 | Lightweight authentication |
 | **Billing** | Polar.sh | 0.47.0 | Subscription management |
 | **Execution Engine** | Inngest | 4.2.0 | Durable event-driven functions |
 | **Workflow Editor** | React Flow (XYFlow) | 12.10.2 | Interactive DAG graph editor |
@@ -40,7 +42,8 @@
 | **State (URL)** | nuqs | 2.8.9 | Type-safe URL parameters |
 | **Styling** | Tailwind CSS | 4.x | Utility-first CSS |
 | **Validation** | Zod | 4.3.6 | Runtime schema validation |
-| **Package Manager** | pnpm | — | Fast, disk-efficient packages |
+| **Widget Bundler** | Vite + vite-plugin-singlefile | 8.2.0 | Programmatic single-file HTML widget bundler |
+| **Package Manager** | pnpm | 10.12.4 | Fast, disk-efficient packages |
 
 ---
 

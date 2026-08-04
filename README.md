@@ -7,12 +7,18 @@
 Build, connect, and execute intelligent automation workflows via visual DAG editor, autonomous AI agents, and standardized MCP App UIs.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-a8n.aditya--deokar.me-emerald?style=for-the-badge&logo=vercel)](https://a8n.aditya-deokar.me/)
-[![Next.js 16](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org/)
-[![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![MCP Apps](https://img.shields.io/badge/MCP%20Apps-ext--apps%20v0.6-purple)](https://www.npmjs.com/package/@modelcontextprotocol/ext-apps)
-[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)](https://www.prisma.io/)
-[![tRPC](https://img.shields.io/badge/tRPC-11-2596BE?logo=trpc)](https://trpc.io/)
+
+[![Next.js 16](https://img.shields.io/badge/Next.js-16.2-black?logo=next.js)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)](https://react.dev/)
+[![TypeScript 6](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript)](https://www.typescriptlang.org/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.4.8-FF6F61?logo=langchain)](https://js.langchain.com/)
+[![MCP Apps](https://img.shields.io/badge/MCP%20Apps-ext--apps%20v1.7-7B2CBF)](https://www.npmjs.com/package/@modelcontextprotocol/ext-apps)
+[![Inngest](https://img.shields.io/badge/Inngest-v4.2-FF0055?logo=inngest)](https://www.inngest.com/)
+[![Prisma 7](https://img.shields.io/badge/Prisma-7.7-2D3748?logo=prisma)](https://www.prisma.io/)
+[![tRPC v11](https://img.shields.io/badge/tRPC-11.16-2596BE?logo=trpc)](https://trpc.io/)
+[![Better Auth](https://img.shields.io/badge/Better--Auth-1.6.11-000000)](https://www.better-auth.com/)
+[![React Flow](https://img.shields.io/badge/React--Flow-v12-FF4081)](https://reactflow.dev/)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?logo=tailwindcss)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
@@ -78,7 +84,9 @@ graph TD
         Prisma --> Vault
     end
 
-    Core Platform --> Data Store
+    Executors --> Prisma
+    MCPServer --> Prisma
+    AgentGraph --> Prisma
 ```
 
 ---
@@ -148,7 +156,7 @@ graph LR
         IFrame["Widget iFrame<br/>(Sandboxed HTML)"]
         AppSDK["ext-apps Client App SDK"]
         HostUI --- IFrame
-        IFrame <---> AppSDK
+        IFrame <--> AppSDK
     end
 
     subgraph ServerSide ["⚡ a8n MCP Server"]
@@ -158,8 +166,8 @@ graph LR
         Capability["getUiCapability()<br/>Graceful Degradation"]
     end
 
-    AppSDK <--->|PostMessageTransport| RegTool
-    AppSDK <--->|callServerTool()| RegRes
+    AppSDK <-->|PostMessageTransport| RegTool
+    AppSDK <-->|callServerTool()| RegRes
     RegRes --- ViteBuild
     Capability --- RegTool
 ```
@@ -182,24 +190,27 @@ graph LR
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Key Libraries
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Framework** | Next.js 16 (App Router) | Full-stack React framework with RSC, streaming, and Turbopack |
-| **Frontend** | React 19 | UI library with Server Components |
-| **Language** | TypeScript 6 | Strict type-safety across stack |
-| **API Layer** | tRPC v11 | End-to-end type-safe RPC procedures |
-| **Database** | PostgreSQL (Neon / Docker) | Serverless PostgreSQL with `pgvector` extension |
-| **ORM** | Prisma v7 | Type-safe database queries and migrations |
-| **Auth** | Better Auth v1.6 | Multi-provider authentication (Email, GitHub, Google) |
-| **Payments** | Polar.sh | Subscription tiers and customer management |
-| **Execution Engine** | Inngest v4 | Durable, event-driven workflow execution |
-| **MCP SDK** | `@modelcontextprotocol/ext-apps` v0.6 | Standardized MCP Apps tools, resources, and client bridge |
-| **Agent Framework** | LangGraph | State-graph autonomous AI orchestration |
-| **Widget Bundler** | Vite v8 + `vite-plugin-singlefile` | Programmatic single-file widget HTML bundling |
-| **Workflow Editor** | React Flow (XYFlow v12) | Interactive DAG visual canvas |
-| **Styling** | Tailwind CSS v4 + shadcn/ui | Utility-first CSS and accessible UI components |
+| Category | Technology / Library | Version | Purpose |
+|---|---|---|---|
+| **Core Framework** | `next` (App Router) | `16.2.6` | Full-stack React framework with RSC, Turbopack, and API routes |
+| **Frontend Core** | `react` / `react-dom` | `19.2.4` | UI rendering with Server Components |
+| **Language & Engine** | `typescript` / Node.js | `6.0.2` / `^24` | Strict type-safety across client, server, and scripts |
+| **API Layer** | `@trpc/server`, `@trpc/client`, `@trpc/tanstack-react-query` | `11.16.0` | End-to-end type-safe RPC procedures |
+| **Database & ORM** | `prisma`, `@prisma/client`, `@neondatabase/serverless` | `7.7.0` / `1.0.2` | Type-safe ORM with Neon serverless driver & `pgvector` extension |
+| **AI Agent Engine** | `@langchain/langgraph`, `@langchain/core` | `1.4.8` / `1.2.3` | State-graph autonomous AI agent orchestration & planning |
+| **AI Memory & Vector** | `@langchain/langgraph-checkpoint-postgres`, `@langchain/openai` | `1.0.4` / `1.5.5` | PostgreSQL state checkpointing & pgvector embedding memory |
+| **Multi-Provider AI SDK** | `ai` (Vercel AI SDK), `@ai-sdk/openai`, `@ai-sdk/anthropic`, `@ai-sdk/google` | `6.0.153` / `3.0.x` | Unified model interfaces for OpenAI, Anthropic & Gemini |
+| **MCP Apps & Ext-Apps** | `@modelcontextprotocol/ext-apps`, `@modelcontextprotocol/sdk` | `1.7.5` / `1.29.0` | Standardized MCP Apps tools (`registerAppTool`), resources (`registerAppResource`), and PostMessage bridge |
+| **Workflow Engine** | `inngest`, `@inngest/realtime` | `4.2.0` / `0.4.7` | Durable event-driven workflow execution & live channel updates |
+| **Auth & Billing** | `better-auth`, `@polar-sh/better-auth`, `@polar-sh/sdk` | `1.6.11` / `1.8.3` / `0.47.0` | OAuth authentication & Polar subscription billing |
+| **Credential Security** | `cryptr` | `6.4.0` | AES-256 encrypted credential vault |
+| **Visual DAG Editor** | `@xyflow/react` (React Flow) | `12.10.2` | Interactive DAG canvas with custom nodes & handles |
+| **UI & Animations** | `tailwindcss`, `radix-ui`, `framer-motion`, `lucide-react` | `4.0` / `1.6.7` / `12.38` / `1.7` | Styling, accessible component primitives & micro-interactions |
+| **State Management** | `@tanstack/react-query`, `jotai`, `nuqs` | `5.96.2` / `2.19.1` / `2.8.9` | Server cache, client atom state, and URL search param state |
+| **Widget Bundler** | `vite`, `vite-plugin-singlefile` | `8.2.0` / `2.3.3` | Programmatic single-file HTML bundle builder for MCP widgets |
+| **Testing & Quality** | `vitest`, `@playwright/test`, `eslint`, `gitleaks` | `4.0.0` / `1.51.1` / `9.39` / `8.24` | Unit, contract, MCP integration, E2E testing & security scanning |
 
 ---
 
