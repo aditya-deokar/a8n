@@ -52,7 +52,8 @@ function duplicateValues(values: string[]): string[] {
 function registeredToolNamesFromSource(): string[] {
   const roots = ["src/mcp/tools", "src/mcp/apps"];
   const names: string[] = [];
-  const pattern = /server\.(?:registerTool|tool)\(\s*(?:"([^"]+)"|'([^']+)')/g;
+  const pattern =
+    /(?:server\.(?:registerTool|tool)|registerAppTool)\(\s*(?:server,\s*)?(?:"([^"]+)"|'([^']+)')/g;
 
   function visit(dir: string) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

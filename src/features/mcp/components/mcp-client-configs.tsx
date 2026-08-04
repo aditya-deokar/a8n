@@ -11,10 +11,10 @@ export const McpClientConfigs = () => {
   const [copiedTab, setCopiedTab] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && window.location.origin !== origin) {
       setOrigin(window.location.origin);
     }
-  }, []);
+  }, [origin]);
 
   const endpointUrl = origin.includes("localhost")
     ? `${origin.replace("localhost", "127.0.0.1")}/api/mcp`

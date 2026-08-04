@@ -35,7 +35,7 @@ export interface AuditLogEntry {
   oauthClientId?: string;
   tool: string;
   risk?: McpToolRisk;
-  profile?: "default" | "chatgpt" | "unknown";
+  profile?: "default" | "chatgpt" | "embedded_agent" | "unknown";
   input: Record<string, unknown>;
   durationMs: number;
   status: "success" | "error";
@@ -221,7 +221,7 @@ export function createAuditContext(params: {
   authMethod: "api_key" | "session" | "oauth";
   oauthClientId?: string;
   risk?: McpToolRisk;
-  profile?: "default" | "chatgpt" | "unknown";
+  profile?: "default" | "chatgpt" | "embedded_agent" | "unknown";
   tool: string;
   input: Record<string, unknown>;
   ip?: string;

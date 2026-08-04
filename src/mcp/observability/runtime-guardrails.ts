@@ -27,7 +27,7 @@ export type McpRuntimeEvent = {
   oauthClientId?: string;
   tool?: string;
   risk?: McpToolRisk;
-  profile?: "default" | "chatgpt" | "unknown";
+  profile?: "default" | "chatgpt" | "embedded_agent" | "unknown";
   status?: "success" | "error" | "denied" | "warning";
   durationMs?: number;
   error?: string;

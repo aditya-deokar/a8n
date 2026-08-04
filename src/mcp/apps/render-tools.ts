@@ -1,5 +1,6 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
 import { requireScope } from "@/mcp/middleware/scope-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
@@ -56,12 +57,13 @@ export function registerRenderWorkflowDraftPreview(
   server: McpServer,
   context: McpToolContext = {},
 ) {
-  server.registerTool(
+  registerAppTool(
+    server,
     "render_workflow_draft_preview",
     {
       title: "Render workflow draft preview",
       description:
-        "Render a ChatGPT widget preview for a workflow draft, including planned steps and validation status.",
+        "Render a widget preview for a workflow draft, including planned steps and validation status.",
       inputSchema: {
         draftId: z.string().describe("Workflow draft ID."),
       },
@@ -108,12 +110,13 @@ export function registerRenderWorkflowSetupChecklist(
   server: McpServer,
   context: McpToolContext = {},
 ) {
-  server.registerTool(
+  registerAppTool(
+    server,
     "render_workflow_setup_checklist",
     {
       title: "Render workflow setup checklist",
       description:
-        "Render a ChatGPT widget checklist for credentials, missing fields, webhook setup, and test steps.",
+        "Render a widget checklist for credentials, missing fields, webhook setup, and test steps.",
       inputSchema: {
         workflowId: z.string().describe("Saved workflow ID."),
       },
@@ -160,12 +163,13 @@ export function registerRenderExecutionTimeline(
   server: McpServer,
   context: McpToolContext = {},
 ) {
-  server.registerTool(
+  registerAppTool(
+    server,
     "render_execution_timeline",
     {
       title: "Render execution timeline",
       description:
-        "Render a ChatGPT widget timeline for a workflow execution, including status, duration, and node order.",
+        "Render a widget timeline for a workflow execution, including status, duration, and node order.",
       inputSchema: {
         executionId: z.string().describe("Execution ID."),
       },
@@ -213,12 +217,13 @@ export function registerRenderWorkflowApproval(
   server: McpServer,
   context: McpToolContext = {},
 ) {
-  server.registerTool(
+  registerAppTool(
+    server,
     "render_workflow_approval",
     {
       title: "Render workflow approval",
       description:
-        "Render a ChatGPT approval widget for applying a workflow draft after the user reviews the diff and confirmation hash.",
+        "Render an approval widget for applying a workflow draft after the user reviews the diff and confirmation hash.",
       inputSchema: {
         draftId: z.string().describe("Workflow draft ID."),
       },

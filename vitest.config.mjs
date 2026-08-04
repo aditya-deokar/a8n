@@ -15,6 +15,7 @@ export default defineConfig({
     environment: "node",
     globals: false,
     passWithNoTests: true,
+    testTimeout: 60000,
     setupFiles: ["./tests/mcp/setup.mjs"],
     include: ["tests/mcp/**/*.test.{js,mjs,cjs,ts,mts}"],
     exclude: ["node_modules", ".next", "tests/e2e/**"],

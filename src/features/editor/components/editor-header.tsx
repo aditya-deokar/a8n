@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { SaveIcon, ChevronLeftIcon } from "lucide-react";
+import { SaveIcon, ChevronLeftIcon, BotIcon } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,14 +14,15 @@ import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
-import { useAtomValue } from "jotai";
-import { editorAtom, nodeSelectorOpenAtom } from "../store/atoms";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
+import { editorAtom, nodeSelectorOpenAtom, isCanvasDirtyAtom, isAgentSidebarOpenAtom } from "../store/atoms";
 import { AddNodeButton } from "./add-node-button";
 import { cn } from "@/lib/utils";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   const editor = useAtomValue(editorAtom);
   const saveWorkflow = useUpdateWorkflow();
+  const setIsCanvasDirty = useSetAtom(isCanvasDirtyAtom);
 
   const handleSave = () => {
     if (!editor) {
@@ -40,6 +41,10 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
       id: workflowId,
       nodes,
       edges,
+    }, {
+      onSuccess: () => {
+        setIsCanvasDirty(false);
+      }
     });
   }
 
@@ -57,6 +62,25 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
       </Button>
     </div>
   )
+};
+
+export const EditorAgentButton = () => {
+  const [isOpen, setIsOpen] = useAtom(isAgentSidebarOpenAtom);
+
+  return (
+    <Button
+      size="sm"
+      variant={isOpen ? "secondary" : "outline"}
+      onClick={() => setIsOpen(!isOpen)}
+      className={cn(
+        "h-12 md:h-9 shadow-sm border-gray-200 dark:border-zinc-800 transition-colors",
+        isOpen ? "bg-primary/10 text-primary border-primary/20" : "bg-white dark:bg-zinc-900 text-gray-700 dark:text-gray-300"
+      )}
+    >
+      <BotIcon className="size-4 mr-2" />
+      <span className="text-sm font-medium">Agent</span>
+    </Button>
+  );
 };
 
 export const EditorNameInput = ({ workflowId }: { workflowId: string }) => {
@@ -168,6 +192,7 @@ export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
             </div>
           </div>
           <div className="hidden md:flex items-center gap-4 shrink-0">
+            <EditorAgentButton />
             <AddNodeButton />
             <EditorSaveButton workflowId={workflowId} />
           </div>

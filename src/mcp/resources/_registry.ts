@@ -30,6 +30,8 @@ import { isChatGptAppProfile } from "@/mcp/app-profile";
 import { registerChatGptWidgetResources } from "@/mcp/apps/widget-resources";
 import { logger } from "@/lib/logging";
 
+import { hasUiCapability } from "@/mcp/shared/capability-guard";
+
 export function registerAllResources(
   server: McpServer,
   context: McpToolContext = {},
@@ -40,7 +42,9 @@ export function registerAllResources(
   registerApiDocsResource(server);
   registerCatalogResources(server);
   registerMcpAppResources(server, context);
-  if (isChatGptAppProfile(context.appProfile)) {
+
+  const supportsUi = hasUiCapability(server, context.appProfile);
+  if (supportsUi) {
     registerChatGptWidgetResources(server);
   }
 
@@ -49,8 +53,9 @@ export function registerAllResources(
       component: "mcp",
       event: "mcp_registry_registered",
       registry: "resources",
-      profile: isChatGptAppProfile(context.appProfile) ? "chatgpt" : "default",
-      count: isChatGptAppProfile(context.appProfile) ? 21 : 17,
+      profile: context.appProfile || "default",
+      uiCapability: supportsUi,
+      count: supportsUi ? 21 : 17,
       templates: 5,
     },
     "MCP resources registered.",

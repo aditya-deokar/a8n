@@ -7,7 +7,7 @@ import type {
 } from "./types";
 import type { McpContractOutputSchemaName } from "./schemas";
 
-const chatgptProfiles: McpToolProfile[] = ["default", "chatgpt"];
+const chatgptProfiles: McpToolProfile[] = ["default", "chatgpt", "embedded_agent"];
 const defaultOnly: McpToolProfile[] = ["default"];
 const chatgptOnly: McpToolProfile[] = ["chatgpt"];
 
@@ -112,10 +112,10 @@ export const MCP_TOOL_CONTRACTS: McpToolContract[] = [
   c({ name: "remove_workflow_node", domain: "workflows", source: "src/mcp/tools/workflows/workflow-versioning.tool.ts", requiredScopes: ["workflows:write"], risk: "approval_gated_write", outputSchema: "approvalResult", note: "Removes a node after validation and approval.", requiresApproval: true, exampleInput: { workflowId: "workflow-id", nodeId: "node-id", approved: true, confirmationHash: "hash" } }),
   c({ name: "move_workflow_node", domain: "workflows", source: "src/mcp/tools/workflows/workflow-versioning.tool.ts", requiredScopes: ["workflows:write"], risk: "approval_gated_write", outputSchema: "approvalResult", note: "Moves a workflow node after approval.", requiresApproval: true, exampleInput: { workflowId: "workflow-id", nodeId: "node-id", position: { x: 0, y: 0 }, approved: true, confirmationHash: "hash" } }),
 
-  c({ name: "render_workflow_draft_preview", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptOnly, requiredScopes: ["workflows:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized workflow draft preview widget.", nativeOutputSchema: true, exampleInput: { draftId: "draft-id" } }),
-  c({ name: "render_workflow_setup_checklist", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptOnly, requiredScopes: ["workflows:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized setup checklist widget.", nativeOutputSchema: true, exampleInput: { workflowId: "workflow-id" } }),
-  c({ name: "render_execution_timeline", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptOnly, requiredScopes: ["executions:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized execution timeline widget.", nativeOutputSchema: true, exampleInput: { executionId: "execution-id" } }),
-  c({ name: "render_workflow_approval", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptOnly, requiredScopes: ["workflows:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized approval widget.", nativeOutputSchema: true, exampleInput: { draftId: "draft-id" } }),
+  c({ name: "render_workflow_draft_preview", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptProfiles, requiredScopes: ["workflows:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized workflow draft preview widget.", nativeOutputSchema: true, exampleInput: { draftId: "draft-id" } }),
+  c({ name: "render_workflow_setup_checklist", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptProfiles, requiredScopes: ["workflows:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized setup checklist widget.", nativeOutputSchema: true, exampleInput: { workflowId: "workflow-id" } }),
+  c({ name: "render_execution_timeline", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptProfiles, requiredScopes: ["executions:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized execution timeline widget.", nativeOutputSchema: true, exampleInput: { executionId: "execution-id" } }),
+  c({ name: "render_workflow_approval", domain: "apps", source: "src/mcp/apps/render-tools.ts", profiles: chatgptProfiles, requiredScopes: ["workflows:read"], risk: "read_only", outputSchema: "renderWidget", note: "Renders sanitized approval widget.", nativeOutputSchema: true, exampleInput: { draftId: "draft-id" } }),
 ];
 
 export const CHATGPT_TOOL_CONTRACTS = MCP_TOOL_CONTRACTS.filter((tool) =>

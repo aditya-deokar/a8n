@@ -128,6 +128,10 @@ const envSchema = z.object({
   FEATURE_FLAG_API_CANARY_ROLLOUT_PERCENT: optionalPercent,
   FEATURE_FLAG_MCP_ENHANCED_TOOLING_ROLLOUT_PERCENT: optionalPercent,
   FEATURE_FLAG_CREDENTIAL_ROTATION_FLOW_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_EMBEDDED_AGENT_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_EMBEDDED_AGENT_APPLY_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_AGENT_LONG_TERM_MEMORY_ROLLOUT_PERCENT: optionalPercent,
+  FEATURE_FLAG_AGENT_PROVIDER_FALLBACK_ROLLOUT_PERCENT: optionalPercent,
   CANARY_ROLLOUT_PERCENT: optionalPercent,
   EXPERIMENT_EVENT_LOG_ENABLED: optionalBoolean,
   EXPERIMENT_WORKFLOW_ONBOARDING_V2_VARIANT: optionalString,
@@ -135,6 +139,38 @@ const envSchema = z.object({
   KILL_SWITCH_DISABLE_WEBHOOK_PROCESSING: optionalBoolean,
   KILL_SWITCH_DISABLE_MCP_MUTATIONS: optionalBoolean,
   KILL_SWITCH_READ_ONLY_MODE: optionalBoolean,
+  KILL_SWITCH_DISABLE_AGENT_RUNS: optionalBoolean,
+  KILL_SWITCH_DISABLE_AGENT_MUTATIONS: optionalBoolean,
+
+  OPENAI_API_KEY: optionalString,
+  GOOGLE_API_KEY: optionalString,
+
+  // LangSmith tracing
+  LANGSMITH_TRACING: optionalBoolean,
+  LANGSMITH_ENDPOINT: optionalString,
+  LANGSMITH_API_KEY: optionalString,
+  LANGSMITH_PROJECT: optionalString,
+
+  AGENT_MODEL_PROVIDER: z
+    .preprocess(emptyToUndefined, z.enum(["google", "openai", "mock"]).optional())
+    .optional(),
+  AGENT_MODEL_NAME: optionalString,
+  AGENT_FALLBACK_MODEL_NAME: optionalString,
+  AGENT_CHECKPOINT_SCHEMA: optionalString,
+  AGENT_MAX_STEPS: optionalPositiveInt,
+  AGENT_RUN_TIMEOUT_MS: optionalPositiveInt,
+  AGENT_MAX_TOOL_CALLS: optionalPositiveInt,
+  AGENT_MEMORY_TTL_DAYS: optionalPositiveInt,
+  AGENT_EMBEDDING_MODEL: optionalString,
+  AGENT_EMBEDDING_DIMENSIONS: optionalPositiveInt,
+  AGENT_TOOL_TIMEOUT_MS: optionalPositiveInt,
+  AGENT_MAX_CONCURRENT_RUNS: optionalPositiveInt,
+  AGENT_MAX_RUN_COST_USD: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().positive().optional(),
+  ).optional(),
+  AGENT_APPROVAL_EXPIRY_MINUTES: optionalPositiveInt,
+  AGENT_STALE_RUN_TIMEOUT_MS: optionalPositiveInt,
 
   MCP_APP_PROFILE: optionalString,
   MCP_AUDIT_LOG_ENABLED: optionalBoolean,

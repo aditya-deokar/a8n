@@ -99,7 +99,7 @@ jobs:
     needs: api-static
     services:
       postgres:
-        image: postgres:16
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: a8n_test
           POSTGRES_PASSWORD: a8n_test

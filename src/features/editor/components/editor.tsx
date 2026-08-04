@@ -24,10 +24,12 @@ import { useTheme } from "next-themes";
 
 import '@xyflow/react/dist/style.css';
 import { nodeComponents } from '@/config/node-components';
-import { useSetAtom } from 'jotai';
-import { editorAtom } from '../store/atoms';
+import { useSetAtom, useAtomValue } from 'jotai';
+import { editorAtom, graphModeAtom, draftPreviewAtom, isCanvasDirtyAtom } from '../store/atoms';
 import { NodeType } from '@/generated/prisma';
 import { ExecuteWorkflowButton } from './execute-workflow-button';
+import { Button } from '@/components/ui/button';
+import { CheckIcon } from 'lucide-react';
 
 export const EditorLoading = () => {
   return (
@@ -81,21 +83,49 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
   }, []);
 
   const setEditor = useSetAtom(editorAtom);
+  const setIsCanvasDirty = useSetAtom(isCanvasDirtyAtom);
+  const setGraphMode = useSetAtom(graphModeAtom);
+  const setDraftPreview = useSetAtom(draftPreviewAtom);
+  const graphMode = useAtomValue(graphModeAtom);
+  const draftPreview = useAtomValue(draftPreviewAtom);
 
   const [nodes, setNodes] = useState<Node[]>(workflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(workflow.edges);
 
+  useEffect(() => {
+    if (graphMode === "draft" && draftPreview) {
+      setNodes(draftPreview.nodes || []);
+      setEdges(draftPreview.edges || []);
+    } else if (graphMode === "live") {
+      setNodes(workflow.nodes);
+      setEdges(workflow.edges);
+    }
+  }, [graphMode, draftPreview, workflow]);
+
   const onNodesChange = useCallback(
-    (changes: NodeChange[]) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
-    [],
+    (changes: NodeChange[]) => {
+      setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
+      if (graphMode === "live" && changes.some(c => c.type !== 'select' && c.type !== 'dimensions')) {
+        setIsCanvasDirty(true);
+      }
+    },
+    [graphMode, setIsCanvasDirty],
   );
   const onEdgesChange = useCallback(
-    (changes: EdgeChange[]) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
-    [],
+    (changes: EdgeChange[]) => {
+      setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
+      if (graphMode === "live" && changes.some(c => c.type !== 'select')) {
+        setIsCanvasDirty(true);
+      }
+    },
+    [graphMode, setIsCanvasDirty],
   );
   const onConnect = useCallback(
-    (params: Connection) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    [],
+    (params: Connection) => {
+      setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+      if (graphMode === "live") setIsCanvasDirty(true);
+    },
+    [graphMode, setIsCanvasDirty],
   );
 
   const hasManualTrigger = useMemo(() => {
@@ -103,7 +133,29 @@ export const Editor = ({ workflowId }: { workflowId: string }) => {
   }, [nodes]);
 
   return (
-    <div className='size-full'>
+    <div className='size-full relative'>
+      {graphMode === "draft" && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-primary text-primary-foreground pl-4 pr-2 py-2 rounded-full shadow-lg text-sm font-semibold animate-in fade-in slide-in-from-top-4">
+          <span>Draft Preview Mode</span>
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            className="h-6 text-xs rounded-full px-3"
+            onClick={() => {
+              setGraphMode("live");
+              setDraftPreview(null);
+            }}
+          >
+            Back to Live
+          </Button>
+        </div>
+      )}
+      {graphMode === "applied" && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-full shadow-lg text-sm font-semibold animate-in fade-in slide-in-from-top-4">
+          <CheckIcon className="size-4" />
+          <span>Changes Applied</span>
+        </div>
+      )}
       <ReactFlow
         colorMode={mounted && resolvedTheme === 'dark' ? 'dark' : 'light'}
         nodes={nodes}

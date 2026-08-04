@@ -19,10 +19,11 @@ import { registerSystemTools } from "./system";
 import { registerApiKeyTools } from "./api-keys";
 import { registerIntegrationTools } from "./integrations";
 import type { McpToolContext } from "@/mcp/shared/auth-context";
-import { isChatGptAppProfile } from "@/mcp/app-profile";
+import { isChatGptAppProfile, isEmbeddedAgentProfile } from "@/mcp/app-profile";
 import { CHATGPT_APP_TOOL_COUNT } from "@/mcp/safety/app-tool-policy";
 import { registerChatGptAppTools } from "./chatgpt-profile";
 import { logger } from "@/lib/logging";
+import { registerEmbeddedAgentTools } from "./embedded-agent-profile";
 
 /**
  * Register all MCP tools from all domains.
@@ -36,6 +37,8 @@ import { logger } from "@/lib/logging";
  *   - API Keys:    3 (create, list, revoke)
  *   - Integrations: 6 (setup checklists, guides, webhooks, credential tests)
  */
+import { registerChatGptRenderTools } from "@/mcp/apps/render-tools";
+
 export function registerAllTools(
   server: McpServer,
   context: McpToolContext = {},
@@ -55,6 +58,20 @@ export function registerAllTools(
     return;
   }
 
+  if (isEmbeddedAgentProfile(context.appProfile)) {
+    registerEmbeddedAgentTools(server, context);
+    logger.info(
+      {
+        component: "mcp",
+        event: "mcp_registry_registered",
+        registry: "tools",
+        profile: "embedded_agent",
+      },
+      "MCP embedded-agent tools registered.",
+    );
+    return;
+  }
+
   registerWorkflowTools(server, context);
   registerCredentialTools(server, context);
   registerExecutionTools(server, context);
@@ -62,6 +79,7 @@ export function registerAllTools(
   registerSystemTools(server, context);
   registerApiKeyTools(server, context);
   registerIntegrationTools(server, context);
+  registerChatGptRenderTools(server, context);
 
   logger.info(
     {
@@ -69,8 +87,8 @@ export function registerAllTools(
       event: "mcp_registry_registered",
       registry: "tools",
       profile: "default",
-      count: 53,
-      domains: 7,
+      count: 57,
+      domains: 8,
     },
     "MCP tools registered.",
   );

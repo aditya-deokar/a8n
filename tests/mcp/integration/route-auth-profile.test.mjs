@@ -136,6 +136,7 @@ describe("MCP route auth and CORS integration", () => {
 describe("MCP route profile integration", () => {
   it("exposes the full default tool surface to default profile clients", async () => {
     const { routeModule } = await loadRoute({
+      corsOrigins: "https://a8n.aditya-deokar.me,https://chatgpt.com",
       authResult: {
         ok: true,
         auth: mcpAuthForUser(TEST_USERS.userA, {
@@ -148,7 +149,7 @@ describe("MCP route profile integration", () => {
     const { response, json } = await callMcpJson(routeModule, {
       id: 10,
       method: "tools/list",
-      origin: "https://chatgpt.com",
+      origin: "https://a8n.aditya-deokar.me",
       token: "default-profile-token",
     });
     const names = toolNamesFromListResponse(json);
