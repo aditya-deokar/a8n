@@ -156,4 +156,4 @@ initWidget("a8n Execution Timeline", "1.0.0", handleRender)
   .then((app) => {
     appInstance = app;
   })
-  .catch(console.error);
+  .catch(() => undefined);

@@ -115,4 +115,4 @@ initWidget("a8n Draft Preview", "1.0.0", (renderData) => {
   .then((app) => {
     setupFullscreenToggle(app);
   })
-  .catch(console.error);
+  .catch(() => undefined);

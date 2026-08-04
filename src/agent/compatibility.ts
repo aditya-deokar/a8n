@@ -5,6 +5,7 @@
  * warnings if versions are outside the tested range.
  */
 
+import fs from "node:fs";
 import { emitAgentEvent } from "@/agent/observability/tracing";
 
 /**
@@ -68,8 +69,8 @@ export function checkPackageCompatibility(): CompatibilityIssue[] {
     try {
       // Attempt to resolve the package
       const pkgPath = require.resolve(`${pkgName}/package.json`);
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const pkg = require(pkgPath) as { version?: string };
+      const pkgContent = fs.readFileSync(pkgPath, "utf8");
+      const pkg = JSON.parse(pkgContent) as { version?: string };
       const version = pkg.version;
 
       if (!version) {
