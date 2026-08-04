@@ -15,10 +15,10 @@ export function getMcpAppProfile(explicitProfile?: string | null): McpAppProfile
   return normalizeMcpAppProfile(process.env.MCP_APP_PROFILE);
 }
 
-export function isChatGptAppProfile(profile?: McpAppProfile): boolean {
+export function isChatGptAppProfile(profile?: string | null): boolean {
   return normalizeMcpAppProfile(profile) === "chatgpt";
 }
 
-export function isEmbeddedAgentProfile(profile?: McpAppProfile): boolean {
+export function isEmbeddedAgentProfile(profile?: string | null): boolean {
   return normalizeMcpAppProfile(profile) === "embedded_agent";
 }

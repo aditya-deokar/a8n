@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "add-app-to-server": {
+      "source": "modelcontextprotocol/ext-apps",
+      "sourceType": "github",
+      "skillPath": "plugins/mcp-apps/skills/add-app-to-server/SKILL.md",
+      "computedHash": "e9441d0b6a4eedf016903b78648e25234d5fd40e191124e1a1d1e56e71e9a4f4"
+    },
+    "convert-web-app": {
+      "source": "modelcontextprotocol/ext-apps",
+      "sourceType": "github",
+      "skillPath": "plugins/mcp-apps/skills/convert-web-app/SKILL.md",
+      "computedHash": "9e2171bff4ea0d0cf82c8cae3ec6c600c8f3ebd41de73cc8a778ef2cd694ade0"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

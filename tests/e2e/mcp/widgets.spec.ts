@@ -65,7 +65,7 @@ async function installOpenAiBridge(
 
 async function loadWidget(page: Page, kind: ChatGptWidgetKind, details: unknown) {
   await installOpenAiBridge(page, kind, details);
-  await page.setContent(renderChatGptWidgetHtml(kind), { waitUntil: "load" });
+  await page.setContent(await renderChatGptWidgetHtml(kind), { waitUntil: "load" });
   await expect(page.locator("main")).toBeVisible();
 }
 

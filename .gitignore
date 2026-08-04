@@ -20,6 +20,7 @@
 
 # production
 /build
+/dist/mcp-apps
 
 # misc
 .DS_Store

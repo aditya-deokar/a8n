@@ -36,6 +36,8 @@ import {
   registerWhoami,
 } from "./system/system-tools";
 
+import { registerChatGptRenderTools } from "@/mcp/apps/render-tools";
+
 /**
  * Narrow, first-party profile for the embedded agent.
  *
@@ -81,4 +83,7 @@ export function registerEmbeddedAgentTools(
   registerValidateWorkflowDraft(server, context);
   registerPreviewWorkflowDiff(server, context);
   registerApplyWorkflowDraft(server, context);
+
+  // Register interactive MCP App widget render tools
+  registerChatGptRenderTools(server, context);
 }
