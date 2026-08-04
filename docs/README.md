@@ -157,6 +157,7 @@ Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to 
 | **[DEPLOYMENT.md](./DEPLOYMENT.md)** | Deployment guide and production checklist |
 | **[CONTRIBUTING.md](./CONTRIBUTING.md)** | Contributing guidelines and development workflow |
 | **[mcp/](./mcp/README.md)** | MCP server — protocol, architecture, tools, security, operations |
+| **[mcp-client-agent/](./mcp-client-agent/README.md)** | Autonomous Agent, External Clients & Standardized MCP Apps Architecture |
 | **[adr/](./adr/)** | Architecture Decision Records |
 
 ---
