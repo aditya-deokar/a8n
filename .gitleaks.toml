@@ -1,0 +1,9 @@
+# Gitleaks security scanner configuration
+
+[allowlist]
+description = "Ignore synthetic test vectors and mock security test fixtures"
+paths = [
+  '''src/agent/__tests__/.*''',
+  '''src/agent/eval/.*''',
+  '''tests/.*'''
+]

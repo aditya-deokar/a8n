@@ -71,7 +71,7 @@
     "api:release:gate": "tsx scripts/api-release-gate.ts",
     "test:backend": "pnpm test:mcp && pnpm test:api",
     "test:backend:coverage": "pnpm test:mcp:coverage && pnpm test:api:coverage",
-    "test:mcp": "vitest run --config vitest.config.mjs tests/mcp",
+    "test:mcp": "pnpm build:mcp-apps-ui && vitest run --config vitest.config.mjs tests/mcp",
     "test:mcp:coverage": "vitest run --config vitest.config.mjs --coverage tests/mcp",
     "test:mcp:e2e": "playwright test --config playwright.config.mjs mcp",
     "test:api:e2e": "playwright test --config playwright.api-e2e.config.mjs",
@@ -238,5 +238,12 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "tar": ">=7.5.19"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.14",
+      "@types/react-dom": "19.2.3",
+      "tar": ">=7.5.19"
+    }
   }
 }

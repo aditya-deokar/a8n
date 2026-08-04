@@ -136,6 +136,7 @@ describe("MCP route auth and CORS integration", () => {
 describe("MCP route profile integration", () => {
   it("exposes the full default tool surface to default profile clients", async () => {
     const { routeModule } = await loadRoute({
+      corsOrigins: "https://a8n.aditya-deokar.me,https://chatgpt.com",
       authResult: {
         ok: true,
         auth: mcpAuthForUser(TEST_USERS.userA, {
