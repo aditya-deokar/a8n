@@ -158,6 +158,7 @@ Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to 
 | **[CONTRIBUTING.md](./CONTRIBUTING.md)** | Contributing guidelines and development workflow |
 | **[mcp/](./mcp/README.md)** | MCP server — protocol, architecture, tools, security, operations |
 | **[mcp-client-agent/](./mcp-client-agent/README.md)** | Autonomous Agent, External Clients & Standardized MCP Apps Architecture |
+| **[mcp-client-agent/agent-architecture.md](./mcp-client-agent/agent-architecture.md)** | Autonomous Agent Engine — LangGraph state machine, dual memory (`pgvector`) & safety |
 | **[adr/](./adr/)** | Architecture Decision Records |
 
 ---

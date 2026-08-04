@@ -2,7 +2,8 @@
 
 > **Document Version**: 1.0.0  
 > **Target Audience**: Core Engineers, System Architects, MCP Tool Developers, Integration Engineers  
-> **Scope**: End-to-End Architectural Deep-Dive on Agent Orchestration, External Host Clients, MCP Server Protocol, `@modelcontextprotocol/ext-apps` Integration, and Sandboxed UI Rendering in a8n.
+> **Scope**: End-to-End Architectural Deep-Dive on Agent Orchestration, External Host Clients, MCP Server Protocol, `@modelcontextprotocol/ext-apps` Integration, and Sandboxed UI Rendering in a8n.  
+> 📘 **Dedicated Subsystem Deep-Dive**: For complete LangGraph state machine node handlers, dual memory (`pgvector`), and safety implementation, see **[Autonomous Agent Architecture](./agent-architecture.md)**.
 
 ---
 
