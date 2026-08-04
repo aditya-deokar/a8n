@@ -27,6 +27,8 @@ type SecretFinding = {
 const SCAN_ROOTS = ["src", "scripts", "tests/load", ".github", "docs/DevOps", "prisma"];
 const IGNORED_PARTS = [
   "src/generated",
+  "src/agent/__tests__",
+  "src/agent/eval",
   "node_modules",
   ".git",
   "coverage",

@@ -37,6 +37,8 @@ import { registerEmbeddedAgentTools } from "./embedded-agent-profile";
  *   - API Keys:    3 (create, list, revoke)
  *   - Integrations: 6 (setup checklists, guides, webhooks, credential tests)
  */
+import { registerChatGptRenderTools } from "@/mcp/apps/render-tools";
+
 export function registerAllTools(
   server: McpServer,
   context: McpToolContext = {},
@@ -77,6 +79,7 @@ export function registerAllTools(
   registerSystemTools(server, context);
   registerApiKeyTools(server, context);
   registerIntegrationTools(server, context);
+  registerChatGptRenderTools(server, context);
 
   logger.info(
     {
@@ -84,8 +87,8 @@ export function registerAllTools(
       event: "mcp_registry_registered",
       registry: "tools",
       profile: "default",
-      count: 53,
-      domains: 7,
+      count: 57,
+      domains: 8,
     },
     "MCP tools registered.",
   );

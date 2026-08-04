@@ -148,7 +148,7 @@ describe("MCP route profile integration", () => {
     const { response, json } = await callMcpJson(routeModule, {
       id: 10,
       method: "tools/list",
-      origin: "https://chatgpt.com",
+      origin: "https://a8n.io",
       token: "default-profile-token",
     });
     const names = toolNamesFromListResponse(json);

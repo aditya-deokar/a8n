@@ -132,6 +132,61 @@ export const apiProcedureCases = [
     access: "protected",
     call: (caller) => caller.mcp.revokeOAuthConnection({ clientId: "client_a" }),
   },
+  {
+    path: "agent.createThread",
+    access: "protected",
+    call: (caller) => caller.agent.createThread({ title: "New thread" }),
+  },
+  {
+    path: "agent.getThread",
+    access: "protected",
+    call: (caller) => caller.agent.getThread({ threadId: "thread_a" }),
+  },
+  {
+    path: "agent.listThreads",
+    access: "protected",
+    call: (caller) => caller.agent.listThreads({ limit: 10 }),
+  },
+  {
+    path: "agent.archiveThread",
+    access: "protected",
+    call: (caller) => caller.agent.archiveThread({ threadId: "thread_a" }),
+  },
+  {
+    path: "agent.ensureThread",
+    access: "protected",
+    call: (caller) => caller.agent.ensureThread({ threadId: "thread_a" }),
+  },
+  {
+    path: "agent.listMemories",
+    access: "protected",
+    call: (caller) => caller.agent.listMemories({ limit: 10 }),
+  },
+  {
+    path: "agent.deleteMemory",
+    access: "protected",
+    call: (caller) => caller.agent.deleteMemory({ memoryId: "mem_a" }),
+  },
+  {
+    path: "agent.deleteAllMemories",
+    access: "protected",
+    call: (caller) => caller.agent.deleteAllMemories(),
+  },
+  {
+    path: "agent.listPendingApprovals",
+    access: "protected",
+    call: (caller) => caller.agent.listPendingApprovals(),
+  },
+  {
+    path: "agent.approveApproval",
+    access: "protected",
+    call: (caller) => caller.agent.approveApproval({ approvalId: "appr_a" }),
+  },
+  {
+    path: "agent.rejectApproval",
+    access: "protected",
+    call: (caller) => caller.agent.rejectApproval({ approvalId: "appr_a" }),
+  },
 ];
 
 export const expectedApiProcedurePaths = apiProcedureCases.map((item) => item.path).sort();
