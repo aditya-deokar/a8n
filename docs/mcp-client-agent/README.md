@@ -63,8 +63,8 @@ graph TD
         ExtAppsServer --- Widgets
     end
 
-    Layer1 <--->|Tool Calls & JSON-RPC| Layer3
-    Layer2 <--->|SSE / HTTP / PostMessage| Layer3
+    Graph <-->|Tool Calls & JSON-RPC| MCPServer
+    ChatGPT <-->|SSE / HTTP / PostMessage| MCPServer
 ```
 
 ---
@@ -155,7 +155,7 @@ graph TB
         end
         
         IFrameFrame --- WidgetContainer
-        HostSDK <--->|window.postMessage()| PostMessage
+        HostSDK <-->|postMessage API| PostMessage
     end
 
     subgraph ServerContainer ["⚡ a8n MCP Server"]
@@ -167,7 +167,7 @@ graph TB
         ResourceRegistry --- HTMLProvider
     end
 
-    HostSDK <--->|HTTP / JSON-RPC| ServerContainer
+    HostSDK <-->|HTTP / JSON-RPC| ToolRegistry
 ```
 
 ### Standardized Registration APIs
@@ -241,7 +241,7 @@ sequenceDiagram
     %% Phase 3: UI Tool Invocation & Widget Loading
     Agent->>Host: Call render_workflow_draft_preview({ draftId: "draft-123" })
     Host->>MCP: POST /api/mcp { method: "resources/read", uri: "ui://a8n/workflow-draft-preview.html" }
-    MCP-->>Host: Return single-file HTML bundle (text/html;profile=mcp-app)
+    MCP-->>Host: Return single-file HTML bundle (profile: mcp-app)
     Host->>Widget: Mount iframe & load HTML bundle
     Host->>Widget: Send ontoolinput event with draft JSON data
     Widget->>Widget: Render DOM, DAG graph steps, and validation badge

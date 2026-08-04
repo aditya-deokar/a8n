@@ -44,23 +44,23 @@ The platform includes a complete SaaS stack: user authentication (email/password
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Tech Stack & Key Libraries
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| **Framework** | Next.js 16 (App Router) | Full-stack React framework with RSC, streaming, Turbopack |
-| **Frontend** | React 19 | UI library with Server Components and React Compiler |
-| **Language** | TypeScript 6 | Static typing with strict mode |
-| **API** | tRPC v11 | End-to-end type-safe API layer |
-| **Database** | PostgreSQL (Neon) | Serverless PostgreSQL with connection pooling |
-| **ORM** | Prisma v7 | Type-safe database client with Neon adapter |
-| **Auth** | Better Auth v1.6 | Lightweight auth with social providers and plugins |
-| **Payments** | Polar.sh | Subscription billing and customer management |
-| **Execution Engine** | Inngest v4 | Durable event-driven workflow execution |
-| **UI Components** | shadcn/ui | 53 Radix-based accessible components |
-| **Workflow Editor** | React Flow (XYFlow v12) | Interactive DAG graph editor |
-| **State Management** | Jotai + TanStack Query + nuqs | Client, server, and URL state |
-| **Styling** | Tailwind CSS v4 | Utility-first CSS framework |
+| Category | Technology / Library | Version | Purpose |
+|---|---|---|---|
+| **Framework** | Next.js (`next` App Router) | `16.2.6` | Full-stack React framework with RSC, Turbopack, and API routes |
+| **Frontend Core** | React / React DOM | `19.2.4` | UI library with Server Components |
+| **Language & Engine** | TypeScript / Node.js | `6.0.2` / `^24` | Static typing with strict mode across full stack |
+| **API Layer** | tRPC (`@trpc/server`, `@trpc/client`) | `11.16.0` | End-to-end type-safe API layer |
+| **Database & ORM** | Prisma / Neon Database | `7.7.0` / `1.0.2` | Type-safe database ORM with Neon serverless driver & `pgvector` |
+| **AI Agent Engine** | LangGraph / LangChain Core | `1.4.8` / `1.2.3` | State-graph autonomous AI agent orchestration |
+| **Multi-Provider AI** | Vercel AI SDK (`ai`, OpenAI, Anthropic, Gemini) | `6.0.153` / `3.0.x` | Unified LLM providers |
+| **MCP Apps** | `@modelcontextprotocol/ext-apps` | `1.7.5` | Standardized MCP Apps tools, resources & PostMessage bridge |
+| **Execution Engine** | Inngest (`inngest`) | `4.2.0` | Durable event-driven workflow execution & retries |
+| **Auth & Billing** | Better Auth / Polar.sh | `1.6.11` / `0.47.0` | Authentication & subscription billing management |
+| **Workflow Editor** | React Flow (`@xyflow/react`) | `12.10.2` | Visual DAG workflow editor |
+| **State Management** | TanStack Query / Jotai / nuqs | `5.96` / `2.19` / `2.8` | Cache, atom, and URL state management |
+| **Styling & UI** | Tailwind CSS / Radix UI | `4.0` / `1.6.7` | Utility-first CSS & 53 Radix-based accessible UI components |
 
 > 📘 For detailed rationale behind each technology choice, see [TECH_STACK.md](./TECH_STACK.md)
 
