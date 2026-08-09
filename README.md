@@ -1,8 +1,10 @@
 <div align="center">
 
-# ⚡ a8n
+<h1 align="center">
+  <img src="./src/app/icon.svg" height="42" valign="middle" alt="a8n logo" /> &nbsp;a8n
+</h1>
 
-### AI-Native Workflow Automation & MCP Apps Platform
+### AI-Native Workflow Automation Platform
 
 Build, connect, and execute intelligent automation workflows via visual DAG editor, autonomous AI agents, and standardized MCP App UIs.
 

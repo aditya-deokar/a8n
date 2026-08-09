@@ -1,0 +1,182 @@
+/* ─── Agent Chat Interface Styles ─────────────────────────── */
+
+/* Typing indicator — three bouncing dots */
+@keyframes agent-typing-dot {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.agent-typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 0;
+}
+
+.agent-typing-indicator span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #5c54a4;
+  animation: agent-typing-dot 1.4s ease-in-out infinite;
+}
+
+.agent-typing-indicator span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.agent-typing-indicator span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+:is(.dark) .agent-typing-indicator span {
+  background: #9187ce;
+}
+
+/* Message slide-in animation */
+@keyframes agent-msg-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.agent-msg-enter {
+  animation: agent-msg-slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Tool activity shimmer */
+@keyframes agent-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.agent-tool-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    rgba(92, 84, 164, 0.08) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: agent-shimmer 2s ease-in-out infinite;
+}
+
+:is(.dark) .agent-tool-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    rgba(145, 135, 206, 0.08) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Approval card pulse glow */
+@keyframes agent-approval-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(92, 84, 164, 0);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px rgba(92, 84, 164, 0.15);
+  }
+}
+
+.agent-approval-pulse {
+  animation: agent-approval-glow 2.5s ease-in-out infinite;
+}
+
+/* Thread list item hover */
+.agent-thread-item {
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Scrollbar styling for message area */
+.agent-messages-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.agent-messages-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.agent-messages-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.agent-messages-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+:is(.dark) .agent-messages-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+:is(.dark) .agent-messages-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Cursor blink for streaming */
+@keyframes agent-cursor-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.agent-cursor {
+  animation: agent-cursor-blink 1s step-end infinite;
+  color: #5c54a4;
+}
+
+:is(.dark) .agent-cursor {
+  color: #9187ce;
+}
+
+/* Success confetti-like pulse on workflow applied */
+@keyframes agent-success-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.agent-success-enter {
+  animation: agent-success-pulse 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Composer focus ring */
+.agent-composer-textarea:focus-within {
+  border-color: #5c54a4;
+  box-shadow: 0 0 0 3px rgba(92, 84, 164, 0.1);
+}
+
+:is(.dark) .agent-composer-textarea:focus-within {
+  border-color: #9187ce;
+  box-shadow: 0 0 0 3px rgba(145, 135, 206, 0.15);
+}

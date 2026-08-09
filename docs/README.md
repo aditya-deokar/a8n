@@ -1,6 +1,8 @@
 <div align="center">
 
-# ⚡ a8n
+<h1 align="center">
+  <img src="../src/app/icon.svg" height="42" valign="middle" alt="a8n logo" /> &nbsp;a8n
+</h1>
 
 ### AI-Powered Workflow Automation Platform
 

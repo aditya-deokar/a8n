@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback, FormEvent } from "react";
+import { useEffect, useState, useRef, useCallback, type FormEvent } from "react";
 import { useTRPC } from "@/trpc/client";
 import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import { isAgentSidebarOpenAtom, graphModeAtom, isCanvasDirtyAtom, draftPreviewAtom } from "../store/atoms";
@@ -20,32 +20,14 @@ import {
   ShieldAlertIcon
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { AgentEvent } from "@/agent/api/events";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AgentMemoryPanel } from "./agent-memory-panel";
+import { useAgentStream } from "@/features/agent/hooks/use-agent-stream";
+import { useAgentApprovals } from "@/features/agent/hooks/use-agent-approvals";
+import { useEnsureAgentThread } from "@/features/agent/hooks/use-agent-thread";
 
-
-// ─── Types ───────────────────────────────────────────────────
-
-interface ToolActivity {
-  name: string;
-  status: "running" | "completed" | "failed";
-  startedAt: number;
-}
-
-interface ChatMessage {
-  id: string;
-  role: "user" | "agent";
-  text: string;
-  isStreaming?: boolean;
-  approvalId?: string;
-  preview?: any;
-  toolActivity?: ToolActivity[];
-  error?: { code: string; message: string };
-  runStatus?: "started" | "completed" | "failed" | "cancelled";
-}
 
 type SidebarView = "chat" | "memory";
 
@@ -62,17 +44,44 @@ export function AgentSidebar({ workflowId }: { workflowId: string }) {
   
   const [threadId, setThreadId] = useState<string | null>(null);
   const [view, setView] = useState<SidebarView>("chat");
-
-  const ensureThread = useMutation(trpc.agent.ensureThread.mutationOptions({
-    onSuccess: (data: any) => setThreadId(data.id),
-  }));
-  const approveMutation = useMutation(trpc.agent.approveApproval.mutationOptions());
-  const rejectMutation = useMutation(trpc.agent.rejectApproval.mutationOptions());
-
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // ─── Shared hooks ───
+
+  const ensureThread = useEnsureAgentThread();
+
+  const { messages, isLoading, sendMessage, updateMessage } = useAgentStream({
+    threadId,
+    onDraftPreviewed: (preview) => {
+      setDraftPreview(preview as { nodes?: any[], edges?: any[] });
+      setGraphMode("draft");
+    },
+    onWorkflowApplied: () => {
+      setGraphMode("applied");
+      queryClient.invalidateQueries(trpc.workflows.getOne.queryOptions({ id: workflowId }));
+      toast.success("Agent changes applied successfully!");
+      setTimeout(() => setGraphMode("live"), 2000);
+    },
+    onSafetyBlocked: (error) => {
+      toast.error("Message blocked by safety policy", {
+        description: error.message,
+        icon: <ShieldAlertIcon className="size-4" />,
+      });
+    },
+  });
+
+  const { approve, reject } = useAgentApprovals({
+    onBeforeApprove: () => {
+      if (isCanvasDirty) {
+        toast.error("You have unsaved changes on the canvas. Please save them before applying a draft.");
+        return false;
+      }
+      return true;
+    },
+  });
+
+  // ─── Thread lifecycle ───
 
   // Load thread on mount
   useEffect(() => {
@@ -100,172 +109,28 @@ export function AgentSidebar({ workflowId }: { workflowId: string }) {
     }
   }, [isOpen, view]);
 
-  // ─── SSE Stream Handler ───
+  // ─── Handlers ───
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !threadId || isLoading) return;
-
-    const userMessage = input;
+    if (!input.trim()) return;
+    const text = input;
     setInput("");
-    setIsLoading(true);
-    const msgId = Date.now().toString();
-
-    setMessages(prev => [...prev, { id: `user-${msgId}`, role: "user", text: userMessage }]);
-    setMessages(prev => [...prev, { 
-      id: `agent-${msgId}`, role: "agent", text: "", 
-      isStreaming: true, toolActivity: [], runStatus: "started" 
-    }]);
-
-    try {
-      const response = await fetch(`/api/agent/threads/${threadId}/runs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, clientMessageId: msgId }),
-      });
-
-      // Handle non-SSE error responses (safety blocks, validation errors)
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ code: "UNKNOWN", message: "Agent request failed." }));
-        
-        if (errorData.code === "AGENT_SAFETY_BLOCKED") {
-          toast.error("Message blocked by safety policy", {
-            description: errorData.message,
-            icon: <ShieldAlertIcon className="size-4" />,
-          });
-        }
-
-        setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { 
-          ...m, text: "", isStreaming: false, 
-          error: { code: errorData.code, message: errorData.message },
-          runStatus: "failed",
-        } : m));
-        setIsLoading(false);
-        return;
-      }
-
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let agentText = "";
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        if (value) {
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            // Handle SSE error events
-            if (line.startsWith('event: error')) {
-              continue; // The data line follows
-            }
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.substring(6)) as AgentEvent;
-
-                switch (data.type) {
-                  case "message.delta":
-                    agentText += data.payload.text || "";
-                    setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { ...m, text: agentText } : m));
-                    break;
-
-                  case "tool.call.started":
-                    setMessages(prev => prev.map(m => {
-                      if (m.id !== `agent-${msgId}`) return m;
-                      const activity: ToolActivity = {
-                        name: data.payload.toolName as string,
-                        status: "running",
-                        startedAt: Date.now(),
-                      };
-                      return { ...m, toolActivity: [...(m.toolActivity || []), activity] };
-                    }));
-                    break;
-
-                  case "tool.call.completed":
-                    setMessages(prev => prev.map(m => {
-                      if (m.id !== `agent-${msgId}`) return m;
-                      const updated = (m.toolActivity || []).map(ta =>
-                        ta.name === data.payload.toolName && ta.status === "running"
-                          ? { ...ta, status: "completed" as const }
-                          : ta
-                      );
-                      return { ...m, toolActivity: updated };
-                    }));
-                    break;
-
-                  case "approval.requested":
-                    setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { ...m, approvalId: data.payload.approvalId as string } : m));
-                    break;
-
-                  case "draft.updated":
-                    if (data.payload.status === "previewed" && data.payload.preview) {
-                      setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { ...m, preview: data.payload.preview } : m));
-                      setDraftPreview(data.payload.preview as { nodes?: any[], edges?: any[] });
-                      setGraphMode("draft");
-                    }
-                    break;
-
-                  case "workflow.applied":
-                    setGraphMode("applied");
-                    queryClient.invalidateQueries(trpc.workflows.getOne.queryOptions({ id: workflowId }));
-                    toast.success("Agent changes applied successfully!");
-                    setTimeout(() => setGraphMode("live"), 2000);
-                    break;
-
-                  case "run.completed":
-                    setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { ...m, runStatus: "completed" } : m));
-                    break;
-
-                  case "run.failed":
-                    setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? {
-                      ...m,
-                      runStatus: "failed",
-                      error: {
-                        code: (data.payload.code as string) || "AGENT_RUN_FAILED",
-                        message: (data.payload.message as string) || "The agent run failed.",
-                      },
-                    } : m));
-                    break;
-
-                  case "run.cancelled":
-                    setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { ...m, runStatus: "cancelled" } : m));
-                    break;
-                }
-              } catch (err) {
-                // Ignore parse errors on incomplete chunks
-              }
-            }
-          }
-        }
-      }
-    } catch (err) {
-      setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { 
-        ...m, text: m.text + "\n*(Error communicating with agent)*",
-        runStatus: "failed",
-      } : m));
-    } finally {
-      setMessages(prev => prev.map(m => m.id === `agent-${msgId}` ? { ...m, isStreaming: false } : m));
-      setIsLoading(false);
-    }
+    await sendMessage(text);
   };
 
-  // ─── Approval Handlers ───
-
   const handleApprove = async (approvalId: string, messageId: string) => {
-    if (isCanvasDirty) {
-      toast.error("You have unsaved changes on the canvas. Please save them before applying a draft.");
-      return;
+    const success = await approve(approvalId);
+    if (success) {
+      updateMessage(messageId, { approvalId: undefined });
     }
-    await approveMutation.mutateAsync({ approvalId });
-    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, approvalId: undefined } : m));
   };
 
   const handleReject = async (approvalId: string, messageId: string) => {
-    await rejectMutation.mutateAsync({ approvalId, reason: "User rejected from UI" });
-    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, approvalId: undefined } : m));
+    const success = await reject(approvalId, "User rejected from UI");
+    if (success) {
+      updateMessage(messageId, { approvalId: undefined });
+    }
   };
 
   const handleBackToLive = useCallback(() => {
