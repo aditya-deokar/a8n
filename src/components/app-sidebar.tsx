@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BotIcon,
   CreditCardIcon,
   FolderOpenIcon,
   HistoryIcon,
@@ -49,6 +50,11 @@ const menuItems = [
         title: "MCP Server",
         icon: ServerIcon,
         url: "/mcp",
+      },
+      {
+        title: "Agent",
+        icon: BotIcon,
+        url: "/agent",
       },
     ],
   }

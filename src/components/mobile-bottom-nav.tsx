@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FolderOpenIcon, KeyIcon, HistoryIcon, ServerIcon } from "lucide-react";
+import { FolderOpenIcon, KeyIcon, HistoryIcon, ServerIcon, BotIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +21,7 @@ const menuItems = [
   { title: "Credentials", icon: KeyIcon, url: "/credentials" },
   { title: "Executions", icon: HistoryIcon, url: "/executions" },
   { title: "MCP Server", icon: ServerIcon, url: "/mcp" },
+  { title: "Agent", icon: BotIcon, url: "/agent" },
 ];
 
 export const MobileBottomNav = () => {

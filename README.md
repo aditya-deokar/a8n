@@ -1,8 +1,10 @@
 <div align="center">
 
-# ⚡ a8n
+<h1 align="center">
+  <img src="./src/app/icon.svg" height="42" valign="middle" alt="a8n logo" /> &nbsp;a8n
+</h1>
 
-### AI-Native Workflow Automation & MCP Apps Platform
+### AI-Native Workflow Automation Platform
 
 Build, connect, and execute intelligent automation workflows via visual DAG editor, autonomous AI agents, and standardized MCP App UIs.
 
@@ -167,7 +169,7 @@ graph LR
     end
 
     AppSDK <-->|PostMessageTransport| RegTool
-    AppSDK <-->|callServerTool()| RegRes
+    AppSDK <-->|callServerTool API| RegRes
     RegRes --- ViteBuild
     Capability --- RegTool
 ```
@@ -355,6 +357,7 @@ For detailed guides, refer to the [`docs/`](./docs/README.md) directory:
 - 📐 **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — System design, request lifecycle, design principles
 - 🔌 **[MCP Server Specification](./docs/mcp/README.md)** — MCP protocol, tools, safety, and ext-apps integration
 - 🧠 **[Agent, Client & MCP App Architecture](./docs/mcp-client-agent/README.md)** — End-to-end flow diagrams for Agent, Client Hosts, and MCP App UIs
+- 🤖 **[Autonomous Agent Architecture](./docs/mcp-client-agent/agent-architecture.md)** — LangGraph state machine graph, dual memory (`pgvector`), and risk safety system
 - 📋 **[Ext-Apps Integration Plan](./docs/mcp/mcp-apps/13-ext-apps-integration-plan.md)** — 9-phase migration to `@modelcontextprotocol/ext-apps`
 - 💾 **[DATABASE.md](./docs/DATABASE.md)** — Schema reference, ERD, and migration guide
 - 🔌 **[API_REFERENCE.md](./docs/API_REFERENCE.md)** — tRPC routers, procedures, and schemas
