@@ -1,12 +1,16 @@
 import prisma from "@/lib/db";
-import { createTRPCRouter, premiumProcedure, protectedProcedure } from "@/trpc/init";
+import {
+  createTRPCRouter,
+  credentialQuotaProcedure,
+  protectedProcedure,
+} from "@/trpc/init";
 import z from "zod";
 import { PAGINATION } from "@/config/constants";
 import { CredentialType } from "@/generated/prisma";
 import { encrypt } from "@/lib/encryption";
 
 export const credentialsRouter = createTRPCRouter({
-  create: premiumProcedure
+  create: credentialQuotaProcedure
     .input(
       z.object({
         name: z.string().min(1, "Name is required"),
@@ -17,14 +21,16 @@ export const credentialsRouter = createTRPCRouter({
     .mutation(({ ctx, input }) => {
       const { name, value, type } = input;
 
-      return prisma.credential.create({
-        data: {
-          name,
-          userId: ctx.auth.user.id,
-          type,
-          value: encrypt(value),
-        },
-      });
+      return ctx.withQuotaSlot((tx) =>
+        tx.credential.create({
+          data: {
+            name,
+            userId: ctx.auth.user.id,
+            type,
+            value: encrypt(value),
+          },
+        }),
+      );
   }),
   remove: protectedProcedure
     .input(z.object({ id: z.string() }))

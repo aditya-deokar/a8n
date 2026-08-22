@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { AgentError } from "@/agent/errors";
 import { streamAgentRun } from "@/agent/service";
 import { encodeSseEvent } from "@/agent/api/events";
+import { QuotaExceededError } from "@/lib/entitlements/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -91,6 +92,13 @@ export async function POST(
       },
     });
   } catch (error) {
+    if (error instanceof QuotaExceededError) {
+      return Response.json(
+        { error: "QUOTA_EXCEEDED", ...error.toPayload() },
+        { status: 402 },
+      );
+    }
+
     const agentError =
       error instanceof AgentError
         ? error

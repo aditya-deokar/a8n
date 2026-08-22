@@ -1,6 +1,11 @@
 import { isE2EMode } from "@/lib/e2e-safety";
 
-export type E2EFaultName = "prisma" | "inngest" | "polar";
+export type E2EFaultName =
+  | "prisma"
+  | "inngest"
+  | "polar"
+  | "polar-webhook"
+  | "quota-db";
 
 const globalForE2EFaults = globalThis as unknown as {
   e2eFaults?: Set<E2EFaultName>;

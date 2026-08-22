@@ -2,13 +2,16 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useAgentStream } from "@/features/agent/hooks/use-agent-stream";
+import {
+  useAgentStream,
+  type QuotaExceededDetails,
+} from "@/features/agent/hooks/use-agent-stream";
 import { useAgentApprovals } from "@/features/agent/hooks/use-agent-approvals";
 import { useCreateAgentThread, useEnsureAgentThread } from "@/features/agent/hooks/use-agent-thread";
 import { AgentThreadList } from "./agent-thread-list";
 import { AgentThreadHeader } from "./agent-thread-header";
 import { AgentMessageList } from "./agent-message-list";
-import { AgentComposer } from "./agent-composer";
+import { AgentComposer, type QuotaBannerData } from "./agent-composer";
 import { AgentEmptyState } from "./agent-empty-state";
 import { AgentWorkflowPicker } from "./agent-workflow-picker";
 import { AgentErrorBoundary } from "./agent-error-boundary";
@@ -28,6 +31,7 @@ function AgentChatPageInner() {
   const [isWorkflowPickerOpen, setIsWorkflowPickerOpen] = useState(false);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
   const [selectedWorkflowName, setSelectedWorkflowName] = useState<string | null>(null);
+  const [quotaNotice, setQuotaNotice] = useState<QuotaBannerData | null>(null);
 
   // ─── Thread management ───
   const ensureThread = useEnsureAgentThread();
@@ -64,6 +68,17 @@ function AgentChatPageInner() {
           icon: <ShieldAlertIcon className="size-4" />,
         });
       },
+      onQuotaExceeded: (details: QuotaExceededDetails) => {
+        if (details.feature !== "agent_chat") return;
+        setQuotaNotice({
+          used: details.used,
+          limit: details.limit,
+          resetAt: details.windowResetAt,
+        });
+        toast.info("Monthly chat limit reached", {
+          description: "Upgrade to Pro for 500 chats per month.",
+        });
+      },
     });
 
   // ─── Approvals ───
@@ -95,6 +110,7 @@ function AgentChatPageInner() {
       if (threadId === activeThreadId) return;
       setActiveThreadId(threadId);
       clearMessages();
+      setQuotaNotice(null);
       setIsMobileThreadListOpen(false);
     },
     [activeThreadId, clearMessages],
@@ -104,6 +120,7 @@ function AgentChatPageInner() {
     (threadId: string) => {
       setActiveThreadId(threadId);
       clearMessages();
+      setQuotaNotice(null);
       setIsMobileThreadListOpen(false);
     },
     [clearMessages],
@@ -243,6 +260,7 @@ function AgentChatPageInner() {
               isLoading={isLoading}
               disabled={!activeThreadId}
               workflowName={selectedWorkflowName}
+              quotaNotice={quotaNotice}
             />
           </div>
 

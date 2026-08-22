@@ -26,6 +26,19 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import { useHasActiveSubscription } from "@/features/subscriptions/hooks/use-subscription";
+import { useEntitlementSnapshot } from "@/features/subscriptions/hooks/use-entitlement-snapshot";
+
+function formatResetDate(iso: string | null): string | null {
+  if (!iso) return null;
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return null;
+  }
+}
 
 const menuItems = [
   {
@@ -123,6 +136,7 @@ export const AppSidebar = () => {
         ))}
       </SidebarContent>
       <SidebarFooter className="pb-6 px-3">
+        <UsageMeter onUpgrade={() => authClient.checkout({ slug: "pro" })} />
         <SidebarMenu className="gap-y-2">
           {!hasActiveSubscription && !isLoading && (
             <SidebarMenuItem>
@@ -167,3 +181,78 @@ export const AppSidebar = () => {
     </Sidebar>
   );
 };
+
+// ─── Usage meter + grandfathered banner ─────────────────────
+
+interface UsageMeterProps {
+  onUpgrade: () => void;
+}
+
+function UsageMeter({ onUpgrade }: UsageMeterProps) {
+  const { data: snapshot, isError, isLoading } = useEntitlementSnapshot();
+
+  // Meters are cosmetic — render nothing while loading or on errors so a
+  // billing hiccup never breaks the sidebar.
+  if (isLoading || isError || !snapshot) return null;
+
+  const rows: Array<{ label: string; used: number; limit: number | null }> = [
+    { label: "Workflows", used: snapshot.workflows.used, limit: snapshot.workflows.limit },
+    { label: "Credentials", used: snapshot.credentials.used, limit: snapshot.credentials.limit },
+    { label: "Chats", used: snapshot.chats.used, limit: snapshot.chats.limit },
+  ].filter((row) => row.limit !== null);
+
+  const resetLabel = formatResetDate(snapshot.chats.windowResetAt);
+  const isOverWorkflowLimit =
+    snapshot.workflows.limit !== null &&
+    snapshot.workflows.used > snapshot.workflows.limit;
+
+  return (
+    <div className="mb-3 rounded-xl bg-white/10 px-3 py-2.5 text-white">
+      <div className="space-y-1.5">
+        {rows.map((row) => {
+          const atLimit = row.limit !== null && row.used >= row.limit;
+          const overLimit = row.limit !== null && row.used > row.limit;
+          return (
+            <div
+              key={row.label}
+              className="flex items-center justify-between text-[11px] leading-none"
+            >
+              <span className={overLimit ? "font-medium text-amber-200" : "text-white/80"}>
+                {row.label}
+              </span>
+              <span
+                className={`tabular-nums ${
+                  overLimit
+                    ? "text-amber-300 font-medium"
+                    : atLimit
+                      ? "text-rose-200 font-medium"
+                      : "text-white/70"
+                }`}
+              >
+                {row.used}
+                {row.limit !== null ? `/${row.limit}` : ""}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {resetLabel && (
+        <p className="mt-1.5 text-[10px] leading-none text-white/50">
+          Chats reset {resetLabel}
+        </p>
+      )}
+
+      {isOverWorkflowLimit && (
+        <button
+          type="button"
+          onClick={onUpgrade}
+          className="mt-2 w-full rounded-lg bg-amber-400/90 px-2 py-1.5 text-left text-[10px] font-medium leading-tight text-amber-950 transition-colors hover:bg-amber-300"
+        >
+          You have {snapshot.workflows.used} of {snapshot.workflows.limit}{" "}
+          workflows. Delete some, or resubscribe to create new ones.
+        </button>
+      )}
+    </div>
+  );
+}

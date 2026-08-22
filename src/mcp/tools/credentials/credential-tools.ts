@@ -14,7 +14,7 @@ import prisma from "@/lib/db";
 import { CredentialType } from "@/generated/prisma";
 import { encrypt } from "@/lib/encryption";
 import { requireScope } from "@/mcp/middleware/scope-guard";
-import { requireActiveSubscription } from "@/mcp/middleware/subscription-guard";
+import { createWithinStockQuota } from "@/mcp/middleware/subscription-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse, mcpTextResponse } from "@/mcp/shared/sanitize";
@@ -142,16 +142,19 @@ export function registerCreateCredential(
       });
 
       return withErrorBoundary("create_credential", async () => {
-        await requireActiveSubscription(auth.userId);
-
-        const credential = await prisma.credential.create({
-          data: {
-            name: args.name,
-            type: args.type as CredentialType,
-            value: encrypt(args.value),
-            userId: auth.userId,
-          },
-          select: SAFE_CREDENTIAL_SELECT,
+        const credential = await createWithinStockQuota({
+          userId: auth.userId,
+          feature: "credential",
+          run: (tx) =>
+            tx.credential.create({
+              data: {
+                name: args.name,
+                type: args.type as CredentialType,
+                value: encrypt(args.value),
+                userId: auth.userId,
+              },
+              select: SAFE_CREDENTIAL_SELECT,
+            }),
         });
 
         audit.success();

@@ -187,6 +187,16 @@ export const apiProcedureCases = [
     access: "protected",
     call: (caller) => caller.agent.rejectApproval({ approvalId: "appr_a" }),
   },
+  {
+    path: "subscriptions.getSnapshot",
+    access: "protected",
+    call: (caller) => caller.subscriptions.getSnapshot(),
+  },
+  {
+    path: "subscriptions.syncNow",
+    access: "protected",
+    call: (caller) => caller.subscriptions.syncNow(),
+  },
 ];
 
 export const expectedApiProcedurePaths = apiProcedureCases.map((item) => item.path).sort();

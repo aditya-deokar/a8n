@@ -4,6 +4,9 @@ import { isE2EMode } from "@/lib/e2e-safety";
 import { recordE2EWorkflowDispatch } from "@/lib/e2e-workflow-dispatches";
 import { assertKillSwitchOff } from "@/lib/feature-flags";
 import { getLogContext } from "@/lib/logging";
+import { entitlementsActiveForUser } from "@/config/plans";
+import prisma from "@/lib/db";
+import { consumeExecutionQuota } from "@/lib/entitlements/consume";
 import toposort from "toposort";
 import { inngest } from "./client";
 import { createId } from "@paralleldrive/cuid2";
@@ -59,6 +62,18 @@ export const topologicalSort = (
   return sortedNodeIds.map((id) => nodeMap.get(id)!).filter(Boolean);
 };
 
+async function resolveWorkflowUserId(
+  workflowId: string,
+  explicitUserId?: string,
+): Promise<string | undefined> {
+  if (explicitUserId) return explicitUserId;
+  const workflow = await prisma.workflow.findUnique({
+    where: { id: workflowId },
+    select: { userId: true },
+  });
+  return workflow?.userId ?? undefined;
+}
+
 export const sendWorkflowExecution = async (data: {
   workflowId: string;
 } & Record<string, unknown>) => {
@@ -87,6 +102,16 @@ export const sendWorkflowExecution = async (data: {
   try {
     assertKillSwitchOff("disableWorkflowExecution");
     throwIfE2EFault("inngest", "Simulated E2E Inngest failure.");
+
+    if (!e2eMocked) {
+      const userId = await resolveWorkflowUserId(
+        data.workflowId,
+        typeof data.userId === "string" ? data.userId : undefined,
+      );
+      if (userId && entitlementsActiveForUser(userId)) {
+        await consumeExecutionQuota({ userId });
+      }
+    }
 
     if (e2eMocked) {
       const dispatch = recordE2EWorkflowDispatch(eventId, data);

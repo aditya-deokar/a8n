@@ -21,6 +21,13 @@ process.env.ENCRYPTION_KEY =
 process.env.POLAR_ACCESS_TOKEN = process.env.POLAR_ACCESS_TOKEN || "test-polar-token";
 process.env.POLAR_SUCCESS_URL =
   process.env.POLAR_SUCCESS_URL || "http://127.0.0.1:3000/success";
+process.env.POLAR_SERVER = process.env.POLAR_SERVER || "sandbox";
+process.env.POLAR_PRO_PRODUCT_ID =
+  process.env.POLAR_PRO_PRODUCT_ID || "00000000-0000-4000-8000-000000000001";
+process.env.POLAR_WEBHOOK_SECRET =
+  process.env.POLAR_WEBHOOK_SECRET || "whsec_test-polar-webhook-secret-32-characters!";
+process.env.BILLING_RECONCILE_SECRET =
+  process.env.BILLING_RECONCILE_SECRET || "test-billing-reconcile-secret-32-chars";
 process.env.MCP_API_KEY_HMAC_SECRET =
   process.env.MCP_API_KEY_HMAC_SECRET || "test-mcp-api-key-hmac-secret-32-chars";
 process.env.MCP_OAUTH_TOKEN_HMAC_SECRET =

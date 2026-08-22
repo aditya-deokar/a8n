@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth';
+import prisma from "@/lib/db";
 import {
   createLogger,
   getLogContext,
@@ -10,6 +11,13 @@ import {
   type LogFields,
 } from "@/lib/logging";
 import { polarClient } from '@/lib/polar';
+import { entitlementsActiveForUser } from '@/config/plans';
+import { getEffectivePlan } from '@/lib/entitlements/get-plan';
+import {
+  runWithinStockQuota,
+  type QuotaTx,
+} from '@/lib/entitlements/consume';
+import { quotaTrpcError } from '@/lib/entitlements/trpc-bridge';
 import { initTRPC, TRPCError } from '@trpc/server';
 import { headers } from 'next/headers';
 import { cache } from 'react';
@@ -120,7 +128,25 @@ const t = initTRPC.create({
    * @see https://trpc.io/docs/server/data-transformers
    */
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    const quotaPayload = extractQuotaCause(error);
+    if (!quotaPayload) return shape;
+    return {
+      ...shape,
+      data: { ...shape.data, ...quotaPayload },
+    };
+  },
 });
+
+function extractQuotaCause(
+  error: TRPCError,
+): Record<string, unknown> | null {
+  const cause = error.cause as { code?: unknown } | null | undefined;
+  if (cause && typeof cause === "object" && cause.code === "QUOTA_EXCEEDED") {
+    return cause as Record<string, unknown>;
+  }
+  return null;
+}
 // Base router and procedure helpers
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
@@ -217,35 +243,88 @@ const authMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
 
 export const baseProcedure = t.procedure.use(trpcLoggingMiddleware);
 export const protectedProcedure = t.procedure.use(authMiddleware).use(trpcLoggingMiddleware);
-export const premiumProcedure = protectedProcedure.use(
-  async ({ ctx, next }) => {
-    throwIfE2EFault("polar", "Simulated E2E Polar failure.");
 
-    const customer = useMockedExternalServices
-      ? createE2ECustomerState(ctx.auth.user)
-      : await observeExternalProvider(
-          {
-            component: "billing",
-            provider: "polar",
-            operation: "customers.getStateExternal",
-            userId: ctx.auth.user.id,
-          },
-          () =>
-            polarClient.customers.getStateExternal({
-              externalId: ctx.auth.user.id,
-            }),
-        );
+type QuotaSlotRunner = <T>(run: (tx: QuotaTx) => Promise<T>) => Promise<T>;
 
-    if (
-      !customer.activeSubscriptions ||
-      customer.activeSubscriptions.length === 0
-    ) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Active subscription required",
-      });
+async function legacyPremiumGate(user: {
+  id: string;
+  email?: string;
+}): Promise<unknown> {
+  throwIfE2EFault("polar", "Simulated E2E Polar failure.");
+
+  const customer = useMockedExternalServices
+    ? createE2ECustomerState(user)
+    : await observeExternalProvider(
+        {
+          component: "billing",
+          provider: "polar",
+          operation: "customers.getStateExternal",
+          userId: user.id,
+        },
+        () =>
+          polarClient.customers.getStateExternal({
+            externalId: user.id,
+          }),
+      );
+
+  if (
+    !customer.activeSubscriptions ||
+    customer.activeSubscriptions.length === 0
+  ) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Active subscription required",
+    });
+  }
+
+  return customer;
+}
+
+const passthroughQuotaSlot: QuotaSlotRunner = (run) =>
+  run(prisma as unknown as QuotaTx);
+
+function createQuotaProcedure(feature: "workflow" | "credential") {
+  return protectedProcedure.use(async ({ ctx, next }) => {
+    const result = await (async () => {
+      if (!entitlementsActiveForUser(ctx.auth.user.id)) {
+        const customer = await legacyPremiumGate(ctx.auth.user);
+        return next({
+          ctx: { ...ctx, customer, withQuotaSlot: passthroughQuotaSlot },
+        });
+      }
+
+      const withQuotaSlot: QuotaSlotRunner = (run) =>
+        runWithinStockQuota({ userId: ctx.auth.user.id, feature, run });
+
+      return next({ ctx: { ...ctx, withQuotaSlot } });
+    })();
+
+    if (!result.ok) {
+      const cause = (result.error as { cause?: unknown } | undefined)?.cause;
+      const mapped = quotaTrpcError(cause ?? result.error);
+      if (mapped) {
+        throw mapped;
+      }
     }
 
+    return result;
+  });
+}
+
+export const workflowQuotaProcedure = createQuotaProcedure("workflow");
+export const credentialQuotaProcedure = createQuotaProcedure("credential");
+
+export const planProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (!entitlementsActiveForUser(ctx.auth.user.id)) {
+    return next({ ctx: { ...ctx, plan: undefined } });
+  }
+  const plan = await getEffectivePlan(ctx.auth.user.id);
+  return next({ ctx: { ...ctx, plan } });
+});
+
+export const premiumProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    const customer = await legacyPremiumGate(ctx.auth.user);
     return next({ ctx: { ...ctx, customer } });
   },
 );

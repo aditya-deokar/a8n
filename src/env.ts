@@ -86,6 +86,21 @@ const envSchema = z.object({
 
   POLAR_ACCESS_TOKEN: optionalString,
   POLAR_SUCCESS_URL: optionalUrl,
+  POLAR_SERVER: z
+    .preprocess(emptyToUndefined, z.enum(["sandbox", "production"]).optional())
+    .optional(),
+  POLAR_PRO_PRODUCT_ID: optionalString,
+  POLAR_WEBHOOK_SECRET: optionalString,
+
+  ENTITLEMENTS_ENABLED: optionalBoolean,
+  ENTITLEMENTS_BETA_USER_IDS: optionalString,
+  FREE_MAX_WORKFLOWS: optionalPositiveInt,
+  FREE_MAX_CREDENTIALS: optionalPositiveInt,
+  FREE_AGENT_CHATS_PER_MONTH: optionalPositiveInt,
+  PRO_AGENT_CHATS_PER_MONTH: optionalPositiveInt,
+  EXECUTIONS_DAILY_ABUSE_GUARD: optionalPositiveInt,
+  QUOTA_LOCK_DELAY_MS: optionalNonNegativeInt,
+  BILLING_RECONCILE_SECRET: optionalString,
 
   INNGEST_EVENT_KEY: optionalString,
   INNGEST_SIGNING_KEY: optionalString,
@@ -349,8 +364,23 @@ export function validateEnv(
     requireProductionValue(env, issues, "BETTER_AUTH_URL");
     requireProductionValue(env, issues, "POLAR_ACCESS_TOKEN");
     requireProductionValue(env, issues, "POLAR_SUCCESS_URL");
+    requireProductionValue(env, issues, "POLAR_SERVER");
+    requireProductionValue(env, issues, "POLAR_PRO_PRODUCT_ID");
+    requireProductionValue(env, issues, "POLAR_WEBHOOK_SECRET");
+    requireProductionValue(env, issues, "BILLING_RECONCILE_SECRET");
     requireProductionValue(env, issues, "MCP_API_KEY_HMAC_SECRET");
     requireProductionValue(env, issues, "MCP_OAUTH_TOKEN_HMAC_SECRET");
+
+    if (env.POLAR_SERVER && env.POLAR_SERVER !== "production") {
+      addIssue(
+        issues,
+        "POLAR_SERVER",
+        "POLAR_SERVER must be set to 'production' in production.",
+      );
+    }
+
+    requireSecretLength(env, issues, "POLAR_WEBHOOK_SECRET", 32);
+    requireSecretLength(env, issues, "BILLING_RECONCILE_SECRET", 32);
 
     requireHttpsUrl(env, issues, "BETTER_AUTH_URL");
     requireHttpsUrl(env, issues, "NEXT_PUBLIC_APP_URL");

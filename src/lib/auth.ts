@@ -93,7 +93,9 @@ export const auth = betterAuth({
                 checkout({
                   products: [
                     {
-                      productId: "58285280-605b-468f-b711-5b5c9ff936bd",
+                      productId:
+                        env.POLAR_PRO_PRODUCT_ID ||
+                        "58285280-605b-468f-b711-5b5c9ff936bd",
                       slug: "pro",
                     }
                   ],

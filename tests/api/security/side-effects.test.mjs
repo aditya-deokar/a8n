@@ -27,6 +27,7 @@ describe("side-effect ordering regression coverage", () => {
     });
     expect(sendWorkflowExecutionMock).toHaveBeenCalledWith({
       workflowId: "workflow_a",
+      userId: apiUsers.userAPro.id,
     });
   });
 

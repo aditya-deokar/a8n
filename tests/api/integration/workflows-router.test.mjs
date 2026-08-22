@@ -262,7 +262,10 @@ describe("workflows router integration", () => {
     expect(prismaMock.workflow.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { id: "workflow_a", userId: apiUsers.userAPro.id },
     });
-    expect(sendWorkflowExecutionMock).toHaveBeenCalledWith({ workflowId: "workflow_a" });
+    expect(sendWorkflowExecutionMock).toHaveBeenCalledWith({
+      workflowId: "workflow_a",
+      userId: apiUsers.userAPro.id,
+    });
   });
 
   it("does not dispatch workflow execution when ownership lookup fails", async () => {
