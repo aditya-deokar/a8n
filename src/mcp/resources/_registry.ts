@@ -42,11 +42,10 @@ export function registerAllResources(
   registerApiDocsResource(server);
   registerCatalogResources(server);
   registerMcpAppResources(server, context);
+  // Always register UI widget resources so MCP App clients can read ui://a8n/*.html
+  registerChatGptWidgetResources(server);
 
-  const supportsUi = hasUiCapability(server, context.appProfile);
-  if (supportsUi) {
-    registerChatGptWidgetResources(server);
-  }
+  const supportsUi = true;
 
   logger.info(
     {
@@ -55,7 +54,7 @@ export function registerAllResources(
       registry: "resources",
       profile: context.appProfile || "default",
       uiCapability: supportsUi,
-      count: supportsUi ? 21 : 17,
+      count: 21,
       templates: 5,
     },
     "MCP resources registered.",
