@@ -80,7 +80,7 @@ jobs:
         run: pnpm feature-flags:check -- --strict --json
 
       - name: Upload feature flag evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: feature-flag-readiness-evidence

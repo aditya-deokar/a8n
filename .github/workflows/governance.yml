@@ -51,7 +51,7 @@ jobs:
         run: pnpm environment:drift:check -- --strict --json
 
       - name: Upload governance evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: governance-evidence

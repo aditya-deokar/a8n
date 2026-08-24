@@ -88,7 +88,7 @@ jobs:
         run: pnpm test:api:unit
 
       - name: Upload static migration evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: migration-preflight-static
@@ -171,14 +171,14 @@ jobs:
         run: pnpm test:api:coverage
 
       - name: Upload API coverage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: api-coverage
           path: coverage/api
 
       - name: Upload migration evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: migration-preflight-integration
