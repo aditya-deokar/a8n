@@ -3,9 +3,16 @@
 import { useRef, useCallback, type FormEvent, type KeyboardEvent } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { SendIcon, Loader2Icon, SquareIcon, WorkflowIcon } from "lucide-react";
+import { SendIcon, Loader2Icon, SquareIcon, WorkflowIcon, SparklesIcon, CalendarClockIcon } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 // ─── Types ───────────────────────────────────────────────────
+
+export interface QuotaBannerData {
+  used: number;
+  limit: number;
+  resetAt: string | null;
+}
 
 export interface AgentComposerProps {
   /** Current input text (controlled). */
@@ -22,6 +29,8 @@ export interface AgentComposerProps {
   disabled?: boolean;
   /** Name of the attached workflow, if any. */
   workflowName?: string | null;
+  /** Shown when the monthly chat quota is exhausted (HTTP 402). */
+  quotaNotice?: QuotaBannerData | null;
 }
 
 const MAX_CHARS = 20_000;
@@ -36,6 +45,7 @@ export function AgentComposer({
   isLoading,
   disabled = false,
   workflowName,
+  quotaNotice,
 }: AgentComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -64,6 +74,35 @@ export function AgentComposer({
 
   return (
     <div className="border-t border-border/60 bg-background/80 backdrop-blur-sm px-4 py-3 sm:px-6">
+      {/* Monthly quota banner */}
+      {quotaNotice && (
+        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200">
+          <CalendarClockIcon className="size-3.5 shrink-0" />
+          <span>
+            <span className="font-medium">
+              {quotaNotice.used}/{quotaNotice.limit} chats used
+            </span>
+            {quotaNotice.resetAt && (
+              <>
+                {" — resets "}
+                {new Date(quotaNotice.resetAt).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </>
+            )}
+          </span>
+          <button
+            type="button"
+            onClick={() => authClient.checkout({ slug: "pro" })}
+            className="ml-auto inline-flex items-center gap-1 rounded-lg bg-[#5c54a4] px-2.5 py-1 font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <SparklesIcon className="size-3" />
+            Upgrade for 500/mo
+          </button>
+        </div>
+      )}
+
       {/* Workflow context badge */}
       {workflowName && (
         <div className="flex items-center gap-1.5 mb-2">

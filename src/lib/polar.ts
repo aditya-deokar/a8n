@@ -3,5 +3,5 @@ import { env } from "@/env";
 
 export const polarClient = new Polar({
   accessToken: env.POLAR_ACCESS_TOKEN,
-  server: "sandbox"
+  server: env.POLAR_SERVER || "sandbox",
 });

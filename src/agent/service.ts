@@ -16,7 +16,9 @@ import { assertAgentInputSafe } from "@/agent/safety/agent-input-policy";
 import { agentSpan, emitAgentEvent } from "@/agent/observability/tracing";
 import { recordRunStart, recordRunComplete, recordAgentMetric, AGENT_METRICS } from "@/agent/observability/metrics";
 import { acquireRunSlot, releaseRunSlot } from "@/agent/concurrency";
-import { estimateCost } from "@/agent/model/cost";
+import { estimateCost, assertRunBudget } from "@/agent/model/cost";
+import { entitlementsActiveForUser } from "@/config/plans";
+import { consumeChatQuota } from "@/lib/entitlements/consume";
 
 const AGENT_SCOPES: McpScope[] = [
   "workflows:read",
@@ -190,6 +192,14 @@ export async function streamAgentRun(params: {
     },
   });
 
+  if (!existingRun && entitlementsActiveForUser(context.userId)) {
+    await consumeChatQuota({
+      userId: context.userId,
+      threadId: agentThread.id,
+      clientMessageId: params.clientMessageId,
+    });
+  }
+
   const run =
     existingRun ||
     (await prisma.agentRun.create({
@@ -258,6 +268,10 @@ export async function streamAgentRun(params: {
     });
     yield event("message.started");
 
+    let runningCostUsd = 0;
+    let totalInputTokens = 0;
+    let totalOutputTokens = 0;
+
     let mcpClient: Awaited<ReturnType<typeof createEmbeddedMcpClient>> | undefined;
     try {
       const workflow = await loadWorkflowContext(context.userId, context.workflowId);
@@ -314,6 +328,22 @@ export async function streamAgentRun(params: {
         if (record.tools) {
           yield event("tool.call.completed", { output: "Tool call completed." });
           continue;
+        }
+
+        const usage = extractTokenUsage(record);
+        if (usage) {
+          totalInputTokens += usage.inputTokens;
+          totalOutputTokens += usage.outputTokens;
+          runningCostUsd += estimateCost(
+            AGENT_CONFIG.modelName,
+            usage.inputTokens,
+            usage.outputTokens,
+          );
+          assertRunBudget({
+            runId: run.id,
+            currentCostUsd: runningCostUsd,
+            maxCostUsd: AGENT_CONFIG.maxRunCostUsd,
+          });
         }
 
         // Handle draft lifecycle events
@@ -382,7 +412,14 @@ export async function streamAgentRun(params: {
 
       await prisma.agentRun.update({
         where: { id: run.id },
-        data: { status: "SUCCEEDED", completedAt: new Date() },
+        data: {
+          status: "SUCCEEDED",
+          completedAt: new Date(),
+          inputTokens: totalInputTokens || null,
+          outputTokens: totalOutputTokens || null,
+          estimatedCostUsd:
+            runningCostUsd > 0 ? Number(runningCostUsd.toFixed(6)) : null,
+        },
       });
 
       recordRunComplete({
@@ -603,4 +640,50 @@ function extractField(record: Record<string, unknown>, field: string): unknown {
     }
   }
   return undefined;
+}
+
+interface ExtractedUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
+function extractTokenUsage(
+  record: Record<string, unknown>,
+): ExtractedUsage | null {
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let found = false;
+
+  const scan = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      value.forEach(scan);
+      return;
+    }
+    if (!value || typeof value !== "object") return;
+
+    const recordValue = value as Record<string, unknown>;
+    const usage = (recordValue.usage_metadata ??
+      recordValue.usageMetadata) as Record<string, unknown> | undefined;
+
+    if (usage && typeof usage === "object") {
+      const input = Number(usage.input_tokens ?? usage.inputTokens ?? 0);
+      const output = Number(usage.output_tokens ?? usage.outputTokens ?? 0);
+      if (Number.isFinite(input) || Number.isFinite(output)) {
+        inputTokens += Math.max(0, Number.isFinite(input) ? input : 0);
+        outputTokens += Math.max(0, Number.isFinite(output) ? output : 0);
+        found = true;
+      }
+      return;
+    }
+
+    for (const child of Object.values(recordValue)) {
+      scan(child);
+    }
+  };
+
+  for (const value of Object.values(record)) {
+    scan(value);
+  }
+
+  return found ? { inputTokens, outputTokens } : null;
 }

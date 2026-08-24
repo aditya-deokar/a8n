@@ -51,6 +51,25 @@ export const prismaMock = {
     count: vi.fn(),
     updateMany: vi.fn(),
   },
+  subscription: {
+    findUnique: vi.fn(),
+    upsert: vi.fn(),
+  },
+  usageCounter: {
+    upsert: vi.fn(),
+    updateMany: vi.fn(),
+    findUnique: vi.fn(),
+  },
+  processedWebhookEvent: {
+    create: vi.fn(),
+    deleteMany: vi.fn(),
+  },
+  agentRun: {
+    findUnique: vi.fn(),
+    count: vi.fn(),
+  },
+  $queryRaw: vi.fn(),
+  $executeRaw: vi.fn(),
   $transaction: vi.fn(),
 };
 
@@ -135,6 +154,24 @@ export function resetPrismaMock() {
   prismaMock.mcpOAuthAccessToken.updateMany.mockResolvedValue({ count: 0 });
   prismaMock.mcpOAuthRefreshToken.count.mockResolvedValue(0);
   prismaMock.mcpOAuthRefreshToken.updateMany.mockResolvedValue({ count: 0 });
+
+  prismaMock.subscription.findUnique.mockResolvedValue(null);
+  prismaMock.subscription.upsert.mockImplementation(
+    async ({ where, create, update }) => ({ id: "subscription_mocked", ...create, ...update }),
+  );
+  prismaMock.usageCounter.upsert.mockImplementation(
+    async ({ create }) => ({ id: "usage_counter_mocked", used: 0, ...create }),
+  );
+  prismaMock.usageCounter.updateMany.mockResolvedValue({ count: 1 });
+  prismaMock.usageCounter.findUnique.mockResolvedValue({ used: 0 });
+  prismaMock.processedWebhookEvent.create.mockResolvedValue({
+    id: "webhook_event_mocked",
+  });
+  prismaMock.processedWebhookEvent.deleteMany.mockResolvedValue({ count: 1 });
+  prismaMock.agentRun.findUnique.mockResolvedValue(null);
+  prismaMock.agentRun.count.mockResolvedValue(0);
+  prismaMock.$queryRaw.mockResolvedValue([]);
+  prismaMock.$executeRaw.mockResolvedValue(0);
 
   prismaMock.$transaction.mockImplementation(async (callback) => callback(prismaMock));
 }

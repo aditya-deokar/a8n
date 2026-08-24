@@ -28,6 +28,7 @@ import { recordMcpRuntimeEvent } from "@/mcp/observability/runtime-guardrails";
 import { getToolContract } from "@/mcp/contracts/tools.manifest";
 import { isKillSwitchEnabled } from "@/lib/feature-flags";
 import { logger, normalizeError, withRequestLogging } from "@/lib/logging";
+import { getEffectivePlan } from "@/lib/entitlements/get-plan";
 
 type AuthGuardSuccess = { auth: McpAuthInfo; rateResult: RateLimitResult };
 type AuthGuardError = { error: Response };
@@ -217,6 +218,18 @@ async function rejectMcpMutationWhenDisabled(
  * Shared authentication + rate limiting guard.
  * Returns the auth context and rate limit result, or an error Response.
  */
+async function resolveRateLimitTier(
+  userId: string | undefined,
+): Promise<"free" | "pro"> {
+  if (!userId) return "free";
+  try {
+    return await getEffectivePlan(userId);
+  } catch {
+    // Rate limiting is a stability control: degrade to the stricter tier.
+    return "free";
+  }
+}
+
 async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
   // ─── 1. Authentication ──────────────────────────────────────
   const authResult = await validateBearerToken(request);
@@ -248,7 +261,8 @@ async function authenticateRequest(request: Request): Promise<AuthGuardResult> {
 
   // ─── 2. Rate Limiting ───────────────────────────────────────
   const rateLimitKey = authResult.auth.apiKeyId || authResult.auth.userId;
-  const rateResult = await checkRateLimitForRequest(rateLimitKey);
+  const tier = await resolveRateLimitTier(authResult.auth.userId);
+  const rateResult = await checkRateLimitForRequest(rateLimitKey, tier);
 
   if (!rateResult.allowed) {
     recordMcpRuntimeEvent({

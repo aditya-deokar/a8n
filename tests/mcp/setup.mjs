@@ -22,3 +22,8 @@ try {
 }
 process.env.DATABASE_URL =
   process.env.DATABASE_URL || "postgresql://a8n_test:a8n_test@127.0.0.1:5432/a8n_test";
+process.env.POLAR_ACCESS_TOKEN = process.env.POLAR_ACCESS_TOKEN || "test-polar-token";
+process.env.POLAR_SERVER = process.env.POLAR_SERVER || "sandbox";
+process.env.POLAR_PRO_PRODUCT_ID =
+  process.env.POLAR_PRO_PRODUCT_ID || "00000000-0000-4000-8000-000000000001";
+delete process.env.ENTITLEMENTS_ENABLED;

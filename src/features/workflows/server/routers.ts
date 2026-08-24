@@ -1,12 +1,16 @@
 import { generateSlug } from "random-word-slugs";
 import prisma from "@/lib/db";
 import type { Node, Edge } from "@xyflow/react";
-import { createTRPCRouter, premiumProcedure, protectedProcedure } from "@/trpc/init";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  workflowQuotaProcedure,
+} from "@/trpc/init";
 import z from "zod";
 import { PAGINATION } from "@/config/constants";
 import { NodeType } from "@/generated/prisma";
-import { inngest } from "@/inngest/client";
 import { sendWorkflowExecution } from "@/inngest/utils";
+import { enforceExecutionQuotaForUser } from "@/lib/entitlements/trpc-bridge";
 
 export const workflowsRouter = createTRPCRouter({
   execute: protectedProcedure
@@ -19,26 +23,31 @@ export const workflowsRouter = createTRPCRouter({
         },
       });
 
+      await enforceExecutionQuotaForUser(ctx.auth.user.id);
+
       await sendWorkflowExecution({
         workflowId: input.id,
+        userId: ctx.auth.user.id,
       });
 
       return workflow;
     }),
-  create: premiumProcedure.mutation(({ ctx }) => {
-    return prisma.workflow.create({
-      data: {
-        name: generateSlug(3),
-        userId: ctx.auth.user.id,
-        nodes: {
-          create: {
-            type: NodeType.INITIAL,
-            position: { x: 0, y: 0 },
-            name: NodeType.INITIAL,
+  create: workflowQuotaProcedure.mutation(({ ctx }) => {
+    return ctx.withQuotaSlot((tx) =>
+      tx.workflow.create({
+        data: {
+          name: generateSlug(3),
+          userId: ctx.auth.user.id,
+          nodes: {
+            create: {
+              type: NodeType.INITIAL,
+              position: { x: 0, y: 0 },
+              name: NodeType.INITIAL,
+            },
           },
         },
-      },
-    });
+      }),
+    );
   }),
   remove: protectedProcedure
     .input(z.object({ id: z.string() }))

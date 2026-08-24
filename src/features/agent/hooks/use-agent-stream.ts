@@ -6,6 +6,13 @@ import type { ChatMessage, ToolActivity } from "../types";
 
 // ─── Types ───────────────────────────────────────────────────
 
+export interface QuotaExceededDetails {
+  feature: string;
+  used: number;
+  limit: number;
+  windowResetAt: string | null;
+}
+
 export interface UseAgentStreamOptions {
   /** The active thread ID. Streaming is disabled when null. */
   threadId: string | null;
@@ -15,6 +22,8 @@ export interface UseAgentStreamOptions {
   onWorkflowApplied?: (workflowId: string) => void;
   /** Called when the backend blocks a message for safety reasons (AGENT_SAFETY_BLOCKED). */
   onSafetyBlocked?: (error: { code: string; message: string }) => void;
+  /** Called when the monthly chat quota is exhausted (HTTP 402 from the runs endpoint). */
+  onQuotaExceeded?: (details: QuotaExceededDetails) => void;
 }
 
 export interface UseAgentStreamReturn {
@@ -76,8 +85,13 @@ export function useAgentStream(options: UseAgentStreamOptions): UseAgentStreamRe
   }, []);
 
   const sendMessage = useCallback(async (text: string) => {
-    const { threadId, onDraftPreviewed, onWorkflowApplied, onSafetyBlocked } =
-      optionsRef.current;
+    const {
+      threadId,
+      onDraftPreviewed,
+      onWorkflowApplied,
+      onSafetyBlocked,
+      onQuotaExceeded,
+    } = optionsRef.current;
 
     if (!text.trim() || !threadId || isLoadingRef.current) return;
 
@@ -110,7 +124,7 @@ export function useAgentStream(options: UseAgentStreamOptions): UseAgentStreamRe
         signal: abortController.signal,
       });
 
-      // Handle non-SSE error responses (safety blocks, validation errors)
+      // Handle non-SSE error responses (safety blocks, validation, quotas)
       if (!response.ok) {
         const errorData = await response
           .json()
@@ -118,6 +132,48 @@ export function useAgentStream(options: UseAgentStreamOptions): UseAgentStreamRe
 
         if (errorData.code === "AGENT_SAFETY_BLOCKED") {
           onSafetyBlocked?.(errorData);
+        }
+
+        if (
+          response.status === 402 &&
+          (errorData.error === "QUOTA_EXCEEDED" ||
+            errorData.code === "QUOTA_EXCEEDED")
+        ) {
+          const details: QuotaExceededDetails = {
+            feature:
+              typeof errorData.feature === "string"
+                ? errorData.feature
+                : "agent_chat",
+            used: typeof errorData.used === "number" ? errorData.used : 0,
+            limit: typeof errorData.limit === "number" ? errorData.limit : 0,
+            windowResetAt:
+              typeof errorData.windowResetAt === "string"
+                ? errorData.windowResetAt
+                : null,
+          };
+          onQuotaExceeded?.(details);
+
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === `agent-${msgId}`
+                ? {
+                    ...m,
+                    text: "",
+                    isStreaming: false,
+                    error: {
+                      code: "QUOTA_EXCEEDED",
+                      message: details.windowResetAt
+                        ? `Monthly chat limit reached (${details.used}/${details.limit}). Resets ${new Date(details.windowResetAt).toLocaleDateString()}.`
+                        : `Monthly chat limit reached (${details.used}/${details.limit}).`,
+                    },
+                    runStatus: "failed",
+                  }
+                : m,
+            ),
+          );
+          isLoadingRef.current = false;
+          setIsLoading(false);
+          return;
         }
 
         setMessages((prev) =>

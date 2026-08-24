@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { CheckoutReturnSync } from "@/components/checkout-return-sync";
 
 export default function SuccessPage() {
   return (
@@ -23,6 +24,7 @@ export default function SuccessPage() {
             Your account has been upgraded and your Pro features are now available. 
             A confirmation email has been sent to your inbox.
           </p>
+          <CheckoutReturnSync />
         </CardContent>
         <CardFooter className="flex flex-col gap-3 pt-4">
           <Button asChild className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all active:scale-[0.98]">

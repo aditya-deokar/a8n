@@ -100,17 +100,24 @@ export async function runMcpProductionMaintenance(
     };
   }
 
-  const [{ cleanupExpiredOAuthArtifacts }, { cleanupExpiredRateLimitBuckets }] =
-    await Promise.all([
-      import("@/mcp/auth/oauth.service"),
-      import("@/mcp/middleware/rate-limiter"),
-    ]);
-
-  const [oauth, audit, rateLimit] = await Promise.all([
-    cleanupExpiredOAuthArtifacts(now),
-    cleanupMcpAuditLogs({ ...options, now }),
-    cleanupExpiredRateLimitBuckets(now),
+  const [
+    { cleanupExpiredOAuthArtifacts },
+    { cleanupExpiredRateLimitBuckets },
+    { cleanupExpiredUsageCounters, cleanupProcessedWebhookEvents },
+  ] = await Promise.all([
+    import("@/mcp/auth/oauth.service"),
+    import("@/mcp/middleware/rate-limiter"),
+    import("@/lib/entitlements/maintenance"),
   ]);
+
+  const [oauth, audit, rateLimit, usageCounters, processedWebhookEvents] =
+    await Promise.all([
+      cleanupExpiredOAuthArtifacts(now),
+      cleanupMcpAuditLogs({ ...options, now }),
+      cleanupExpiredRateLimitBuckets(now),
+      cleanupExpiredUsageCounters(now),
+      cleanupProcessedWebhookEvents(now),
+    ]);
 
   return {
     dryRun: false,
@@ -118,6 +125,8 @@ export async function runMcpProductionMaintenance(
     oauth,
     audit,
     rateLimit,
+    usageCounters,
+    processedWebhookEvents,
     auditHealth: await getMcpAuditHealth(),
   };
 }

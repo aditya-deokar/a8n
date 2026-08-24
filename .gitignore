@@ -48,3 +48,5 @@ next-env.d.ts
 # credentials scripts
 scripts/seed-showcase-workflow.ts
 scripts/update-gemini-cred.ts
+
+/remaining-prod-task.md

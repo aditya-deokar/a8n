@@ -37,6 +37,8 @@ model User {
   agentRuns AgentRun[]
   agentApprovals AgentApproval[]
   agentApprovalResolutions AgentApproval[] @relation("AgentApprovalResolver")
+  subscription Subscription?
+  usageCounters UsageCounter[]
 
   @@unique([email])
   @@map("user")
@@ -99,6 +101,8 @@ model Credential {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   Node Node[]
+
+  @@index([userId])
 }
 
 enum CredentialType {
@@ -125,6 +129,8 @@ model Workflow {
 
   userId String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum NodeType {
@@ -527,4 +533,55 @@ model McpOAuthConsent {
   @@index([clientId])
   @@index([userId, clientId, revokedAt])
   @@map("mcp_oauth_consent")
+}
+
+model Subscription {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  polarCustomerId   String?
+  polarProductId    String?
+
+  status            String
+  planId            String    @default("free")
+
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean   @default(false)
+
+  lastSyncedAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+  @@map("subscription")
+}
+
+model UsageCounter {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  resource    String
+  periodStart DateTime
+  periodEnd   DateTime
+  used        Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, resource, periodStart])
+  @@index([periodEnd])
+  @@map("usage_counter")
+}
+
+model ProcessedWebhookEvent {
+  id          String   @id
+  provider    String   @default("polar")
+  type        String
+  receivedAt  DateTime @default(now())
+  payloadHash String
+
+  @@index([receivedAt])
+  @@map("processed_webhook_event")
 }
