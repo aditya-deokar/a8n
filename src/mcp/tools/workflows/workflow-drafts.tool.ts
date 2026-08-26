@@ -13,6 +13,7 @@ import { requireToolApproval } from "@/mcp/safety/approval-guard";
 import {
   asGraphEdges,
   asGraphNodes,
+  computeGraphDiff,
   createWorkflowVersion,
   explainGraph,
   getWorkflowGraph,
@@ -268,29 +269,6 @@ function applyAnswersToNodes(
 
     return { ...node, data: nextData };
   });
-}
-
-function buildGraphDiff(
-  beforeNodes: WorkflowGraphNode[],
-  beforeEdges: WorkflowGraphEdge[],
-  afterNodes: WorkflowGraphNode[],
-  afterEdges: WorkflowGraphEdge[],
-) {
-  const beforeById = new Map(beforeNodes.map((node) => [node.id, node]));
-  const afterById = new Map(afterNodes.map((node) => [node.id, node]));
-  const beforeEdgeKeys = new Set(beforeEdges.map((edge) => `${edge.source}->${edge.target}`));
-  const afterEdgeKeys = new Set(afterEdges.map((edge) => `${edge.source}->${edge.target}`));
-
-  return {
-    addedNodes: afterNodes.filter((node) => !beforeById.has(node.id)),
-    removedNodes: beforeNodes.filter((node) => !afterById.has(node.id)),
-    changedNodes: afterNodes.filter((node) => {
-      const before = beforeById.get(node.id);
-      return before && JSON.stringify(before) !== JSON.stringify(node);
-    }),
-    addedEdges: afterEdges.filter((edge) => !beforeEdgeKeys.has(`${edge.source}->${edge.target}`)),
-    removedEdges: beforeEdges.filter((edge) => !afterEdgeKeys.has(`${edge.source}->${edge.target}`)),
-  };
 }
 
 async function saveDraftRevision(draftId: string, createdByTool: string) {
@@ -583,7 +561,7 @@ export function registerPreviewWorkflowDiff(
           nodes: draftNodes,
           edges: draftEdges,
         });
-        const diff = buildGraphDiff(before.nodes, before.edges, draftNodes, draftEdges);
+        const diff = computeGraphDiff(before.nodes, before.edges, draftNodes, draftEdges);
         const confirmationSummary = {
           draftId: draft.id,
           workflowId: targetWorkflowId || null,
@@ -654,7 +632,7 @@ export function registerApplyWorkflowDraft(
         const before = targetWorkflowId
           ? await getWorkflowGraph(targetWorkflowId, auth.userId)
           : { nodes: [], edges: [] };
-        const diff = buildGraphDiff(before.nodes, before.edges, nodes, edges);
+        const diff = computeGraphDiff(before.nodes, before.edges, nodes, edges);
         const confirmationSummary = {
           draftId: draft.id,
           workflowId: targetWorkflowId || null,

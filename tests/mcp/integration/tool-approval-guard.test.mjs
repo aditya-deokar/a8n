@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 describe("MCP high-risk tool handler approval gates", () => {
-  it("does not trigger execute_workflow before approval", async () => {
+  it("does not trigger execute_workflow_and_wait before approval", async () => {
     const sendWorkflowExecution = vi.fn(async () => ({ eventId: "evt-approved" }));
     const prisma = {
       workflow: {
@@ -35,19 +35,31 @@ describe("MCP high-risk tool handler approval gates", () => {
           name: "Approval workflow",
         })),
       },
+      execution: {
+        findFirst: vi.fn(async () => ({
+          id: "exec-1",
+          status: "SUCCESS",
+          startedAt: new Date(),
+          completedAt: new Date(),
+          error: null,
+          output: {},
+          inngestEventId: "evt-approved",
+          workflow: { id: "workflow-1", name: "Approval workflow" },
+        })),
+      },
     };
 
     vi.doMock("@/lib/db", () => ({ default: prisma }));
     vi.doMock("@/inngest/utils", () => ({ sendWorkflowExecution }));
 
-    const { registerExecuteWorkflow } = await import(
-      "@/mcp/tools/workflows/workflow-mutations.tool"
+    const { registerExecuteWorkflowAndWait } = await import(
+      "@/mcp/tools/executions/execution-runtime-tools"
     );
     const { server, tools } = captureServer();
-    registerExecuteWorkflow(server, { authInfo: mcpAuthForUser() });
+    registerExecuteWorkflowAndWait(server, { authInfo: mcpAuthForUser() });
 
-    const handler = tools.get("execute_workflow");
-    const preview = await handler({ id: "workflow-1", approved: false }, {});
+    const handler = tools.get("execute_workflow_and_wait");
+    const preview = await handler({ workflowId: "workflow-1", approved: false }, {});
 
     expect(preview.structuredContent).toMatchObject({
       triggered: false,
@@ -56,9 +68,21 @@ describe("MCP high-risk tool handler approval gates", () => {
     });
     expect(sendWorkflowExecution).not.toHaveBeenCalled();
 
-    const executed = await handler({ id: "workflow-1", approved: true }, {});
+    // Mock the wait loop's DB polling to return a completed execution
+    prisma.execution.findFirst = vi.fn(async () => ({
+      id: "exec-1",
+      status: "SUCCESS",
+      startedAt: new Date(),
+      completedAt: new Date(),
+      error: null,
+      output: {},
+      inngestEventId: "evt-approved",
+      workflow: { id: "workflow-1", name: "Approval workflow" },
+    }));
 
-    expect(sendWorkflowExecution).toHaveBeenCalledWith({ workflowId: "workflow-1" });
+    const executed = await handler({ workflowId: "workflow-1", approved: true }, {});
+
+    expect(sendWorkflowExecution).toHaveBeenCalledWith({ workflowId: "workflow-1", initialData: {} });
     expect(executed.structuredContent).toMatchObject({
       workflowId: "workflow-1",
       inngestEventId: "evt-approved",

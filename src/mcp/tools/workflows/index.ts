@@ -13,7 +13,6 @@ import { registerUpdateWorkflow } from "./update-workflow.tool";
 import {
   registerRenameWorkflow,
   registerDeleteWorkflow,
-  registerExecuteWorkflow,
 } from "./workflow-mutations.tool";
 import {
   registerPlanWorkflowFromGoal,
@@ -46,7 +45,6 @@ export function registerWorkflowTools(
   registerUpdateWorkflow(server, context);
   registerRenameWorkflow(server, context);
   registerDeleteWorkflow(server, context);
-  registerExecuteWorkflow(server, context);
   registerPlanWorkflowFromGoal(server, context);
   registerCreateWorkflowDraft(server, context);
   registerAnswerWorkflowDraftQuestions(server, context);

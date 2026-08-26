@@ -3,7 +3,7 @@
  *
  * Displays credential checks, webhook URLs, missing fields, and test
  * steps for a saved workflow. Interactive — can call `test_credential`
- * and `test_webhook_setup` via `app.callServerTool()`.
+ * and `run_workflow_test` (for webhook triggers) via `app.callServerTool()`.
  *
  * Data shape matches the `setupChecklist()` function in
  * `src/mcp/resources/app-resources.resource.ts`.
@@ -135,10 +135,21 @@ function renderSetup(data: SetupData, app: App | null): string {
         (webhookBtn as HTMLButtonElement).disabled = true;
         try {
           if (data.workflow?.id) {
-            await app.callServerTool({
-              name: "test_webhook_setup",
-              arguments: { workflowId: data.workflow.id },
-            });
+            const steps = data.webhookSteps || [];
+            if (steps.length === 0) {
+              await app.callServerTool({
+                name: "run_workflow_test",
+                arguments: { workflowId: data.workflow.id, trigger: "google_form", approved: true },
+              });
+            } else {
+              for (const step of steps) {
+                const trigger = step.nodeType === "STRIPE_TRIGGER" ? "stripe" : "google_form";
+                await app.callServerTool({
+                  name: "run_workflow_test",
+                  arguments: { workflowId: data.workflow.id, trigger, approved: true },
+                });
+              }
+            }
           }
           webhookBtn.textContent = "Done";
         } catch {

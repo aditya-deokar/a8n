@@ -27,10 +27,8 @@ import {
   registerSuggestWorkflowFix,
 } from "./executions/execution-runtime-tools";
 import {
-  registerGetIntegrationSetupGuide,
   registerGetWorkflowSetupChecklist,
   registerTestCredential,
-  registerTestWebhookSetup,
 } from "./integrations/integration-tools";
 import { getMcpRuntimeFeatureFlags } from "@/mcp/observability/runtime-guardrails";
 import { logger } from "@/lib/logging";
@@ -64,7 +62,6 @@ export function registerChatGptAppTools(
   registerDiagnoseExecution(server, context);
 
   registerGetWorkflowSetupChecklist(server, context);
-  registerGetIntegrationSetupGuide(server, context);
 
   registerChatGptRenderTools(server, context);
 
@@ -92,5 +89,4 @@ export function registerChatGptAppTools(
   registerApplyWorkflowFix(server, context);
 
   registerTestCredential(server, context);
-  registerTestWebhookSetup(server, context);
 }

@@ -1,8 +1,10 @@
 /**
- * Tools: rename_workflow, delete_workflow, execute_workflow
- * Scopes: workflows:write, workflows:execute
+ * Tools: rename_workflow, delete_workflow
+ * Scopes: workflows:write
  *
- * Remaining workflow mutation tools bundled together.
+ * Note: execute_workflow removed in Phase 1 (2026-08-26) — merged into
+ * execute_workflow_and_wait / run_workflow_test. See integration-tools.ts
+ * and execution-runtime-tools.ts for the retained execution triggers.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -12,7 +14,6 @@ import { requireScope } from "@/mcp/middleware/scope-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
 import { createAuditContext } from "@/mcp/middleware/audit-logger";
 import { mcpJsonResponse, mcpTextResponse } from "@/mcp/shared/sanitize";
-import { sendWorkflowExecution } from "@/inngest/utils";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 import { createWorkflowVersion } from "./workflow-graph-utils";
 import { requireToolApproval } from "@/mcp/safety/approval-guard";
@@ -117,64 +118,11 @@ export function registerDeleteWorkflow(
   );
 }
 
-export function registerExecuteWorkflow(
-  server: McpServer,
-  context: McpToolContext = {},
-) {
-  server.tool(
-    "execute_workflow",
-    "Trigger a workflow asynchronously via Inngest. Returns an event correlation ID; use execute_workflow_and_wait or get_execution_timeline with inngestEventId for follow-up.",
-    {
-      id: z.string().describe("The workflow ID to execute"),
-      approved: z.boolean().default(false).describe("Must be true after explicit user approval."),
-      confirmationHash: z.string().optional().describe("Optional confirmation hash from the approval preview."),
-    },
-    async (args, extra) => {
-      const auth = getMcpAuth(extra, context);
-      requireScope(auth, "workflows:execute");
-
-      const audit = createAuditContext({
-        userId: auth.userId, apiKeyId: auth.apiKeyId,
-        authMethod: auth.method, tool: "execute_workflow", input: args,
-      });
-
-      return withErrorBoundary("execute_workflow", async () => {
-        // Verify ownership
-        const workflow = await prisma.workflow.findUniqueOrThrow({
-          where: { id: args.id, userId: auth.userId },
-        });
-        const approval = requireToolApproval({
-          toolName: "execute_workflow",
-          auth,
-          approved: args.approved,
-          confirmationHash: args.confirmationHash,
-          requiresConfirmation: false,
-          preview: {
-            triggered: false,
-            workflowId: workflow.id,
-            workflowName: workflow.name,
-          },
-          warning:
-            "Executing a workflow may send messages, call external APIs, write to connected services, or create other side effects.",
-          auditInput: { workflowId: workflow.id },
-        });
-        if (!approval.approved) return approval.response;
-
-        // Send execution event to Inngest
-        const executionEvent = await sendWorkflowExecution({ workflowId: args.id });
-
-        audit.success();
-        return mcpJsonResponse({
-          message: `Workflow "${workflow.name}" execution triggered. Use execute_workflow_and_wait for synchronous chat UX or get_execution_timeline with the returned inngestEventId.`,
-          workflowId: workflow.id,
-          workflowName: workflow.name,
-          inngestEventId: executionEvent.eventId,
-          executionLookup: {
-            by: "inngestEventId",
-            value: executionEvent.eventId,
-          },
-        });
-      });
-    },
-  );
-}
+/**
+ * execute_workflow — REMOVED in Phase 1 (2026-08-26)
+ * Fire-and-forget trigger merged into execute_workflow_and_wait and
+ * run_workflow_test(wait=false). Callers should use:
+ *   execute_workflow_and_wait({ workflowId, approved: true }) or
+ *   run_workflow_test({ workflowId, trigger, approved: true, wait: false })
+ * Tool is NOT registered, so it no longer appears in tools/list.
+ */

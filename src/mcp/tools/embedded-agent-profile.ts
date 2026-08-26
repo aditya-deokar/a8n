@@ -1,10 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { McpToolContext } from "@/mcp/shared/auth-context";
 import {
-  registerGetIntegrationSetupGuide,
-  registerGetWorkflowSetupChecklist,
   registerGenerateGoogleFormScript,
-  registerGetWebhookUrl,
+  registerGetWorkflowSetupChecklist,
 } from "./integrations/integration-tools";
 import { registerListNodeTypes, registerSearchCapabilities } from "./nodes/node-tools";
 import { registerGetExecution, registerListExecutions } from "./executions/execution-tools";
@@ -28,7 +26,6 @@ import { registerListWorkflowVersions } from "./workflows/workflow-versioning.to
 import {
   registerGetCredential,
   registerListCredentials,
-  registerListCredentialsByType,
 } from "./credentials/credential-tools";
 import {
   registerHealthCheck,
@@ -63,7 +60,6 @@ export function registerEmbeddedAgentTools(
 
   registerListCredentials(server, context);
   registerGetCredential(server, context);
-  registerListCredentialsByType(server, context);
 
   registerListExecutions(server, context);
   registerGetExecution(server, context);
@@ -72,8 +68,6 @@ export function registerEmbeddedAgentTools(
   registerSuggestWorkflowFix(server, context);
 
   registerGetWorkflowSetupChecklist(server, context);
-  registerGetIntegrationSetupGuide(server, context);
-  registerGetWebhookUrl(server, context);
   registerGenerateGoogleFormScript(server, context);
 
   registerPlanWorkflowFromGoal(server, context);
