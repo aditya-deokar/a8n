@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Dialog,
@@ -24,6 +24,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { NodeType } from "@/generated/prisma";
+import {
+  CredentialSelectWithCreate,
+  TemplateVariablePicker,
+  TestNodeButton,
+  useUpstreamVariables,
+} from "@/features/editor/components/node-config-extras";
 
 const formSchema = z.object({
   variableName: z
@@ -45,6 +52,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   defaultValues?: Partial<SlackFormValues>;
+  nodeId?: string;
 };
 
 export const SlackDialog = ({
@@ -52,6 +60,7 @@ export const SlackDialog = ({
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  nodeId,
 }: Props) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,6 +70,8 @@ export const SlackDialog = ({
       webhookUrl: defaultValues.webhookUrl || "",
     },
   });
+
+  const variables = useUpstreamVariables(nodeId ?? "");
 
   // Reset form values when dialog opens with new defaults
   useEffect(() => {
@@ -128,7 +139,7 @@ export const SlackDialog = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    Get this from Slack: Workspace Settings → Workflows → Webhooks
+                    Get this from Slack: Workspace Settings â†’ Workflows â†’ Webhooks
                   </FormDescription>
                   <FormDescription>
                     Make sure you have "content" variable
@@ -155,11 +166,24 @@ export const SlackDialog = ({
                     The message to send. Use {"{{variables}}"} for simple values
                     or {"{{json variable}}"} to stringify objects
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                 <FormMessage />
               </FormItem>
             )}
             />
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 flex-row gap-2">
+              {nodeId && (
+                <TestNodeButton
+                  nodeType={NodeType.SLACK}
+                  values={form.watch() as Record<string, unknown>}
+                  className="mr-auto"
+                />
+              )}
               <Button type="submit">Save</Button>
             </DialogFooter>
           </form>

@@ -1,9 +1,10 @@
-"use server";
+﻿"use server";
 
 import { getSubscriptionToken, type Realtime } from "@inngest/realtime";
 import { manualTriggerChannel } from "@/inngest/channels/manual-trigger";
 import { inngest } from "@/inngest/client";
 import { logger, normalizeError } from "@/lib/logging";
+import { requireRealtimeTokenAccess } from "@/features/executions/hooks/realtime-auth";
 
 export type ManualTriggerToken = Realtime.Token<
   typeof manualTriggerChannel,
@@ -11,6 +12,7 @@ export type ManualTriggerToken = Realtime.Token<
 >;
 
 export async function fetchManualTriggerRealtimeToken(): Promise<ManualTriggerToken> {
+  await requireRealtimeTokenAccess();
   try {
     const token = await getSubscriptionToken(inngest, {
       channel: manualTriggerChannel(),
@@ -30,6 +32,6 @@ export async function fetchManualTriggerRealtimeToken(): Promise<ManualTriggerTo
       },
       "Failed to fetch Inngest realtime token.",
     );
-    return null as unknown as ManualTriggerToken;
+    throw error;
   }
 };

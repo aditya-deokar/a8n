@@ -1,20 +1,12 @@
-import { NodeProps } from "@xyflow/react";
+﻿import { NodeProps } from "@xyflow/react";
+import { useNodeStatusById } from "@/features/editor/hooks/use-node-statuses";
 import { memo, useState } from "react";
 import { BaseTriggerNode } from "../base-trigger-node";
 import { GoogleFormTriggerDialog } from "./dialog";
-import { useNodeStatus } from "@/features/executions/hooks/use-node-status";
-import { fetchGoogleFormTriggerRealtimeToken } from "./actions";
-import { GOOGLE_FORM_TRIGGER_CHANNEL_NAME } from "@/inngest/channels/google-form-trigger";
 
 export const GoogleFormTrigger = memo((props: NodeProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  const nodeStatus = useNodeStatus({
-    nodeId: props.id,
-    channel: GOOGLE_FORM_TRIGGER_CHANNEL_NAME,
-    topic: "status",
-    refreshToken: fetchGoogleFormTriggerRealtimeToken,
-  });
+  const nodeStatus = useNodeStatusById(props.id);
 
   const handleOpenSettings = () => setDialogOpen(true);
 
@@ -23,6 +15,13 @@ export const GoogleFormTrigger = memo((props: NodeProps) => {
       <GoogleFormTriggerDialog 
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        nodeId={props.id}
+        defaultValues={{
+          webhookSecret:
+            typeof props.data.webhookSecret === "string"
+              ? props.data.webhookSecret
+              : undefined,
+        }}
       />
       <BaseTriggerNode
         {...props}

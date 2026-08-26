@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Dialog,
@@ -24,6 +24,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { NodeType } from "@/generated/prisma";
+import {
+  CredentialSelectWithCreate,
+  TemplateVariablePicker,
+  TestNodeButton,
+  useUpstreamVariables,
+} from "@/features/editor/components/node-config-extras";
 
 const formSchema = z.object({
   variableName: z
@@ -47,6 +54,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   defaultValues?: Partial<DiscordFormValues>;
+  nodeId?: string;
 };
 
 export const DiscordDialog = ({
@@ -54,6 +62,7 @@ export const DiscordDialog = ({
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  nodeId,
 }: Props) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,6 +73,8 @@ export const DiscordDialog = ({
       webhookUrl: defaultValues.webhookUrl || "",
     },
   });
+
+  const variables = useUpstreamVariables(nodeId ?? "");
 
   // Reset form values when dialog opens with new defaults
   useEffect(() => {
@@ -132,7 +143,7 @@ export const DiscordDialog = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    Get this from Discord: Channel Settings → Integrations → Webhooks
+                    Get this from Discord: Channel Settings â†’ Integrations â†’ Webhooks
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -156,6 +167,12 @@ export const DiscordDialog = ({
                     The message to send. Use {"{{variables}}"} for simple values
                     or {"{{json variable}}"} to stringify objects
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                 <FormMessage />
               </FormItem>
             )}
@@ -179,7 +196,14 @@ export const DiscordDialog = ({
                 </FormItem>
               )}
             />
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 flex-row gap-2">
+              {nodeId && (
+                <TestNodeButton
+                  nodeType={NodeType.DISCORD}
+                  values={form.watch() as Record<string, unknown>}
+                  className="mr-auto"
+                />
+              )}
               <Button type="submit">Save</Button>
             </DialogFooter>
           </form>

@@ -1,6 +1,6 @@
 "use client";
 
-import { type NodeProps, Position, useReactFlow } from "@xyflow/react";
+import { type NodeProps, Position } from "@xyflow/react";
 import type { LucideIcon } from "lucide-react";
 import Image from "next/image";
 import { memo, type ReactNode } from "react";
@@ -8,6 +8,7 @@ import { BaseNode, BaseNodeContent } from "@/components/react-flow/base-node";
 import { BaseHandle } from "@/components/react-flow/base-handle";
 import { WorkflowNode } from "@/components/workflow-node";
 import { type NodeStatus, NodeStatusIndicator } from "@/components/react-flow/node-status-indicator";
+import { useGraphMutations } from "@/features/editor/hooks/use-graph-mutations";
 
 interface BaseTriggerNodeProps extends NodeProps {
   icon: LucideIcon | string;
@@ -30,19 +31,9 @@ export const BaseTriggerNode = memo(
     onSettings,
     onDoubleClick,
   }: BaseTriggerNodeProps) => {
-    const { setNodes, setEdges } = useReactFlow();
+    const { deleteNode } = useGraphMutations();
     const handleDelete = () => {
-      setNodes((currentNodes) => {
-        const updatedNodes = currentNodes.filter((node) => node.id !== id);
-        return updatedNodes;
-      });
-
-      setEdges((currentEdges) => {
-        const updatedEdges = currentEdges.filter(
-          (edge) => edge.source !== id && edge.target !== id
-        );
-        return updatedEdges;
-      });
+      deleteNode(id);
     };
 
     return (
@@ -74,12 +65,6 @@ export const BaseTriggerNode = memo(
                 id="main"
                 type="source"
                 position={Position.Right}
-              />
-              <BaseHandle
-                id="source-1"
-                type="source"
-                position={Position.Right}
-                className="pointer-events-none opacity-0"
               />
             </BaseNodeContent>
           </BaseNode>

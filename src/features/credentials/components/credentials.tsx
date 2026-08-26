@@ -170,7 +170,7 @@ const credentialLogos: Record<CredentialType, string> = {
 export const CredentialItem = ({
   data,
 }: {
-  data: Credential
+  data: Pick<Credential, "id" | "name" | "type" | "createdAt" | "updatedAt">
 }) => {
   const removeCredential = useRemoveCredential();
   const [credentialId, setCredentialId] = useQueryState("edit");

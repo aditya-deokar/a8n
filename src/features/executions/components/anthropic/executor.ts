@@ -1,4 +1,4 @@
-import Handlebars from "handlebars";
+﻿import Handlebars from "handlebars";
 import { NonRetriableError } from "inngest";
 import { generateText } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
@@ -7,6 +7,7 @@ import { anthropicChannel } from "@/inngest/channels/anthropic";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import { aiTelemetryOptions, observeExternalProvider } from "@/lib/logging";
+import { OUTBOUND_TIMEOUTS } from "@/lib/with-timeout";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -19,6 +20,7 @@ Handlebars.registerHelper("json", (context) => {
 });
 
 type AnthropicData = {
+  model?: string;
   variableName?: string;
   credentialId?: string;
   systemPrompt?: string;
@@ -105,16 +107,17 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({
         operation: "generate_text",
         nodeId,
         nodeType: "ANTHROPIC",
-        model: "claude-sonnet-4-5",
+        model: data.model ?? "claude-sonnet-4-5",
       },
       () =>
         step.ai.wrap(
           "anthropic-generate-text",
           generateText,
           {
-            model: anthropic("claude-sonnet-4-5"),
+            model: anthropic(data.model ?? "claude-sonnet-4-5"),
             system: systemPrompt,
             prompt: userPrompt,
+            abortSignal: AbortSignal.timeout(OUTBOUND_TIMEOUTS.aiModelMs),
             experimental_telemetry: aiTelemetryOptions(),
           },
         ),

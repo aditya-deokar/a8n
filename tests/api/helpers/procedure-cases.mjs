@@ -47,6 +47,46 @@ export const apiProcedureCases = [
     call: (caller) => caller.workflows.execute({ id: "workflow_a" }),
   },
   {
+    path: "workflows.setActive",
+    access: "protected",
+    call: (caller) => caller.workflows.setActive({ id: "workflow_a", active: true }),
+  },
+  {
+    path: "workflows.setWebhookSecret",
+    access: "protected",
+    call: (caller) =>
+      caller.workflows.setWebhookSecret({
+        workflowId: "workflow_a",
+        nodeId: "node_a",
+        secret: "whsec_test",
+      }),
+  },
+  {
+    path: "workflows.testNode",
+    access: "protected",
+    call: (caller) =>
+      caller.workflows.testNode({ type: "HTTP_REQUEST", data: {} }),
+  },
+  {
+    path: "workflows.getVersions",
+    access: "protected",
+    call: (caller) => caller.workflows.getVersions({ workflowId: "workflow_a" }),
+  },
+  {
+    path: "workflows.restoreVersion",
+    access: "protected",
+    call: (caller) =>
+      caller.workflows.restoreVersion({
+        workflowId: "workflow_a",
+        versionId: "version_a",
+      }),
+  },
+  {
+    path: "workflows.duplicate",
+    access: "protected",
+    call: (caller) => caller.workflows.duplicate({ id: "workflow_a" }),
+  },
+  {
     path: "credentials.create",
     access: "premium",
     call: (caller) =>

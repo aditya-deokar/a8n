@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Dialog,
@@ -24,8 +24,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  CredentialSelectWithCreate,
+  TemplateVariablePicker,
+  TestNodeButton,
+  useUpstreamVariables,
+} from "@/features/editor/components/node-config-extras";
 import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials";
-import { CredentialType } from "@/generated/prisma";
+import { CredentialType, NodeType } from "@/generated/prisma";
 import {
   Select,
   SelectContent,
@@ -57,6 +63,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   defaultValues?: Partial<EmailFormValues>;
+  nodeId?: string;
 };
 
 export const EmailDialog = ({
@@ -64,6 +71,7 @@ export const EmailDialog = ({
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  nodeId,
 }: Props) => {
   const {
     data: credentials,
@@ -96,6 +104,8 @@ export const EmailDialog = ({
       });
     }
   }, [open, defaultValues, form]);
+
+  const variables = useUpstreamVariables(nodeId ?? "");
 
   const watchVariableName = form.watch("variableName") || "emailResult";
 
@@ -209,6 +219,12 @@ export const EmailDialog = ({
                   <FormDescription>
                     Use {"{{variables}}"} or {"{{json variable}}"} from earlier nodes.
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -242,7 +258,14 @@ export const EmailDialog = ({
               )}
             />
 
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 flex-row gap-2">
+              {nodeId && (
+                <TestNodeButton
+                  nodeType={NodeType.EMAIL}
+                  values={form.watch() as Record<string, unknown>}
+                  className="mr-auto"
+                />
+              )}
               <Button type="submit">Save</Button>
             </DialogFooter>
           </form>

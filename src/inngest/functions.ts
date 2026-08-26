@@ -16,6 +16,7 @@ import { slackChannel } from "./channels/slack";
 import { emailChannel } from "./channels/email";
 import { googleSheetsChannel } from "./channels/google-sheets";
 import type { NodeExecutorParams, StepTools, WorkflowContext } from "@/features/executions/types";
+import type { Realtime } from "@inngest/realtime";
 import { runWithLogContext } from "@/lib/logging";
 import {
   logWorkflowError,
@@ -23,6 +24,12 @@ import {
   observeWorkflowNode,
   type WorkflowLogContext,
 } from "./logging";
+import {
+  recordNodeRunFailure,
+  recordNodeRunStart,
+  recordNodeRunSuccess,
+} from "./node-run-store";
+import { publishNodeStatus } from "./node-status-publisher";
 
 type WorkflowExecutionEvent = {
   id: string;
@@ -35,6 +42,7 @@ type WorkflowExecutionEvent = {
 type WorkflowExecutionInput = {
   event: WorkflowExecutionEvent;
   step: StepTools;
+  publish: NodeExecutorParams["publish"];
 };
 
 type WorkflowFailureInput = {
@@ -54,21 +62,6 @@ type WorkflowFailureInput = {
   };
 };
 
-type LegacyInngestApi = {
-  inngestApi: {
-    publish: (
-      options: {
-        topics: string[];
-        channel: string;
-        runId: string;
-      },
-      data: unknown,
-    ) => Promise<{ ok: boolean }>;
-  };
-};
-
-type PublishInput = Parameters<NodeExecutorParams["publish"]>[0];
-
 function inngestFailureError(input: WorkflowFailureInput["event"]["data"]["error"]) {
   const error = new Error(input.message);
   error.stack = input.stack;
@@ -82,6 +75,7 @@ export const executeWorkflow = inngest.createFunction(
     onFailure: async (input: unknown) => {
       const { event } = input as WorkflowFailureInput;
       const workflowId = event.data.event.data?.workflowId;
+      const inngestEventId = event.data.event.id;
 
       logWorkflowError(
         "workflow_execution_failed",
@@ -89,21 +83,57 @@ export const executeWorkflow = inngest.createFunction(
         inngestFailureError(event.data.error),
         {
           workflowId,
-          inngestEventId: event.data.event.id,
+          inngestEventId,
         },
         {
           failureStage: "inngest_on_failure",
         },
       );
 
-      return prisma.execution.update({
-        where: { inngestEventId: event.data.event.id },
-        data: {
-          status: ExecutionStatus.FAILED,
-          error: event.data.error.message,
-          errorStack: event.data.error.stack,
-        },
-      });
+      // Mark the execution FAILED, tolerating the case where the run failed
+      // before the execution row was ever created.
+      try {
+        await prisma.execution.update({
+          where: { inngestEventId },
+          data: {
+            status: ExecutionStatus.FAILED,
+            error: event.data.error.message,
+            errorStack: event.data.error.stack,
+          },
+        });
+      } catch (error) {
+        logWorkflowError(
+          "workflow_failure_status_update_failed",
+          "Could not persist the failure status for the execution.",
+          error,
+          {
+            workflowId,
+            inngestEventId,
+          },
+        );
+      }
+
+      // Push error statuses to the canvas so nodes never stay stuck on
+      // "loading" after a failed run. Best-effort only.
+      if (!workflowId) return;
+      try {
+        const nodes = await prisma.node.findMany({
+          where: { workflowId, type: { not: NodeType.INITIAL } },
+          select: { id: true, type: true },
+        });
+        await Promise.allSettled(
+          nodes.map((node) =>
+            publishNodeStatus({
+              eventId: inngestEventId,
+              nodeType: node.type as NodeType,
+              nodeId: node.id,
+              status: "error",
+            }),
+          ),
+        );
+      } catch {
+        // Never mask the original failure.
+      }
     },
     triggers: [{ event: "workflows/execute.workflow" }],
     channels: [
@@ -121,7 +151,7 @@ export const executeWorkflow = inngest.createFunction(
     ],
   } as unknown as Parameters<typeof inngest.createFunction>[0],
   async (input: unknown) => {
-    const { event, step } = input as WorkflowExecutionInput;
+    const { event, step, publish } = input as WorkflowExecutionInput;
     const inngestEventId = event.id;
     const workflowId = event.data.workflowId;
     const started = Date.now();
@@ -218,42 +248,50 @@ export const executeWorkflow = inngest.createFunction(
           // Initialize context with any initial data from the trigger.
           let context: WorkflowContext = event.data.initialData || {};
 
-          // Shim for legacy @inngest/realtime middleware publish.
-          const publish: NodeExecutorParams["publish"] = async (input: PublishInput) => {
-            const { topic, channel, data } = await input;
-            const publishOpts = {
-              topics: [topic],
-              channel,
-              runId: event.id,
-            };
-
-            const result = await (inngest as unknown as LegacyInngestApi).inngestApi.publish(
-              publishOpts,
-              data,
-            );
-            if (!result.ok) throw new Error("Failed to publish event to realtime");
-            return data;
-          };
-
           // Execute each node without logging node data, prompts, outputs, or credentials.
           for (const node of sortedNodes) {
             const executor = getExecutor(node.type as NodeType);
-            context = await observeWorkflowNode(
-              {
-                ...executionLogContext,
-                nodeId: node.id,
-                nodeType: String(node.type),
-              },
-              () =>
-                executor({
-                  data: node.data as Record<string, unknown>,
+            const nodeStartedAt = Date.now();
+
+            await recordNodeRunStart({
+              executionId,
+              nodeId: node.id,
+              nodeType: node.type as NodeType,
+            });
+
+            try {
+              context = await observeWorkflowNode(
+                {
+                  ...executionLogContext,
                   nodeId: node.id,
-                  userId: resolvedUserId,
-                  context,
-                  step,
-                  publish,
-                }),
-            );
+                  nodeType: String(node.type),
+                },
+                () =>
+                  executor({
+                    data: node.data as Record<string, unknown>,
+                    nodeId: node.id,
+                    userId: resolvedUserId,
+                    context,
+                    step,
+                    publish: publish as NodeExecutorParams["publish"] &
+                      Realtime.PublishFn,
+                  }),
+              );
+              await recordNodeRunSuccess({
+                executionId,
+                nodeId: node.id,
+                durationMs: Date.now() - nodeStartedAt,
+              });
+            } catch (error) {
+              await recordNodeRunFailure({
+                executionId,
+                nodeId: node.id,
+                durationMs: Date.now() - nodeStartedAt,
+                errorMessage:
+                  error instanceof Error ? error.message : String(error),
+              });
+              throw error;
+            }
           }
 
           await step.run("update-execution", async () => {

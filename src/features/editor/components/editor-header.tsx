@@ -2,7 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { SaveIcon, ChevronLeftIcon, BotIcon } from "lucide-react";
+import {
+  SaveIcon,
+  ChevronLeftIcon,
+  BotIcon,
+  MoreVerticalIcon,
+  FileDownIcon,
+  FileUpIcon,
+  HistoryIcon,
+  CopyPlusIcon,
+} from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,34 +22,61 @@ import {
 import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName } from "@/features/workflows/hooks/use-workflows";
+import { useSuspenseWorkflow, useUpdateWorkflow, useUpdateWorkflowName, useDuplicateWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { useAtomValue, useSetAtom, useAtom } from "jotai";
-import { editorAtom, nodeSelectorOpenAtom, isCanvasDirtyAtom, isAgentSidebarOpenAtom } from "../store/atoms";
+import {
+  editorNodesAtom,
+  editorEdgesAtom,
+  isCanvasDirtyAtom,
+  isAgentSidebarOpenAtom,
+  graphModeAtom,
+} from "../store/atoms";
 import { AddNodeButton } from "./add-node-button";
+import { VersionHistoryDialog } from "./version-history-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useGraphMutations } from "../hooks/use-graph-mutations";
 import { cn } from "@/lib/utils";
+import type { Node, Edge } from "@xyflow/react";
+import { toast } from "sonner";
 
 export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
-  const editor = useAtomValue(editorAtom);
   const saveWorkflow = useUpdateWorkflow();
   const setIsCanvasDirty = useSetAtom(isCanvasDirtyAtom);
+  const graphMode = useAtomValue(graphModeAtom);
+  const isCanvasDirty = useAtomValue(isCanvasDirtyAtom);
+  const nodes = useAtomValue(editorNodesAtom);
+  const edges = useAtomValue(editorEdgesAtom);
 
   const handleSave = () => {
-    if (!editor) {
+    if (graphMode !== "live") {
+      toast.error("Exit Draft Preview before saving", {
+        description: "AI-generated drafts must go through the approval flow.",
+      });
       return;
     }
 
-    const nodes = editor.getNodes().map((node) => ({
+    const payloadNodes = nodes.map((node) => ({
       id: node.id,
       type: node.type ?? "INITIAL",
       position: node.position,
       data: node.data,
     }));
-    const edges = editor.getEdges();
+    const payloadEdges = edges.map((edge) => ({
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle ?? null,
+      targetHandle: edge.targetHandle ?? null,
+    }));
 
     saveWorkflow.mutate({
       id: workflowId,
-      nodes,
-      edges,
+      nodes: payloadNodes,
+      edges: payloadEdges,
     }, {
       onSuccess: () => {
         setIsCanvasDirty(false);
@@ -49,7 +85,13 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   }
 
   return (
-    <div className="ml-auto flex shrink-0 w-full md:w-auto">
+    <div className="relative">
+      {isCanvasDirty && graphMode === "live" && (
+        <span
+          className="absolute -top-1 -right-1 z-10 size-3 rounded-full bg-amber-400 border-2 border-white dark:border-zinc-900"
+          title="Unsaved changes"
+        />
+      )}
       <Button
         size="sm"
         onClick={handleSave}
@@ -64,8 +106,120 @@ export const EditorSaveButton = ({ workflowId }: { workflowId: string }) => {
   )
 };
 
-export const EditorAgentButton = () => {
-  const [isOpen, setIsOpen] = useAtom(isAgentSidebarOpenAtom);
+// PLACEHOLDER_EDITOR_MENU
+
+const EditorMoreMenu = ({ workflowId, workflowName }: { workflowId: string; workflowName: string }) => {
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  const nodes = useAtomValue(editorNodesAtom);
+  const edges = useAtomValue(editorEdgesAtom);
+  const duplicateWorkflow = useDuplicateWorkflow();
+  const { replaceWithHistory } = useGraphMutations();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      name: workflowName,
+      nodes,
+      edges,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${workflowName.replace(/[^a-z0-9-_ ]/gi, "") || "workflow"}.a8n.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportFile = async (file: File) => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as {
+        nodes?: unknown;
+        edges?: unknown;
+      };
+      if (
+        !Array.isArray(parsed.nodes) ||
+        !Array.isArray(parsed.edges) ||
+        parsed.nodes.length === 0
+      ) {
+        toast.error("Invalid workflow file");
+        return;
+      }
+      replaceWithHistory({
+        nodes: parsed.nodes as Node[],
+        edges: parsed.edges as Edge[],
+      });
+      toast.success("Workflow imported — review and save to persist it");
+    } catch {
+      toast.error("Could not read the selected file");
+    }
+  };
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="outline" className="h-12 md:h-9 w-9 shadow-sm">
+            <MoreVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleExport}>
+            <FileDownIcon className="size-4 mr-2" />
+            Export JSON
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+            <FileUpIcon className="size-4 mr-2" />
+            Import JSON
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setVersionsOpen(true)}>
+            <HistoryIcon className="size-4 mr-2" />
+            Version history
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={duplicateWorkflow.isPending}
+            onClick={() =>
+              duplicateWorkflow.mutate(
+                { id: workflowId },
+                {
+                  onSuccess: (data) => toast.success(`Duplicated as "${data.name}"`),
+                },
+              )
+            }
+          >
+            <CopyPlusIcon className="size-4 mr-2" />
+            Duplicate workflow
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void handleImportFile(file);
+          event.target.value = "";
+        }}
+      />
+
+      <VersionHistoryDialog
+        workflowId={workflowId}
+        open={versionsOpen}
+        onOpenChange={setVersionsOpen}
+      />
+    </>
+  );
+};
+
+export const EditorAgentButton = () => {  const [isOpen, setIsOpen] = useAtom(isAgentSidebarOpenAtom);
 
   return (
     <Button
@@ -172,7 +326,7 @@ export const EditorBreadcrumbs = ({ workflowId }: { workflowId: string }) => {
 };
 
 export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
-  const selectorOpen = useAtomValue(nodeSelectorOpenAtom);
+  const { data: workflow } = useSuspenseWorkflow(workflowId);
 
   return (
     <div className="flex items-stretch gap-2 shrink-0 w-full min-w-0">
@@ -195,6 +349,7 @@ export const EditorHeader = ({ workflowId }: { workflowId: string }) => {
             <EditorAgentButton />
             <AddNodeButton />
             <EditorSaveButton workflowId={workflowId} />
+            <EditorMoreMenu workflowId={workflowId} workflowName={workflow.name} />
           </div>
         </div>
       </div>

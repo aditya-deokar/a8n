@@ -40,7 +40,8 @@ import { XIcon } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   type: z.enum(CredentialType),
-  value: z.string().min(1, "API key is required"),
+  // Optional on edit: leave blank to keep the existing secret untouched.
+  value: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,7 +79,8 @@ interface CredentialFormProps {
     id?: string;
     name: string;
     type: CredentialType;
-    value: string;
+    // Intentionally omitted: the encrypted value is never sent to the client.
+    value?: string;
   };
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -97,23 +99,40 @@ export const CredentialForm = ({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || {
-      name: "",
-      type: CredentialType.OPENAI,
-      value: "",
-    },
+    defaultValues: initialData
+      ? {
+          name: initialData.name,
+          type: initialData.type,
+          value: "",
+        }
+      : {
+          name: "",
+          type: CredentialType.OPENAI,
+          value: "",
+        },
   });
 
   const onSubmit = async (values: FormValues) => {
     if (isEdit && initialData?.id) {
       await updateCredential.mutateAsync({
         id: initialData.id,
-        ...values,
+        name: values.name,
+        type: values.type,
+        // Only rotate the secret when a new value was entered.
+        ...(values.value ? { value: values.value } : {}),
       }).then(() => {
         onSuccessCallback?.();
       });
     } else {
-      await createCredential.mutateAsync(values, {
+      if (!values.value) {
+        form.setError("value", { message: "API key is required" });
+        return;
+      }
+      await createCredential.mutateAsync({
+        name: values.name,
+        type: values.type,
+        value: values.value,
+      }, {
         onSuccess: (data) => {
           onSuccessCallback?.();
         },
@@ -206,11 +225,14 @@ export const CredentialForm = ({
                     name="value"
                     render={({ field }) => (
                       <FormItem className="space-y-1.5">
-                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">API Key</FormLabel>
+                        <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+                          {isEdit ? "New API Key (leave blank to keep current)" : "API Key"}
+                        </FormLabel>
                         <FormControl>
                           <Input 
                             type="password" 
-                            placeholder="sk-..."
+                            placeholder={isEdit ? "••••••••" : "sk-..."}
+                            autoComplete="new-password"
                             className="rounded-xl bg-gray-50/50 dark:bg-zinc-900/80 border-gray-200/60 dark:border-zinc-800 h-12 px-4 shadow-inner dark:shadow-none focus-visible:ring-2 focus-visible:ring-[#5c54a4]/20 focus-visible:border-[#5c54a4] transition-all"
                             {...field}
                           />

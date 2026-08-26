@@ -48,7 +48,9 @@ export const credentialsRouter = createTRPCRouter({
         id: z.string(), 
         name: z.string().min(1, "Name is required"),
         type: z.enum(CredentialType),
-        value: z.string().min(1, "Value is required"),
+        // Only provided when the user actually changed the secret. Never send
+        // the stored ciphertext back here — it must not be re-encrypted.
+        value: z.string().min(1).optional(),
       }),
     )
     .mutation(({ ctx, input }) => {
@@ -59,15 +61,23 @@ export const credentialsRouter = createTRPCRouter({
         data: {
           name,
           type,
-          value: encrypt(value),
+          ...(value !== undefined ? { value: encrypt(value) } : {}),
         }
       });
     }),
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) => {
+      // Never expose the encrypted value to the client.
       return prisma.credential.findUniqueOrThrow({
         where: { id: input.id, userId: ctx.auth.user.id },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
     }),
   getMany: protectedProcedure
@@ -98,6 +108,13 @@ export const credentialsRouter = createTRPCRouter({
           },
           orderBy: {
             updatedAt: "desc",
+          },
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            createdAt: true,
+            updatedAt: true,
           },
         }),
         prisma.credential.count({
@@ -138,6 +155,13 @@ export const credentialsRouter = createTRPCRouter({
         where: { type, userId: ctx.auth.user.id },
         orderBy: {
           updatedAt: "desc",
+        },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
     }),

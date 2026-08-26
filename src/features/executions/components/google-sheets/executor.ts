@@ -7,6 +7,7 @@ import { googleSheetsChannel } from "@/inngest/channels/google-sheets";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import { observeExternalProvider } from "@/lib/logging";
+import { OUTBOUND_TIMEOUTS, withTimeout } from "@/lib/with-timeout";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -152,14 +153,18 @@ export const googleSheetsExecutor: NodeExecutor<GoogleSheetsData> = async ({
           }),
         },
         () =>
-          sheets.spreadsheets.values.append({
-            spreadsheetId,
-            range: `${sheetName}!A:Z`,
-            valueInputOption: "USER_ENTERED",
-            requestBody: {
-              values: [row],
-            },
-          }),
+          withTimeout(
+            sheets.spreadsheets.values.append({
+              spreadsheetId,
+              range: `${sheetName}!A:Z`,
+              valueInputOption: "USER_ENTERED",
+              requestBody: {
+                values: [row],
+              },
+            }),
+            OUTBOUND_TIMEOUTS.googleSheetsMs,
+            "Google Sheets request",
+          ),
       );
 
       return {

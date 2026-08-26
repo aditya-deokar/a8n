@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { 
   EmptyView,
@@ -12,13 +13,30 @@ import {
   ErrorView,
   LoadingView
 } from "@/components/entity-components";
-import { useCreateWorkflow, useRemoveWorkflow, useSuspenseWorkflows } from "../hooks/use-workflows"
+import {
+  useCreateWorkflow,
+  useRemoveWorkflow,
+  useSetActiveWorkflow,
+  useSuspenseWorkflows,
+} from "../hooks/use-workflows"
 import { useUpgradeModal } from "@/hooks/use-upgrade-modal";
 import { useRouter } from "next/navigation";
 import { useWorkflowsParams } from "../hooks/use-workflows-params";
 import { useEntitySearch } from "@/hooks/use-entity-search";
 import type { Workflow } from "@/generated/prisma";
 import { WorkflowIcon } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export const WorkflowsSearch = () => {
   const [params, setParams] = useWorkflowsParams();
@@ -151,29 +169,87 @@ export const WorkflowItem = ({
   data: Workflow
 }) => {
   const removeWorkflow = useRemoveWorkflow();
+  const setActiveWorkflow = useSetActiveWorkflow();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleRemove = () => {
-    removeWorkflow.mutate({ id: data.id });
+    // Deletion is destructive and irreversible — require explicit confirmation.
+    setConfirmOpen(true);
   }
 
   return (
-    <EntityItem
-      href={`/workflows/${data.id}`}
-      title={data.name}
-      subtitle={
-        <>
-          Updated {formatDistanceToNow(data.updatedAt, { addSuffix: true })}{" "}
-          &bull; Created{" "}
-          {formatDistanceToNow(data.createdAt, { addSuffix: true })}
-        </>
-      }
-      image={
-        <div className="size-10 sm:size-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] dark:from-indigo-950/50 dark:to-indigo-900/50 flex items-center justify-center flex-shrink-0 border border-white dark:border-indigo-900/50 shadow-inner">
-          <WorkflowIcon className="size-5 sm:size-6 text-[#5c54a4] dark:text-indigo-400" />
-        </div>
-      }
-      onRemove={handleRemove}
-      isRemoving={removeWorkflow.isPending}
-    />
+    <>
+      <EntityItem
+        href={`/workflows/${data.id}`}
+        title={data.name}
+        subtitle={
+          <>
+            Updated {formatDistanceToNow(data.updatedAt, { addSuffix: true })}{" "}
+            &bull; Created{" "}
+            {formatDistanceToNow(data.createdAt, { addSuffix: true })}
+          </>
+        }
+        image={
+          <div className="size-10 sm:size-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-[#e8e9f5] to-[#f4f3fb] dark:from-indigo-950/50 dark:to-indigo-900/50 flex items-center justify-center flex-shrink-0 border border-white dark:border-indigo-900/50 shadow-inner">
+            <WorkflowIcon className="size-5 sm:size-6 text-[#5c54a4] dark:text-indigo-400" />
+          </div>
+        }
+        onRemove={handleRemove}
+        isRemoving={removeWorkflow.isPending}
+        actions={
+          <div
+            className="flex items-center gap-2"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+          >
+            <Badge
+              variant={data.active ? "default" : "outline"}
+              className={
+                data.active
+                  ? "bg-green-600/10 text-green-700 dark:text-green-400 border-green-600/30"
+                  : "text-gray-500 dark:text-zinc-400"
+              }
+            >
+              {data.active ? "Active" : "Draft"}
+            </Badge>
+            <Switch
+              checked={data.active}
+              disabled={setActiveWorkflow.isPending}
+              onCheckedChange={(active) =>
+                setActiveWorkflow.mutate({ id: data.id, active })
+              }
+              title={data.active ? "Deactivate workflow" : "Activate workflow"}
+            />
+          </div>
+        }
+      />
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete workflow?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes &ldquo;{data.name}&rdquo; together with
+              all of its nodes, connections and execution history. This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={(event) => {
+                event.preventDefault();
+                setConfirmOpen(false);
+                removeWorkflow.mutate({ id: data.id });
+              }}
+            >
+              Delete workflow
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

@@ -118,14 +118,116 @@ export const useUpdateWorkflow = () => {
  */
 export const useExecuteWorkflow = () => {
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   return useMutation(
     trpc.workflows.execute.mutationOptions({
       onSuccess: (data) => {
         toast.success(`Workflow "${data.name}" executed`);
+        // Surface the fresh RUNNING execution in the executions list.
+        queryClient.invalidateQueries(
+          trpc.executions.getMany.queryOptions({}),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to execute workflow: ${error.message}`);
+      },
+    }),
+  );
+};
+
+/**
+ * Hook to toggle workflow activation
+ */
+export const useSetActiveWorkflow = () => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    trpc.workflows.setActive.mutationOptions({
+      onSuccess: (data) => {
+        toast.success(
+          data.active
+            ? "Workflow activated — webhook triggers are now live"
+            : "Workflow deactivated",
+        );
+        queryClient.invalidateQueries(trpc.workflows.getMany.queryOptions({}));
+      },
+      onError: (error) => {
+        toast.error(`Failed to update workflow: ${error.message}`);
+      },
+    }),
+  );
+};
+
+/**
+ * Hook to duplicate a workflow
+ */
+export const useDuplicateWorkflow = () => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    trpc.workflows.duplicate.mutationOptions({
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(trpc.workflows.getMany.queryOptions({}));
+      },
+      onError: (error) => {
+        toast.error(`Failed to duplicate workflow: ${error.message}`);
+      },
+    }),
+  );
+};
+
+/**
+ * Hook to fetch workflow version history
+ */
+export const useWorkflowVersions = (
+  workflowId: string,
+  options?: { refetchInterval?: number },
+) => {
+  const trpc = useTRPC();
+  return useSuspenseQuery(
+    trpc.workflows.getVersions.queryOptions(
+      { workflowId },
+      options,
+    ),
+  );
+};
+
+/**
+ * Hook to restore a workflow version
+ */
+export const useRestoreWorkflowVersion = () => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    trpc.workflows.restoreVersion.mutationOptions({
+      onSuccess: (data) => {
+        toast.success("Version restored");
+        queryClient.invalidateQueries(trpc.workflows.getOne.queryOptions({ id: data.id }));
+        queryClient.invalidateQueries(
+          trpc.workflows.getVersions.queryOptions({ workflowId: data.id }),
+        );
+      },
+      onError: (error) => {
+        toast.error(`Failed to restore version: ${error.message}`);
+      },
+    }),
+  );
+};
+
+/**
+ * Hook to store an encrypted webhook secret on a trigger node
+ */
+export const useSetWebhookSecret = () => {
+  const trpc = useTRPC();
+
+  return useMutation(
+    trpc.workflows.setWebhookSecret.mutationOptions({
+      onError: (error) => {
+        toast.error(`Failed to save webhook secret: ${error.message}`);
       },
     }),
   );

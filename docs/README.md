@@ -152,6 +152,9 @@ Open [http://localhost:3000](http://localhost:3000) — you'll be redirected to 
 | **[API_REFERENCE.md](./API_REFERENCE.md)** | tRPC routers, procedures, input/output schemas |
 | **[AUTHENTICATION.md](./AUTHENTICATION.md)** | Auth system, OAuth setup, authorization matrix |
 | **[WORKFLOW_ENGINE.md](./WORKFLOW_ENGINE.md)** | Execution engine deep-dive, DAG processing, executor pattern |
+| **[PHASE_IMPLEMENTATION_RECORD.md](./PHASE_IMPLEMENTATION_RECORD.md)** | Engineering record of the workflow-builder hardening (Phases 0–3): bugs fixed, features added, files touched |
+| **[INTERVIEW_GUIDE.md](./INTERVIEW_GUIDE.md)** | Interview preparation — pitch, architecture flow, challenge stories (STAR), deep-dive topics |
+| **[../WORKFLOW_AUDIT.md](../WORKFLOW_AUDIT.md)** | Full-project audit findings and phased roadmap (baseline for the hardening work) |
 | **[FEATURE_MODULES.md](./FEATURE_MODULES.md)** | Feature-based architecture conventions |
 | **[FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md)** | Component hierarchy, routing, styling patterns |
 | **[STATE_AND_DATA_FLOW.md](./STATE_AND_DATA_FLOW.md)** | State management layers and data flow |

@@ -8,6 +8,7 @@ import { emailChannel } from "@/inngest/channels/email";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import { observeExternalProvider } from "@/lib/logging";
+import { OUTBOUND_TIMEOUTS } from "@/lib/with-timeout";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -130,6 +131,9 @@ export const emailExecutor: NodeExecutor<EmailData> = async ({
           user: smtp.user,
           pass: smtp.pass,
         },
+        connectionTimeout: OUTBOUND_TIMEOUTS.smtpMs,
+        greetingTimeout: 15_000,
+        socketTimeout: OUTBOUND_TIMEOUTS.smtpMs,
       });
 
       const mailOptions: SendMailOptions = {

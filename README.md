@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 <h1 align="center">
   <img src="./src/app/icon.svg" height="42" valign="middle" alt="a8n logo" /> &nbsp;a8n
@@ -27,7 +27,7 @@ Build, connect, and execute intelligent automation workflows via visual DAG edit
 
 ---
 
-## 📖 What is a8n?
+## ðŸ“– What is a8n?
 
 **a8n** is an AI-native workflow automation platform that empowers users to design, execute, and manage complex automation pipelines through:
 1. **Visual Drag-and-Drop Editor**: Build Directed Acyclic Graphs (DAGs) using React Flow.
@@ -36,18 +36,18 @@ Build, connect, and execute intelligent automation workflows via visual DAG edit
 
 ---
 
-## 🏗️ Architecture Overview
+## ðŸ—ï¸ Architecture Overview
 
 ```mermaid
 graph TD
-    User["👤 User / External Host"] --> UI["🎨 Next.js 16 Web App / Dashboard"]
-    User --> MCP_Client["🤖 MCP Host Client<br/>(Claude Desktop / ChatGPT / Inspector)"]
+    User["ðŸ‘¤ User / External Host"] --> UI["ðŸŽ¨ Next.js 16 Web App / Dashboard"]
+    User --> MCP_Client["ðŸ¤– MCP Host Client<br/>(Claude Desktop / ChatGPT / Inspector)"]
 
-    subgraph Core Platform ["⚡ a8n Core Engine"]
-        UI --> tRPC["⚡ tRPC v11 API Layer"]
-        tRPC --> Auth["🔐 Auth & Session Middleware (Better Auth)"]
+    subgraph Core Platform ["âš¡ a8n Core Engine"]
+        UI --> tRPC["âš¡ tRPC v11 API Layer"]
+        tRPC --> Auth["ðŸ” Auth & Session Middleware (Better Auth)"]
         
-        subgraph Agent System ["🧠 Built-In Autonomous Agent"]
+        subgraph Agent System ["ðŸ§  Built-In Autonomous Agent"]
             AgentGraph["LangGraph State Machine"]
             AgentMem["Dual Memory System<br/>(Thread State + pgvector Embeddings)"]
             AgentSafety["Prompt Injection & Risk Safety Guard"]
@@ -57,7 +57,7 @@ graph TD
         
         tRPC --> AgentSystem
         
-        subgraph MCP System ["🔌 Standardized MCP Apps Engine"]
+        subgraph MCP System ["ðŸ”Œ Standardized MCP Apps Engine"]
             MCPServer["MCP Server (/api/mcp)"]
             ExtAppsServer["ext-apps/server SDK<br/>(registerAppTool & registerAppResource)"]
             ViteBundler["Vite Single-File Bundler<br/>(dist/mcp-apps/*.html)"]
@@ -67,8 +67,8 @@ graph TD
 
         MCP_Client <-->|PostMessage / SSE / Transports| MCPServer
 
-        subgraph Execution Engine ["⚙️ Execution Engine"]
-            Inngest["⚡ Inngest v4 Engine"]
+        subgraph Execution Engine ["âš™ï¸ Execution Engine"]
+            Inngest["âš¡ Inngest v4 Engine"]
             Executors["10 Node Executors<br/>(OpenAI, Gemini, Stripe, Webhooks, HTTP)"]
             Inngest --> Executors
         end
@@ -78,7 +78,7 @@ graph TD
         MCPServer --> Inngest
     end
 
-    subgraph Data Store ["💾 Storage Layer"]
+    subgraph Data Store ["ðŸ’¾ Storage Layer"]
         Prisma["Prisma v7 ORM"]
         NeonDB[("PostgreSQL DB<br/>+ pgvector Extension")]
         Vault["AES-256 Vault"]
@@ -93,22 +93,23 @@ graph TD
 
 ---
 
-## ✨ Key Features
+## âœ¨ Key Features
 
 | Domain | Feature | Description |
 |---|---|---|
-| 🎨 **Visual Workflow Editor** | **Drag-and-Drop DAG Editor** | React Flow (XYFlow v12) editor with snap-to-grid, minimap, edge routing, and node config panels. |
-| 🔀 **Node Architecture** | **10 Built-In Node Types** | Triggers (Manual, Google Forms, Stripe) + Executors (HTTP, OpenAI, Anthropic, Gemini, Discord, Slack). |
-| ⚡ **Durable Execution** | **Inngest v4 Engine** | Event-driven workflow execution with retries, step-function isolation, and failure recovery. |
-| 🧠 **Autonomous Agent** | **LangGraph Orchestration** | Natural language workflow generator, self-healing debugger, and credential assistant with dual memory. |
-| 🔌 **MCP Apps** | **ext-apps SDK Integration** | Interactive micro-frontends embedded in chat hosts using `@modelcontextprotocol/ext-apps`. |
-| 🛡️ **Multi-Layer Safety** | **Prompt Injection Guard** | Built-in semantic classifier, input sanitizer, secret redaction, and risk-aware approval policies. |
-| 🔐 **Security & Vault** | **AES-256 Encryption** | Encrypted credential vault, OAuth consent hardening, and HMAC-signed API keys. |
-| 💳 **Billing Stack** | **Polar.sh Subscriptions** | Free and Pro tiers with automated checkout, portal management, and usage limits. |
+| ðŸŽ¨ **Visual Workflow Editor** | **Drag-and-Drop DAG Editor** | React Flow (XYFlow v12) editor with snap-to-grid, minimap, searchable node picker, drag-and-drop creation, undo/redo, edge insert/reconnect/delete, and per-node config panels with template-variable pickers. |
+| ðŸ”€ **Node Architecture** | **12 Built-In Node Types** | Triggers (Manual, Google Forms, Stripe) + Executors (HTTP, OpenAI, Anthropic, Gemini, Discord, Slack, Email, Google Sheets) â€” each with inline credential quick-create, model selection and one-click "Test step" runs. |
+| âš¡ **Durable Execution** | **Inngest v4 Engine** | Event-driven workflow execution with retries, step-function isolation, failure recovery, per-node execution timelines (`ExecutionNodeRun`), outbound timeouts, and a stuck-run reaper. |
+| ðŸ”„ **Lifecycle & History** | **Activate / Version / Duplicate** | Activation toggle gating webhook triggers, automatic version snapshots on every save with restore, workflow duplication, JSON import/export. |
+| ðŸ§  **Autonomous Agent** | **LangGraph Orchestration** | Natural language workflow generator, self-healing debugger, and credential assistant with dual memory. |
+| ðŸ”Œ **MCP Apps** | **ext-apps SDK Integration** | Interactive micro-frontends embedded in chat hosts using `@modelcontextprotocol/ext-apps`. |
+| ðŸ›¡ï¸ **Multi-Layer Safety** | **Prompt Injection Guard** | Built-in semantic classifier, input sanitizer, secret redaction, risk-aware approval policies, server-side graph validation, and header-only signed webhooks. |
+| ðŸ” **Security & Vault** | **AES-256 Encryption** | Encrypted credential vault (ciphertext never leaves the server), OAuth consent hardening, HMAC-signed API keys, and authenticated realtime tokens. |
+| ðŸ’³ **Billing Stack** | **Polar.sh Subscriptions** | Free and Pro tiers with automated checkout, portal management, and usage limits. |
 
 ---
 
-## 🧠 Feature Deep-Dive: Built-In Autonomous Agent
+## ðŸ§  Feature Deep-Dive: Built-In Autonomous Agent
 
 The **a8n Agent** is a state-graph assistant powered by **LangGraph** that collaborates with users in real-time.
 
@@ -116,11 +117,11 @@ The **a8n Agent** is a state-graph assistant powered by **LangGraph** that colla
 sequenceDiagram
     autonumber
     actor User
-    participant Agent as 🧠 LangGraph Agent
-    participant Safety as 🛡️ Safety & Injection Guard
-    participant Tools as 🛠️ MCP Tool Suite (57 Tools)
-    participant Approval as 🔐 Approval Guard
-    participant Engine as ⚡ Workflow Engine
+    participant Agent as ðŸ§  LangGraph Agent
+    participant Safety as ðŸ›¡ï¸ Safety & Injection Guard
+    participant Tools as ðŸ› ï¸ MCP Tool Suite (57 Tools)
+    participant Approval as ðŸ” Approval Guard
+    participant Engine as âš¡ Workflow Engine
 
     User->>Agent: "Create a Slack alert when a Stripe payment arrives"
     Agent->>Safety: Inspect input for prompt injection
@@ -147,13 +148,13 @@ sequenceDiagram
 
 ---
 
-## 🔌 Feature Deep-Dive: Standardized MCP Apps (`@modelcontextprotocol/ext-apps`)
+## ðŸ”Œ Feature Deep-Dive: Standardized MCP Apps (`@modelcontextprotocol/ext-apps`)
 
 a8n implements the official **`@modelcontextprotocol/ext-apps` SDK** to deliver rich, interactive UIs directly inside any MCP-compliant client.
 
 ```mermaid
 graph LR
-    subgraph ClientHost ["💻 MCP Host (Claude Desktop / ChatGPT / Dashboard)"]
+    subgraph ClientHost ["ðŸ’» MCP Host (Claude Desktop / ChatGPT / Dashboard)"]
         HostUI["Host UI Container"]
         IFrame["Widget iFrame<br/>(Sandboxed HTML)"]
         AppSDK["ext-apps Client App SDK"]
@@ -161,7 +162,7 @@ graph LR
         IFrame <--> AppSDK
     end
 
-    subgraph ServerSide ["⚡ a8n MCP Server"]
+    subgraph ServerSide ["âš¡ a8n MCP Server"]
         RegTool["registerAppTool()"]
         RegRes["registerAppResource()"]
         ViteBuild["Vite Single-File HTML<br/>dist/mcp-apps/*.html"]
@@ -192,7 +193,7 @@ graph LR
 
 ---
 
-## 🛠️ Tech Stack & Key Libraries
+## ðŸ› ï¸ Tech Stack & Key Libraries
 
 | Category | Technology / Library | Version | Purpose |
 |---|---|---|---|
@@ -216,80 +217,80 @@ graph LR
 
 ---
 
-## 📁 Project Structure
+## ðŸ“ Project Structure
 
 ```
 a8n/
-├── .agents/                       # Agent customization skills & rules (add-app-to-server, convert-web-app)
-├── .github/
-│   └── workflows/                 # GitHub Actions CI/CD workflows (mcp-quality, internal-api, security, backend-e2e)
-├── dist/
-│   └── mcp-apps/                  # Vite-compiled single-file widget HTML bundles (*.html)
-├── docs/                          # Comprehensive architecture documentation & specifications
-│   ├── README.md                  # Documentation hub & index
-│   ├── ARCHITECTURE.md            # Platform system architecture & request lifecycle
-│   ├── TECH_STACK.md              # Technology choices, trade-offs & version specs
-│   ├── WORKFLOW_ENGINE.md         # Inngest durable DAG execution engine specifications
-│   ├── AUTHENTICATION.md          # Better Auth, OAuth account linking & security scope matrix
-│   ├── DATABASE.md                # Schema reference, ERD, and migration guide
-│   ├── API_REFERENCE.md           # tRPC procedures & output schema contracts
-│   ├── mcp/                       # MCP server & protocol architecture
-│   │   └── mcp-apps/              # Standardized ext-apps integration plan & phase docs
-│   └── adr/                       # Architectural Decision Records
-├── prisma/
-│   ├── migrations/                # 15 PostgreSQL database migrations (including pgvector)
-│   └── schema.prisma              # Database schema (Models, Enums, Vectors, Audits)
-├── scripts/
-│   ├── build-mcp-apps-ui.ts       # Programmatic Vite build script for single-file HTML widgets
-│   ├── capture-widget-screenshots.ts # Playwright widget screenshot generator script
-│   ├── mcp-contract-check.ts      # Automated MCP tool, resource & profile contract validator
-│   ├── security-release-check.ts  # Release readiness gate & secret scanner
-│   └── env-check.ts               # Environment variables validator
-├── src/
-│   ├── agent/                     # Autonomous AI Agent Engine
-│   │   ├── __tests__/             # Agent security & prompt injection test suites
-│   │   ├── eval/                  # Golden tasks & evaluation reporting
-│   │   ├── graph/                 # LangGraph state machine, nodes, and planning graph
-│   │   ├── memory/                # Thread history & pgvector long-term embedding memory
-│   │   └── safety/                # Prompt injection protection & approval guard service
-│   ├── app/                       # Next.js 16 App Router Pages & API Routes
-│   │   ├── (auth)/                # Auth pages (login, signup)
-│   │   ├── (dashboard)/           # Dashboard pages (workflows, credentials, executions, agent, MCP)
-│   │   └── api/                   # API routes (/api/mcp endpoint, auth, inngest, webhooks)
-│   ├── components/                # React components, shadcn/ui & React Flow custom nodes
-│   ├── config/                    # Node registries, environment profiles, and app constants
-│   ├── features/                  # Domain modules (workflows, credentials, executions, agent, mcp, triggers)
-│   ├── inngest/                   # Inngest durable workflow execution functions & events
-│   ├── lib/                       # Utilities (encryption vault, db client, logger, auth)
-│   ├── mcp/                       # Model Context Protocol (MCP) Server Implementation
-│   │   ├── apps/                  # Ext-Apps Widget Integration
-│   │   │   ├── render-tools.ts    # registerAppTool() render tool definitions
-│   │   │   ├── widget-resources.ts # registerAppResource() HTML bundle provider
-│   │   │   └── ui/                # Widget source entrypoints (Vite single-file bundles)
-│   │   │       ├── execution-timeline/
-│   │   │       ├── shared/        # Shared bridge (App + PostMessageTransport) & styles
-│   │   │       ├── workflow-approval/
-│   │   │       ├── workflow-draft-preview/
-│   │   │       └── workflow-setup-checklist/
-│   │   ├── auth/                  # Bearer token, API key & OAuth token authentication
-│   │   ├── contracts/             # Manifest contracts for tools, resources & prompts
-│   │   ├── safety/                # App tool policies, risk levels & prompt injection protection
-│   │   ├── shared/                # Capability guard (getUiCapability / hasUiCapability)
-│   │   └── tools/                 # 57 MCP Tool implementations across 8 domains
-│   └── trpc/                      # tRPC v11 API initialization, callers, and router procedures
-├── tests/                         # Test Suites
-│   ├── api/                       # API unit & contract test suites
-│   ├── e2e/                       # Playwright E2E tests for web app & MCP widgets
-│   └── mcp/                       # MCP server & ext-apps integration tests
-├── .gitleaks.toml                 # Gitleaks security scan configuration
-├── docker-compose.yml             # Local docker environment (PostgreSQL 16 with pgvector)
-├── package.json                   # Dependencies, scripts, and pnpm overrides
-└── vitest.config.mjs              # Vitest runner configuration for MCP & unit tests
+â”œâ”€â”€ .agents/                       # Agent customization skills & rules (add-app-to-server, convert-web-app)
+â”œâ”€â”€ .github/
+â”‚   â””â”€â”€ workflows/                 # GitHub Actions CI/CD workflows (mcp-quality, internal-api, security, backend-e2e)
+â”œâ”€â”€ dist/
+â”‚   â””â”€â”€ mcp-apps/                  # Vite-compiled single-file widget HTML bundles (*.html)
+â”œâ”€â”€ docs/                          # Comprehensive architecture documentation & specifications
+â”‚   â”œâ”€â”€ README.md                  # Documentation hub & index
+â”‚   â”œâ”€â”€ ARCHITECTURE.md            # Platform system architecture & request lifecycle
+â”‚   â”œâ”€â”€ TECH_STACK.md              # Technology choices, trade-offs & version specs
+â”‚   â”œâ”€â”€ WORKFLOW_ENGINE.md         # Inngest durable DAG execution engine specifications
+â”‚   â”œâ”€â”€ AUTHENTICATION.md          # Better Auth, OAuth account linking & security scope matrix
+â”‚   â”œâ”€â”€ DATABASE.md                # Schema reference, ERD, and migration guide
+â”‚   â”œâ”€â”€ API_REFERENCE.md           # tRPC procedures & output schema contracts
+â”‚   â”œâ”€â”€ mcp/                       # MCP server & protocol architecture
+â”‚   â”‚   â””â”€â”€ mcp-apps/              # Standardized ext-apps integration plan & phase docs
+â”‚   â””â”€â”€ adr/                       # Architectural Decision Records
+â”œâ”€â”€ prisma/
+â”‚   â”œâ”€â”€ migrations/                # 15 PostgreSQL database migrations (including pgvector)
+â”‚   â””â”€â”€ schema.prisma              # Database schema (Models, Enums, Vectors, Audits)
+â”œâ”€â”€ scripts/
+â”‚   â”œâ”€â”€ build-mcp-apps-ui.ts       # Programmatic Vite build script for single-file HTML widgets
+â”‚   â”œâ”€â”€ capture-widget-screenshots.ts # Playwright widget screenshot generator script
+â”‚   â”œâ”€â”€ mcp-contract-check.ts      # Automated MCP tool, resource & profile contract validator
+â”‚   â”œâ”€â”€ security-release-check.ts  # Release readiness gate & secret scanner
+â”‚   â””â”€â”€ env-check.ts               # Environment variables validator
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ agent/                     # Autonomous AI Agent Engine
+â”‚   â”‚   â”œâ”€â”€ __tests__/             # Agent security & prompt injection test suites
+â”‚   â”‚   â”œâ”€â”€ eval/                  # Golden tasks & evaluation reporting
+â”‚   â”‚   â”œâ”€â”€ graph/                 # LangGraph state machine, nodes, and planning graph
+â”‚   â”‚   â”œâ”€â”€ memory/                # Thread history & pgvector long-term embedding memory
+â”‚   â”‚   â””â”€â”€ safety/                # Prompt injection protection & approval guard service
+â”‚   â”œâ”€â”€ app/                       # Next.js 16 App Router Pages & API Routes
+â”‚   â”‚   â”œâ”€â”€ (auth)/                # Auth pages (login, signup)
+â”‚   â”‚   â”œâ”€â”€ (dashboard)/           # Dashboard pages (workflows, credentials, executions, agent, MCP)
+â”‚   â”‚   â””â”€â”€ api/                   # API routes (/api/mcp endpoint, auth, inngest, webhooks)
+â”‚   â”œâ”€â”€ components/                # React components, shadcn/ui & React Flow custom nodes
+â”‚   â”œâ”€â”€ config/                    # Node registries, environment profiles, and app constants
+â”‚   â”œâ”€â”€ features/                  # Domain modules (workflows, credentials, executions, agent, mcp, triggers)
+â”‚   â”œâ”€â”€ inngest/                   # Inngest durable workflow execution functions & events
+â”‚   â”œâ”€â”€ lib/                       # Utilities (encryption vault, db client, logger, auth)
+â”‚   â”œâ”€â”€ mcp/                       # Model Context Protocol (MCP) Server Implementation
+â”‚   â”‚   â”œâ”€â”€ apps/                  # Ext-Apps Widget Integration
+â”‚   â”‚   â”‚   â”œâ”€â”€ render-tools.ts    # registerAppTool() render tool definitions
+â”‚   â”‚   â”‚   â”œâ”€â”€ widget-resources.ts # registerAppResource() HTML bundle provider
+â”‚   â”‚   â”‚   â””â”€â”€ ui/                # Widget source entrypoints (Vite single-file bundles)
+â”‚   â”‚   â”‚       â”œâ”€â”€ execution-timeline/
+â”‚   â”‚   â”‚       â”œâ”€â”€ shared/        # Shared bridge (App + PostMessageTransport) & styles
+â”‚   â”‚   â”‚       â”œâ”€â”€ workflow-approval/
+â”‚   â”‚   â”‚       â”œâ”€â”€ workflow-draft-preview/
+â”‚   â”‚   â”‚       â””â”€â”€ workflow-setup-checklist/
+â”‚   â”‚   â”œâ”€â”€ auth/                  # Bearer token, API key & OAuth token authentication
+â”‚   â”‚   â”œâ”€â”€ contracts/             # Manifest contracts for tools, resources & prompts
+â”‚   â”‚   â”œâ”€â”€ safety/                # App tool policies, risk levels & prompt injection protection
+â”‚   â”‚   â”œâ”€â”€ shared/                # Capability guard (getUiCapability / hasUiCapability)
+â”‚   â”‚   â””â”€â”€ tools/                 # 57 MCP Tool implementations across 8 domains
+â”‚   â””â”€â”€ trpc/                      # tRPC v11 API initialization, callers, and router procedures
+â”œâ”€â”€ tests/                         # Test Suites
+â”‚   â”œâ”€â”€ api/                       # API unit & contract test suites
+â”‚   â”œâ”€â”€ e2e/                       # Playwright E2E tests for web app & MCP widgets
+â”‚   â””â”€â”€ mcp/                       # MCP server & ext-apps integration tests
+â”œâ”€â”€ .gitleaks.toml                 # Gitleaks security scan configuration
+â”œâ”€â”€ docker-compose.yml             # Local docker environment (PostgreSQL 16 with pgvector)
+â”œâ”€â”€ package.json                   # Dependencies, scripts, and pnpm overrides
+â””â”€â”€ vitest.config.mjs              # Vitest runner configuration for MCP & unit tests
 ```
 
 ---
 
-## 🚀 Quick Start
+## ðŸš€ Quick Start
 
 ### Prerequisites
 - Node.js `^24`
@@ -325,7 +326,7 @@ Open [http://localhost:3000](http://localhost:3000) to access the application da
 
 ---
 
-## 🧪 Verification & Testing
+## ðŸ§ª Verification & Testing
 
 ```bash
 # Run TypeScript type check
@@ -350,26 +351,28 @@ pnpm security:release:check
 
 ---
 
-## 📚 Documentation Index
+## ðŸ“š Documentation Index
 
 For detailed guides, refer to the [`docs/`](./docs/README.md) directory:
 
-- 📐 **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** — System design, request lifecycle, design principles
-- 🔌 **[MCP Server Specification](./docs/mcp/README.md)** — MCP protocol, tools, safety, and ext-apps integration
-- 🧠 **[Agent, Client & MCP App Architecture](./docs/mcp-client-agent/README.md)** — End-to-end flow diagrams for Agent, Client Hosts, and MCP App UIs
-- 🤖 **[Autonomous Agent Architecture](./docs/mcp-client-agent/agent-architecture.md)** — LangGraph state machine graph, dual memory (`pgvector`), and risk safety system
-- 📋 **[Ext-Apps Integration Plan](./docs/mcp/mcp-apps/13-ext-apps-integration-plan.md)** — 9-phase migration to `@modelcontextprotocol/ext-apps`
-- 💾 **[DATABASE.md](./docs/DATABASE.md)** — Schema reference, ERD, and migration guide
-- 🔌 **[API_REFERENCE.md](./docs/API_REFERENCE.md)** — tRPC routers, procedures, and schemas
-- 🔐 **[AUTHENTICATION.md](./docs/AUTHENTICATION.md)** — Auth system, OAuth linking, and security scope matrix
-- ⚡ **[WORKFLOW_ENGINE.md](./docs/WORKFLOW_ENGINE.md)** — Inngest durable execution, DAG processing, and node executors
+- ðŸ“ **[ARCHITECTURE.md](./docs/ARCHITECTURE.md)** â€” System design, request lifecycle, design principles
+- ðŸ”Œ **[MCP Server Specification](./docs/mcp/README.md)** â€” MCP protocol, tools, safety, and ext-apps integration
+- ðŸ§  **[Agent, Client & MCP App Architecture](./docs/mcp-client-agent/README.md)** â€” End-to-end flow diagrams for Agent, Client Hosts, and MCP App UIs
+- ðŸ¤– **[Autonomous Agent Architecture](./docs/mcp-client-agent/agent-architecture.md)** â€” LangGraph state machine graph, dual memory (`pgvector`), and risk safety system
+- ðŸ“‹ **[Ext-Apps Integration Plan](./docs/mcp/mcp-apps/13-ext-apps-integration-plan.md)** â€” 9-phase migration to `@modelcontextprotocol/ext-apps`
+- ðŸ’¾ **[DATABASE.md](./docs/DATABASE.md)** â€” Schema reference, ERD, and migration guide
+- ðŸ”Œ **[API_REFERENCE.md](./docs/API_REFERENCE.md)** â€” tRPC routers, procedures, and schemas
+- ðŸ” **[AUTHENTICATION.md](./docs/AUTHENTICATION.md)** â€” Auth system, OAuth linking, and security scope matrix
+- âš¡ **[WORKFLOW_ENGINE.md](./docs/WORKFLOW_ENGINE.md)** â€” Inngest durable execution, DAG processing, and node executors
+- [PHASE_IMPLEMENTATION_RECORD.md](./docs/PHASE_IMPLEMENTATION_RECORD.md) - Engineering record of the workflow-builder hardening (Phases 0-3)
+- [INTERVIEW_GUIDE.md](./docs/INTERVIEW_GUIDE.md) - Project presentation guide: pitch, architecture stories, deep-dives
 
 ---
 
-## 📄 License
+## ðŸ“„ License
 
 This project is licensed under the MIT License. Developed as part of an academic final-year project.
 
 <div align="center">
-  <sub>Built with ❤️ using Next.js, React Flow, Inngest, LangGraph, tRPC, and `@modelcontextprotocol/ext-apps`</sub>
+  <sub>Built with â¤ï¸ using Next.js, React Flow, Inngest, LangGraph, tRPC, and `@modelcontextprotocol/ext-apps`</sub>
 </div>

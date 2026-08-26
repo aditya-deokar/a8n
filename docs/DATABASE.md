@@ -1,4 +1,4 @@
-# 💾 Database Schema & Data Layer
+﻿# ðŸ’¾ Database Schema & Data Layer
 
 > **Last Updated:** April 2026  
 > **ORM:** Prisma v7.7.0  
@@ -132,17 +132,17 @@ The core identity model. Every resource in the system is owned by a user.
 |---|---|---|---|
 | `id` | `String` | `@id` | Primary key (set by Better Auth) |
 | `name` | `String` | required | Display name |
-| `email` | `String` | `@@unique` | Login email — unique constraint |
+| `email` | `String` | `@@unique` | Login email â€” unique constraint |
 | `emailVerified` | `Boolean` | `@default(false)` | Whether email has been verified |
 | `image` | `String?` | optional | Profile avatar URL |
 | `createdAt` | `DateTime` | `@default(now())` | Account creation timestamp |
 | `updatedAt` | `DateTime` | `@updatedAt` | Last modification timestamp |
 
 **Relations:**
-- `sessions` → `Session[]` — Active login sessions
-- `accounts` → `Account[]` — OAuth provider accounts
-- `workflows` → `Workflow[]` — User's workflows
-- `credentials` → `Credential[]` — Encrypted API credentials
+- `sessions` â†’ `Session[]` â€” Active login sessions
+- `accounts` â†’ `Account[]` â€” OAuth provider accounts
+- `workflows` â†’ `Workflow[]` â€” User's workflows
+- `credentials` â†’ `Credential[]` â€” Encrypted API credentials
 
 **Table mapping:** `@@map("user")`
 
@@ -159,7 +159,7 @@ Tracks active authentication sessions. Managed by Better Auth.
 | `token` | `String` | `@@unique` | Session token for cookie validation |
 | `ipAddress` | `String?` | optional | Client IP address at login |
 | `userAgent` | `String?` | optional | Browser user agent at login |
-| `userId` | `String` | FK → User | Owner of this session |
+| `userId` | `String` | FK â†’ User | Owner of this session |
 
 **Cascade:** Deleting a User deletes all their sessions.
 
@@ -176,7 +176,7 @@ OAuth provider accounts linked to a user. Created when a user signs in via GitHu
 | `id` | `String` | `@id` | Primary key |
 | `accountId` | `String` | required | Provider-specific account ID |
 | `providerId` | `String` | required | Provider name (`github`, `google`) |
-| `userId` | `String` | FK → User | Linked user |
+| `userId` | `String` | FK â†’ User | Linked user |
 | `accessToken` | `String?` | optional | OAuth access token |
 | `refreshToken` | `String?` | optional | OAuth refresh token |
 | `idToken` | `String?` | optional | OIDC ID token |
@@ -216,8 +216,8 @@ Encrypted API key storage. Users store their AI provider keys securely, and thes
 | `name` | `String` | required | User-friendly credential name |
 | `value` | `String` | required | **AES-256 encrypted** API key value |
 | `type` | `CredentialType` | enum | Provider type (OPENAI, ANTHROPIC, GEMINI) |
-| `userId` | `String` | FK → User | Owner |
-| `credentialId` | — | — | Referenced by Node |
+| `userId` | `String` | FK â†’ User | Owner |
+| `credentialId` | â€” | â€” | Referenced by Node |
 
 **Security:**
 - Values are **encrypted at rest** using Cryptr (AES-256-GCM)
@@ -237,14 +237,15 @@ The primary domain entity. A workflow is a DAG (directed acyclic graph) composed
 |---|---|---|---|
 | `id` | `String` | `@id @default(cuid())` | Auto-generated CUID |
 | `name` | `String` | required | Auto-generated slug or user-defined name |
-| `userId` | `String` | FK → User | Owner |
+| `active` | `Boolean` | `@default(false)` | Activation toggle - inactive workflows reject webhook dispatches with 409 |
+| `userId` | `String` | FK â†’ User | Owner |
 | `createdAt` | `DateTime` | `@default(now())` | Creation timestamp |
 | `updatedAt` | `DateTime` | `@updatedAt` | Last modification |
 
 **Relations:**
-- `nodes` → `Node[]` — All nodes in this workflow
-- `connections` → `Connection[]` — Edges between nodes
-- `executions` → `Execution[]` — Execution history
+- `nodes` â†’ `Node[]` â€” All nodes in this workflow
+- `connections` â†’ `Connection[]` â€” Edges between nodes
+- `executions` â†’ `Execution[]` â€” Execution history
 
 **Name Generation:** New workflows get random slug names via `random-word-slugs`:
 ```typescript
@@ -262,12 +263,12 @@ A single step in a workflow graph. Nodes have a type (trigger or executor), a po
 | Field | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | `String` | `@id @default(cuid())` | Auto-generated CUID |
-| `workflowId` | `String` | FK → Workflow | Parent workflow |
+| `workflowId` | `String` | FK â†’ Workflow | Parent workflow |
 | `name` | `String` | required | Node display name (usually matches type) |
 | `type` | `NodeType` | enum | Node type (see Enums section) |
 | `position` | `Json` | required | `{ x: number, y: number }` canvas coordinates |
 | `data` | `Json` | `@default("{}")` | Type-specific configuration |
-| `credentialId` | `String?` | FK → Credential | Optional linked credential |
+| `credentialId` | `String?` | FK â†’ Credential | Optional linked credential |
 
 **The `data` field** stores node-specific configuration as JSON. Structure varies by type:
 
@@ -294,17 +295,17 @@ A directed edge between two nodes. Represents data flow from one node's output t
 | Field | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | `String` | `@id @default(cuid())` | Auto-generated CUID |
-| `workflowId` | `String` | FK → Workflow | Parent workflow |
-| `fromNodeId` | `String` | FK → Node (FromNode) | Source node |
-| `toNodeId` | `String` | FK → Node (ToNode) | Target node |
+| `workflowId` | `String` | FK â†’ Workflow | Parent workflow |
+| `fromNodeId` | `String` | FK â†’ Node (FromNode) | Source node |
+| `toNodeId` | `String` | FK â†’ Node (ToNode) | Target node |
 | `fromOutput` | `String` | `@default("main")` | Source handle name |
 | `toInput` | `String` | `@default("main")` | Target handle name |
 
-**Unique Constraint:** `@@unique([fromNodeId, toNodeId, fromOutput, toInput])` — prevents duplicate connections.
+**Unique Constraint:** `@@unique([fromNodeId, toNodeId, fromOutput, toInput])` â€” prevents duplicate connections.
 
 **React Flow Mapping:**
 ```typescript
-// Connection → React Flow Edge
+// Connection â†’ React Flow Edge
 {
   id: connection.id,
   source: connection.fromNodeId,
@@ -325,7 +326,7 @@ A single workflow run. Tracks status, timing, and output. Correlated with Innges
 | Field | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | `String` | `@id @default(cuid())` | Auto-generated CUID |
-| `workflowId` | `String` | FK → Workflow | Executed workflow |
+| `workflowId` | `String` | FK â†’ Workflow | Executed workflow |
 | `status` | `ExecutionStatus` | `@default(RUNNING)` | Current status |
 | `error` | `String?` | `@db.Text` | Error message (if failed) |
 | `errorStack` | `String?` | `@db.Text` | Error stack trace (if failed) |
@@ -336,13 +337,37 @@ A single workflow run. Tracks status, timing, and output. Correlated with Innges
 
 **Status Lifecycle:**
 ```
-RUNNING → SUCCESS  (completedAt set, output populated)
-RUNNING → FAILED   (error + errorStack populated via onFailure handler)
+RUNNING â†’ SUCCESS  (completedAt set, output populated)
+RUNNING â†’ FAILED   (error + errorStack populated via onFailure handler)
 ```
 
 **Cascade:** Deleting a Workflow deletes all its executions.
 
 ---
+
+---
+
+### ExecutionNodeRun
+
+Per-node execution record. Powers the node-level timeline on the execution detail page — previously node status existed only in ephemeral Inngest realtime messages.
+
+| Field | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `String` | `@id @default(cuid())` | Auto-generated CUID |
+| `executionId` | `String` | FK → Execution (cascade) | Parent execution |
+| `nodeId` | `String` | required | Node that ran |
+| `nodeType` | `NodeType` | enum | Denormalized for display |
+| `status` | `ExecutionStatus` | `@default(RUNNING)` | Per-node status |
+| `startedAt` | `DateTime` | `@default(now())` | When the node started |
+| `completedAt` | `DateTime?` | optional | When it finished |
+| `durationMs` | `Int?` | optional | Wall-clock duration |
+| `error` | `String?` | `@db.Text` | Truncated error message (4k) |
+
+**Constraints:**
+- `@@unique([executionId, nodeId])` — writes are idempotent upserts, safe under Inngest retries
+- `@@index([executionId, status])` — fast timeline fetches
+
+**Write path:** `src/inngest/node-run-store.ts` (`recordNodeRunStart/Success/Failure`) — failures to persist are swallowed so observability never breaks execution.
 
 ## Enums
 
@@ -409,9 +434,9 @@ enum ExecutionStatus {
 ### Schema Location
 
 ```
-prisma/schema.prisma      → Schema definition
-prisma.config.ts           → Prisma CLI configuration
-src/generated/prisma/      → Generated client output (git-ignored)
+prisma/schema.prisma      â†’ Schema definition
+prisma.config.ts           â†’ Prisma CLI configuration
+src/generated/prisma/      â†’ Generated client output (git-ignored)
 ```
 
 ### Prisma Config (`prisma.config.ts`)
@@ -454,7 +479,7 @@ Next.js hot module replacement creates new module instances on each file change.
 ### Neon Adapter
 
 The `PrismaNeon` adapter enables **HTTP-based database connections** instead of persistent TCP connections. This is critical for serverless environments (Vercel) where:
-- Functions are ephemeral — no persistent connections
+- Functions are ephemeral â€” no persistent connections
 - Connection pooling is handled by Neon's proxy
 - Cold starts are fast (no TCP handshake)
 
@@ -467,12 +492,12 @@ The `PrismaNeon` adapter enables **HTTP-based database connections** instead of 
 Every query includes a `userId` filter to ensure data isolation:
 
 ```typescript
-// ✅ All queries filter by authenticated user
+// âœ… All queries filter by authenticated user
 prisma.workflow.findMany({
   where: { userId: ctx.auth.user.id },
 });
 
-// ✅ Nested relations also filter by user
+// âœ… Nested relations also filter by user
 prisma.execution.findMany({
   where: { workflow: { userId: ctx.auth.user.id } },
 });
@@ -524,13 +549,13 @@ await prisma.$transaction(async (tx) => {
 });
 ```
 
-This ensures the graph is always in a consistent state — you never see partial node/edge states.
+This ensures the graph is always in a consistent state â€” you never see partial node/edge states.
 
 ### Credential Encryption Flow
 
 ```
 Create/Update:                    Execution:
-User Input → encrypt() → DB      DB → decrypt() → AI SDK → API Call
+User Input â†’ encrypt() â†’ DB      DB â†’ decrypt() â†’ AI SDK â†’ API Call
              (Cryptr AES-256)              (Cryptr AES-256)
 ```
 
@@ -541,10 +566,10 @@ User Input → encrypt() → DB      DB → decrypt() → AI SDK → API Call
 ### Development
 
 ```bash
-# Quick schema sync (no migration history) — prototyping
+# Quick schema sync (no migration history) â€” prototyping
 pnpm prisma db push
 
-# Create a tracked migration — collaborative development
+# Create a tracked migration â€” collaborative development
 pnpm prisma migrate dev --name describe_your_change
 
 # Regenerate client after schema changes
@@ -566,7 +591,7 @@ pnpm prisma migrate deploy
 ### Common Operations
 
 ```bash
-# Reset database (⚠️ destructive — drops all data)
+# Reset database (âš ï¸ destructive â€” drops all data)
 pnpm prisma migrate reset
 
 # View migration status
@@ -580,8 +605,8 @@ pnpm prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-sche
 
 ## Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — How the data layer fits into the system
-- [API_REFERENCE.md](./API_REFERENCE.md) — tRPC procedures that query this schema
-- [WORKFLOW_ENGINE.md](./WORKFLOW_ENGINE.md) — How nodes and connections are executed
-- [AUTHENTICATION.md](./AUTHENTICATION.md) — Auth models (User, Session, Account, Verification)
-- [CONFIGURATION.md](./CONFIGURATION.md) — `DATABASE_URL` and Prisma config details
+- [ARCHITECTURE.md](./ARCHITECTURE.md) â€” How the data layer fits into the system
+- [API_REFERENCE.md](./API_REFERENCE.md) â€” tRPC procedures that query this schema
+- [WORKFLOW_ENGINE.md](./WORKFLOW_ENGINE.md) â€” How nodes and connections are executed
+- [AUTHENTICATION.md](./AUTHENTICATION.md) â€” Auth models (User, Session, Account, Verification)
+- [CONFIGURATION.md](./CONFIGURATION.md) â€” `DATABASE_URL` and Prisma config details

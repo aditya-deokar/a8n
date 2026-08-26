@@ -3,10 +3,14 @@ import { isKillSwitchEnabled } from "@/lib/feature-flags";
 import { logger, normalizeError, withRequestLogging } from "@/lib/logging";
 import { type NextRequest, NextResponse } from "next/server";
 import {
+  assertWorkflowActive,
+  getWorkflowTriggerSecrets,
+  isRateLimited,
   verifySharedWebhookSecret,
   verifyStripeSignature,
   webhookAuthError,
 } from "../_security";
+import { NodeType } from "@/generated/prisma";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -53,18 +57,71 @@ async function postHandler(request: NextRequest) {
       );
     }
 
+    if (isRateLimited(`stripe:${workflowId}`)) {
+      logger.warn(
+        {
+          component: "webhook",
+          event: "webhook_rate_limited",
+          provider: "stripe",
+          workflowId,
+        },
+        "Stripe webhook rate limited.",
+      );
+      return NextResponse.json(
+        { success: false, error: "Too many requests" },
+        { status: 429 },
+      );
+    }
+
+    const workflowActive = await assertWorkflowActive(workflowId);
+    if (!workflowActive.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "This workflow is not active. Activate it from the workflows dashboard to receive events.",
+        },
+        { status: 409 },
+      );
+    }
+
     const rawBody = await request.text();
-    const stripeVerification = verifyStripeSignature(
+    const workflowSecrets = await getWorkflowTriggerSecrets(
+      workflowId,
+      NodeType.STRIPE_TRIGGER,
+    );
+
+    // Verify against the platform secret first, then any per-workflow
+    // signing secrets configured on this workflow's Stripe trigger nodes.
+    let stripeVerification = verifyStripeSignature(
       rawBody,
       request.headers.get("stripe-signature"),
       process.env.STRIPE_WEBHOOK_SECRET,
     );
-    const sharedVerification = process.env.STRIPE_WEBHOOK_SECRET
-      ? stripeVerification
-      : verifySharedWebhookSecret(request, url, [
-          "STRIPE_WEBHOOK_SHARED_SECRET",
-          "A8N_WEBHOOK_SHARED_SECRET",
-        ]);
+
+    if (!stripeVerification.ok && workflowSecrets.length > 0) {
+      for (const secret of workflowSecrets) {
+        const candidate = verifyStripeSignature(
+          rawBody,
+          request.headers.get("stripe-signature"),
+          secret,
+        );
+        if (candidate.ok) {
+          stripeVerification = candidate;
+          break;
+        }
+      }
+    }
+
+    const sharedVerification =
+      stripeVerification.ok
+        ? stripeVerification
+        : process.env.STRIPE_WEBHOOK_SECRET || workflowSecrets.length > 0
+          ? stripeVerification
+          : verifySharedWebhookSecret(request, url, [
+              "STRIPE_WEBHOOK_SHARED_SECRET",
+              "A8N_WEBHOOK_SHARED_SECRET",
+            ]);
     if (!sharedVerification.ok) {
       logger.warn(
         {
