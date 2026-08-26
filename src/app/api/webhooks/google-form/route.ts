@@ -2,7 +2,14 @@ import { sendWorkflowExecution } from "@/inngest/utils";
 import { isKillSwitchEnabled } from "@/lib/feature-flags";
 import { logger, normalizeError, withRequestLogging } from "@/lib/logging";
 import { type NextRequest, NextResponse } from "next/server";
-import { verifySharedWebhookSecret, webhookAuthError } from "../_security";
+import {
+  assertWorkflowActive,
+  getWorkflowTriggerSecrets,
+  isRateLimited,
+  verifySharedWebhookSecret,
+  webhookAuthError,
+} from "../_security";
+import { NodeType } from "@/generated/prisma";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -32,27 +39,54 @@ async function postHandler(request: NextRequest) {
       "Google Form webhook received.",
     );
 
-    const verification = verifySharedWebhookSecret(request, url, [
-      "GOOGLE_FORM_WEBHOOK_SECRET",
-      "A8N_WEBHOOK_SHARED_SECRET",
-    ]);
-
     if (!workflowId) {
-      logger.warn(
-        {
-          component: "webhook",
-          event: "webhook_malformed_payload",
-          provider: "google-form",
-          reason: "missing_workflow_id",
-        },
-        "Google Form webhook is missing workflowId.",
-      );
-
       return NextResponse.json(
         { success: false, error: "Missing required query parameter: workflowId" },
         { status: 400 },
       );
     }
+
+    if (isRateLimited(`google-form:${workflowId}`)) {
+      logger.warn(
+        {
+          component: "webhook",
+          event: "webhook_rate_limited",
+          provider: "google-form",
+          workflowId,
+        },
+        "Google Form webhook rate limited.",
+      );
+      return NextResponse.json(
+        { success: false, error: "Too many requests" },
+        { status: 429 },
+      );
+    }
+
+    const workflowActive = await assertWorkflowActive(workflowId);
+    if (!workflowActive.ok) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "This workflow is not active. Activate it from the workflows dashboard to receive events.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const workflowSecrets = await getWorkflowTriggerSecrets(
+      workflowId,
+      NodeType.GOOGLE_FORM_TRIGGER,
+    );
+    const verification = verifySharedWebhookSecret(
+      request,
+      url,
+      [
+        "GOOGLE_FORM_WEBHOOK_SECRET",
+        "A8N_WEBHOOK_SHARED_SECRET",
+      ],
+      workflowSecrets,
+    );
 
     if (!verification.ok) {
       logger.warn(

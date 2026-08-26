@@ -15,6 +15,6 @@ describe("internal API appRouter surface", () => {
   });
 
   it("keeps all procedures behind protected or premium access in the phase 0 matrix", () => {
-    expect(expectedApiProcedurePaths).toHaveLength(34);
+    expect(expectedApiProcedurePaths).toHaveLength(40);
   });
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NodeDialogContent } from "@/components/node-dialog";
 import {
@@ -10,22 +11,35 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CopyIcon } from "lucide-react";
+import { CopyIcon, KeyRoundIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { generateGoogleFormScript } from "./utils";
+import { useSetWebhookSecret } from "@/features/workflows/hooks/use-workflows";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  nodeId?: string;
+  defaultValues?: {
+    webhookSecret?: string;
+  };
 };
 
 export const GoogleFormTriggerDialog = ({
   open,
-  onOpenChange
+  onOpenChange,
+  nodeId,
+  defaultValues,
 }: Props) => {
   const params = useParams();
   const workflowId = params.workflowId as string;
+  const setWebhookSecret = useSetWebhookSecret();
+  const [secret, setSecret] = useState("");
+
+  useEffect(() => {
+    if (open) setSecret("");
+  }, [open]);
 
   // Construct the webhook URL
   const baseUrl =
@@ -42,6 +56,21 @@ export const GoogleFormTriggerDialog = ({
     } catch {
       toast.error("Failed to copy URL");
     }
+  };
+
+  const handleSaveSecret = () => {
+    if (!nodeId || !secret.trim()) return;
+    setWebhookSecret.mutate(
+      { workflowId, nodeId, secret: secret.trim() },
+      {
+        onSuccess: () => {
+          toast.success(
+            "Webhook secret saved — paste the same value into WEBHOOK_SECRET in your Apps Script",
+          );
+          onOpenChange(false);
+        },
+      },
+    );
   };
 
   return (
@@ -84,9 +113,48 @@ export const GoogleFormTriggerDialog = ({
               <li>Click the three dots menu → Script editor</li>
               <li>Copy and paste the script below</li>
               <li>Replace WEBHOOK_URL with your webhook URL above</li>
+              <li>Replace WEBHOOK_SECRET with your webhook secret</li>
               <li>Save and click "Triggers" → Add Trigger</li>
               <li>Choose: From form → On form submit → Save</li>
             </ol>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 dark:border-zinc-800 p-4 space-y-3">
+            <h4 className="font-medium text-sm flex items-center gap-2">
+              <KeyRoundIcon className="size-4" />
+              Webhook secret
+            </h4>
+            <p className="text-xs text-muted-foreground">
+              Set this to the same value as GOOGLE_FORM_WEBHOOK_SECRET (or
+              A8N_WEBHOOK_SHARED_SECRET) in the deployment environment. The
+              generated script sends it in the{" "}
+              <code className="bg-background px-1 py-0.5 rounded">x-a8n-webhook-secret</code>{" "}
+              header — requests without a valid secret are rejected.
+            </p>
+            {defaultValues?.webhookSecret && (
+              <p className="text-xs text-green-700 dark:text-green-400">
+                A secret is configured for this trigger.
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                value={secret}
+                onChange={(event) => setSecret(event.target.value)}
+                placeholder={
+                  defaultValues?.webhookSecret ? "Replace secret…" : "Paste webhook secret…"
+                }
+                className="font-mono text-sm"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!secret.trim() || !nodeId || setWebhookSecret.isPending}
+                onClick={handleSaveSecret}
+              >
+                Save
+              </Button>
+            </div>
           </div>
 
           <div className="rounded-lg bg-muted p-4 space-y-3">

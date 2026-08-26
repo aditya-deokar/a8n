@@ -4,6 +4,7 @@ import ky, { type Options as KyOptions } from "ky";
 import type { NodeExecutor } from "@/features/executions/types";
 import { httpRequestChannel } from "@/inngest/channels/http-request";
 import { observeExternalProvider, safeProviderHost } from "@/lib/logging";
+import { OUTBOUND_TIMEOUTS, TimeoutError, withTimeout } from "@/lib/with-timeout";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -91,7 +92,12 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
           method,
           host: safeProviderHost(endpoint),
         },
-        () => ky(endpoint, options),
+        () =>
+          withTimeout(
+            ky(endpoint, { ...options, timeout: OUTBOUND_TIMEOUTS.httpRequestMs }),
+            OUTBOUND_TIMEOUTS.httpRequestMs + 5_000,
+            "HTTP Request",
+          ),
       );
       const contentType = response.headers.get("content-type");
       const responseData = contentType?.includes("application/json")

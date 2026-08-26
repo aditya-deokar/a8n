@@ -22,6 +22,9 @@ export const executionsRouter = createTRPCRouter({
               name: true,
             },
           },
+          nodeRuns: {
+            orderBy: [{ startedAt: "asc" }, { id: "asc" }],
+          },
         }
       });
     }),

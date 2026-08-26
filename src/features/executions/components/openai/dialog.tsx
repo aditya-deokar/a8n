@@ -24,8 +24,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials";
-import { CredentialType } from "@/generated/prisma";
+import {
+  CredentialSelectWithCreate,
+  TemplateVariablePicker,
+  TestNodeButton,
+  useUpstreamVariables,
+} from "@/features/editor/components/node-config-extras";
 import {
   Select,
   SelectContent,
@@ -33,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
+import { CredentialType, NodeType } from "@/generated/prisma";
 
 const formSchema = z.object({
   variableName: z
@@ -43,9 +47,17 @@ const formSchema = z.object({
       message: "Variable name must start with a letter or underscore and container only letters, numbers, and underscores",
     }),
   credentialId: z.string().min(1, "Credential is required"),
+  model: z.string().min(1),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),
 });
+
+export const OPENAI_MODELS = [
+  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gpt-4o-mini", label: "GPT-4o mini" },
+  { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
+  { value: "gpt-4", label: "GPT-4" },
+];
 
 export type OpenAiFormValues = z.infer<typeof formSchema>;
 
@@ -54,6 +66,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   defaultValues?: Partial<OpenAiFormValues>;
+  nodeId?: string;
 };
 
 export const OpenAiDialog = ({
@@ -61,17 +74,16 @@ export const OpenAiDialog = ({
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  nodeId,
 }: Props) => {
-  const { 
-    data: credentials,
-    isLoading: isLoadingCredentials,
-  } = useCredentialsByType(CredentialType.OPENAI);
+  const variables = useUpstreamVariables(nodeId ?? "");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "",
       credentialId: defaultValues.credentialId || "",
+      model: defaultValues.model || OPENAI_MODELS[0].value,
       systemPrompt: defaultValues.systemPrompt || "",
       userPrompt: defaultValues.userPrompt || "",
     },
@@ -83,6 +95,7 @@ export const OpenAiDialog = ({
       form.reset({
         variableName: defaultValues.variableName || "",
         credentialId: defaultValues.credentialId || "",
+        model: defaultValues.model || OPENAI_MODELS[0].value,
         systemPrompt: defaultValues.systemPrompt || "",
         userPrompt: defaultValues.userPrompt || "",
       });
@@ -133,42 +146,43 @@ export const OpenAiDialog = ({
 
             <FormField
               control={form.control}
-              name="credentialId"
+              name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>OpenAI Credential</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={
-                      isLoadingCredentials
-                      || !credentials?.length
-                    }
-                  >
+                  <FormLabel>Model</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a credential" />
+                        <SelectValue placeholder="Select a model" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {credentials?.map((credential) => (
-                        <SelectItem
-                          key={credential.id}
-                          value={credential.id}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Image
-                              src="/logos/openai.svg"
-                              alt="OpenAI"
-                              width={16}
-                              height={16}
-                            />
-                            {credential.name}
-                          </div>
+                      {OPENAI_MODELS.map((model) => (
+                        <SelectItem key={model.value} value={model.value}>
+                          {model.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="credentialId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>OpenAI Credential</FormLabel>
+                  <FormControl>
+                    <CredentialSelectWithCreate
+                      credentialType={CredentialType.OPENAI}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select a credential"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -190,6 +204,12 @@ export const OpenAiDialog = ({
                   <FormDescription>
                     Sets the behavior of the assistant. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                 <FormMessage />
               </FormItem>
             )}
@@ -210,11 +230,24 @@ export const OpenAiDialog = ({
                   <FormDescription>
                     The prompt to send to the AI. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                 <FormMessage />
               </FormItem>
             )}
             />
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 flex-row gap-2">
+              {nodeId && (
+                <TestNodeButton
+                  nodeType={NodeType.OPENAI}
+                  values={form.watch()}
+                  className="mr-auto"
+                />
+              )}
               <Button type="submit">Save</Button>
             </DialogFooter>
           </form>

@@ -116,6 +116,7 @@ enum CredentialType {
 model Workflow {
   id String @id @default(cuid())
   name String
+  active Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -275,6 +276,26 @@ model Execution {
   inngestEventId String @unique
 
   output Json?
+  nodeRuns ExecutionNodeRun[]
+}
+
+model ExecutionNodeRun {
+  id String @id @default(cuid())
+
+  executionId String
+  execution Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  nodeId String
+  nodeType NodeType
+  status ExecutionStatus @default(RUNNING)
+
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  durationMs Int?
+  error String? @db.Text
+
+  @@unique([executionId, nodeId])
+  @@index([executionId, status])
 }
 
 model ApiKey {

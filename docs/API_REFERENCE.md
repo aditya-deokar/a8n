@@ -1,4 +1,4 @@
-# 🔌 API Reference
+﻿# ðŸ”Œ API Reference
 
 > **Last Updated:** April 2026  
 > **Framework:** tRPC v11.16.0  
@@ -45,8 +45,8 @@ graph TD
 
     subgraph Middleware["Procedure Middleware"]
         Base["baseProcedure"]
-        Protected["protectedProcedure<br/>→ ctx.auth"]
-        Premium["premiumProcedure<br/>→ ctx.customer"]
+        Protected["protectedProcedure<br/>â†’ ctx.auth"]
+        Premium["premiumProcedure<br/>â†’ ctx.customer"]
     end
 
     useTRPC --> BatchLink
@@ -85,7 +85,7 @@ The tRPC layer defines three authorization tiers via middleware:
 
 ### `baseProcedure`
 
-No authentication required. Currently unused — all endpoints require at least a session.
+No authentication required. Currently unused â€” all endpoints require at least a session.
 
 ```typescript
 export const baseProcedure = t.procedure;
@@ -109,7 +109,7 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
 });
 ```
 
-**Context injected:** `ctx.auth` — `{ user: { id, name, email, ... }, session: { ... } }`
+**Context injected:** `ctx.auth` â€” `{ user: { id, name, email, ... }, session: { ... } }`
 
 ### `premiumProcedure`
 
@@ -129,7 +129,7 @@ export const premiumProcedure = protectedProcedure.use(async ({ ctx, next }) => 
 });
 ```
 
-**Context injected:** `ctx.customer` — Polar customer state with subscription details
+**Context injected:** `ctx.customer` â€” Polar customer state with subscription details
 
 ---
 
@@ -202,10 +202,12 @@ z.object({
 ```
 
 **Transaction Steps:**
-1. Delete all existing nodes (cascades to connections)
-2. Create new nodes
-3. Create new connections
-4. Update workflow timestamp
+1. **Server-side graph validation** — unique node IDs, edges reference existing nodes, no duplicate/self connections, no cycles, at least one trigger node, INITIAL placeholder exclusivity. Violations return `BAD_REQUEST`/`CONFLICT` with user-friendly messages.
+2. Delete all existing nodes (cascades to connections)
+3. Create new nodes (including relational `credentialId` when present in node data)
+4. Create new connections
+5. **Create a version snapshot** (`WorkflowVersion`, "Manual save") with 20-version retention
+6. Update workflow timestamp
 
 ---
 
@@ -217,7 +219,7 @@ Renames a workflow.
 |---|---|
 | **Type** | `mutation` |
 | **Auth** | `protectedProcedure` |
-| **Input** | `{ id: string, name: string }` — name must be non-empty |
+| **Input** | `{ id: string, name: string }` â€” name must be non-empty |
 | **Returns** | Updated `Workflow` object |
 
 ---
@@ -235,10 +237,10 @@ Fetches a single workflow with its nodes and connections transformed into React 
 
 **Response Transformation:**
 ```typescript
-// Prisma Node → React Flow Node
+// Prisma Node â†’ React Flow Node
 { id, type: node.type, position: node.position, data: node.data }
 
-// Prisma Connection → React Flow Edge
+// Prisma Connection â†’ React Flow Edge
 { id, source: fromNodeId, target: toNodeId, sourceHandle: fromOutput, targetHandle: toInput }
 ```
 
@@ -258,7 +260,7 @@ Lists workflows with search and pagination.
 **Input Defaults:**
 | Param | Default | Range |
 |---|---|---|
-| `page` | `1` | — |
+| `page` | `1` | â€” |
 | `pageSize` | `5` | `1..100` |
 | `search` | `""` | Case-insensitive name search |
 
@@ -295,6 +297,85 @@ Triggers workflow execution via Inngest.
 
 ---
 
+
+### `workflows.setActive`
+
+Activates or deactivates a workflow. Inactive workflows reject webhook dispatches with `409 Conflict` (manual execution remains allowed).
+
+| Property | Value |
+|---|---|
+| **Type** | `mutation` |
+| **Auth** | `protectedProcedure` |
+| **Input** | `{ id: string, active: boolean }` |
+| **Returns** | `Workflow` object |
+
+---
+
+### `workflows.setWebhookSecret`
+
+Stores an encrypted webhook secret on a trigger node (Stripe / Google Form). The plaintext secret is encrypted server-side and never returned; the encrypted value comes back so the canvas can persist it across saves. Webhook verification accepts this secret in addition to environment secrets.
+
+| Property | Value |
+|---|---|
+| **Type** | `mutation` |
+| **Auth** | `protectedProcedure` |
+| **Input** | `{ workflowId: string, nodeId: string, secret: string (max 512) }` |
+| **Returns** | `{ ok: true, nodeId, webhookSecret /* ciphertext */ }` |
+
+---
+
+### `workflows.testNode`
+
+Executes a single action node in isolation with mocked Inngest step tools (everything runs synchronously inside the request). Powers the "Test step" button in node configuration dialogs. Trigger nodes cannot be tested directly.
+
+| Property | Value |
+|---|---|
+| **Type** | `mutation` |
+| **Auth** | `protectedProcedure` |
+| **Input** | `{ type: NodeType, data: Record<string, unknown> }` |
+| **Returns** | `{ ok: true, output: WorkflowContext }` or `{ ok: false, error: string }` |
+
+---
+
+### `workflows.getVersions`
+
+Lists version-history snapshots for a workflow (newest first, max 20). Every manual save creates a snapshot.
+
+| Property | Value |
+|---|---|
+| **Type** | `query` |
+| **Auth** | `protectedProcedure` |
+| **Input** | `{ workflowId: string }` |
+| **Returns** | `{ items: [{ id, name, summary, createdByTool, createdAt, nodeCount, edgeCount }], totalCount }` |
+
+---
+
+### `workflows.restoreVersion`
+
+Restores a previous version's graph. The current state is auto-saved as a new version ("Auto-save before restore") first, so restores are reversible.
+
+| Property | Value |
+|---|---|
+| **Type** | `mutation` |
+| **Auth** | `protectedProcedure` |
+| **Input** | `{ workflowId: string, versionId: string }` |
+| **Returns** | `Workflow` object |
+
+**Errors:** `NOT_FOUND` (version missing), `BAD_REQUEST` (corrupt snapshot / invalid graph)
+
+---
+
+### `workflows.duplicate`
+
+Deep-copies a workflow with fresh node IDs and remapped connections. The copy is named `"<name> (Copy)"`, starts inactive, and preserves credential links.
+
+| Property | Value |
+|---|---|
+| **Type** | `mutation` |
+| **Auth** | `protectedProcedure` |
+| **Input** | `{ id: string }` |
+| **Returns** | new `Workflow` object |
+
 ## Router: `credentials`
 
 **Source:** `src/features/credentials/server/routers.ts`  
@@ -312,9 +393,9 @@ Creates a new encrypted credential.
 | **Returns** | `Credential` object (with encrypted value) |
 
 **Input Validation:**
-- `name` — non-empty string
-- `type` — must be one of `CredentialType` enum: `OPENAI`, `ANTHROPIC`, `GEMINI`
-- `value` — non-empty string (the raw API key)
+- `name` â€” non-empty string
+- `type` â€” must be one of `CredentialType` enum: `OPENAI`, `ANTHROPIC`, `GEMINI`
+- `value` â€” non-empty string (the raw API key)
 
 **Security:** The `value` is encrypted via `encrypt(value)` (AES-256) before storage. The raw key is never persisted.
 
@@ -385,7 +466,7 @@ Fetches all credentials of a specific type (used in node configuration dropdowns
 | **Type** | `query` |
 | **Auth** | `protectedProcedure` |
 | **Input** | `{ type: CredentialType }` |
-| **Returns** | `Credential[]` — ordered by `updatedAt` descending |
+| **Returns** | `Credential[]` â€” ordered by `updatedAt` descending |
 
 ---
 
@@ -598,27 +679,33 @@ const mutation = useMutation(trpc.workflows.create.mutationOptions({
 
 | Router | Procedure | Type | Auth | Input |
 |---|---|---|---|---|
-| `workflows` | `create` | mutation | premium | — |
+| `workflows` | `create` | mutation | premium | â€” |
 | `workflows` | `remove` | mutation | protected | `{ id }` |
 | `workflows` | `update` | mutation | protected | `{ id, nodes[], edges[] }` |
 | `workflows` | `updateName` | mutation | protected | `{ id, name }` |
 | `workflows` | `getOne` | query | protected | `{ id }` |
 | `workflows` | `getMany` | query | protected | `{ page?, pageSize?, search? }` |
-| `workflows` | `execute` | mutation | protected | `{ id }` |
+| `workflows` | `execute` | mutation | protected | `{ id }` — quota consumed once at dispatch |
+| `workflows` | `setActive` | mutation | protected | `{ id, active }` |
+| `workflows` | `setWebhookSecret` | mutation | protected | `{ workflowId, nodeId, secret }` |
+| `workflows` | `testNode` | mutation | protected | `{ type, data }` |
+| `workflows` | `getVersions` | query | protected | `{ workflowId }` |
+| `workflows` | `restoreVersion` | mutation | protected | `{ workflowId, versionId }` |
+| `workflows` | `duplicate` | mutation | protected | `{ id }` |
 | `credentials` | `create` | mutation | premium | `{ name, type, value }` |
 | `credentials` | `remove` | mutation | protected | `{ id }` |
-| `credentials` | `update` | mutation | protected | `{ id, name, type, value }` |
-| `credentials` | `getOne` | query | protected | `{ id }` |
+| `credentials` | `update` | mutation | protected | `{ id, name, type, value? }` — re-encrypts only when `value` provided |
+| `credentials` | `getOne` | query | protected | `{ id }` — ciphertext never returned |
 | `credentials` | `getMany` | query | protected | `{ page?, pageSize?, search? }` |
 | `credentials` | `getByType` | query | protected | `{ type }` |
-| `executions` | `getOne` | query | protected | `{ id }` |
+| `executions` | `getOne` | query | protected | `{ id }` — includes `nodeRuns[]` timeline |
 | `executions` | `getMany` | query | protected | `{ page?, pageSize? }` |
 
 ---
 
 ## Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — API layer in the system architecture
-- [DATABASE.md](./DATABASE.md) — Underlying data models
-- [AUTHENTICATION.md](./AUTHENTICATION.md) — Session and authorization details
-- [STATE_AND_DATA_FLOW.md](./STATE_AND_DATA_FLOW.md) — Client-side data fetching patterns
+- [ARCHITECTURE.md](./ARCHITECTURE.md) â€” API layer in the system architecture
+- [DATABASE.md](./DATABASE.md) â€” Underlying data models
+- [AUTHENTICATION.md](./AUTHENTICATION.md) â€” Session and authorization details
+- [STATE_AND_DATA_FLOW.md](./STATE_AND_DATA_FLOW.md) â€” Client-side data fetching patterns

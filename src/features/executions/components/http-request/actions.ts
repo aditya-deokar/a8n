@@ -1,9 +1,10 @@
-"use server";
+﻿"use server";
 
 import { getSubscriptionToken, type Realtime } from "@inngest/realtime";
 import { httpRequestChannel } from "@/inngest/channels/http-request";
 import { inngest } from "@/inngest/client";
 import { logger, normalizeError } from "@/lib/logging";
+import { requireRealtimeTokenAccess } from "@/features/executions/hooks/realtime-auth";
 
 export type HttpRequestToken = Realtime.Token<
   typeof httpRequestChannel,
@@ -11,6 +12,7 @@ export type HttpRequestToken = Realtime.Token<
 >;
 
 export async function fetchHttpRequestRealtimeToken(): Promise<HttpRequestToken> {
+  await requireRealtimeTokenAccess();
   try {
     const token = await getSubscriptionToken(inngest, {
       channel: httpRequestChannel(),
@@ -30,6 +32,6 @@ export async function fetchHttpRequestRealtimeToken(): Promise<HttpRequestToken>
       },
       "Failed to fetch Inngest realtime token.",
     );
-    return null as unknown as HttpRequestToken;
+    throw error;
   }
 };

@@ -1,12 +1,11 @@
-"use client";
+﻿"use client";
 
-import { useReactFlow, type Node, type NodeProps } from "@xyflow/react";
+import { type Node, type NodeProps } from "@xyflow/react";
+import { useNodeStatusById } from "@/features/editor/hooks/use-node-statuses";
+import { useGraphMutations } from "@/features/editor/hooks/use-graph-mutations";
 import { memo, useState } from "react";
 import { BaseExecutionNode } from "../base-execution-node";
 import { GoogleSheetsDialog, GoogleSheetsFormValues } from "./dialog";
-import { useNodeStatus } from "../../hooks/use-node-status";
-import { fetchGoogleSheetsRealtimeToken } from "./actions";
-import { GOOGLE_SHEETS_CHANNEL_NAME } from "@/inngest/channels/google-sheets";
 
 type GoogleSheetsNodeData = {
   variableName?: string;
@@ -20,30 +19,13 @@ type GoogleSheetsNodeType = Node<GoogleSheetsNodeData>;
 
 export const GoogleSheetsNode = memo((props: NodeProps<GoogleSheetsNodeType>) => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { setNodes } = useReactFlow();
-
-  const nodeStatus = useNodeStatus({
-    nodeId: props.id,
-    channel: GOOGLE_SHEETS_CHANNEL_NAME,
-    topic: "status",
-    refreshToken: fetchGoogleSheetsRealtimeToken,
-  });
+  const { updateNodeData } = useGraphMutations();
+  const nodeStatus = useNodeStatusById(props.id);
 
   const handleOpenSettings = () => setDialogOpen(true);
 
   const handleSubmit = (values: GoogleSheetsFormValues) => {
-    setNodes((nodes) => nodes.map((node) => {
-      if (node.id === props.id) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            ...values,
-          },
-        };
-      }
-      return node;
-    }));
+    updateNodeData(props.id, values);
   };
 
   const nodeData = props.data;
@@ -58,6 +40,7 @@ export const GoogleSheetsNode = memo((props: NodeProps<GoogleSheetsNodeType>) =>
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={nodeData}
+        nodeId={props.id}
       />
       <BaseExecutionNode
         {...props}

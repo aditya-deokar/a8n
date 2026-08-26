@@ -1,4 +1,4 @@
-import Handlebars from "handlebars";
+﻿import Handlebars from "handlebars";
 import { NonRetriableError } from "inngest";
 import { generateText } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
@@ -7,6 +7,7 @@ import { geminiChannel } from "@/inngest/channels/gemini";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import { aiTelemetryOptions, observeExternalProvider } from "@/lib/logging";
+import { OUTBOUND_TIMEOUTS } from "@/lib/with-timeout";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -19,6 +20,7 @@ Handlebars.registerHelper("json", (context) => {
 });
 
 type GeminiData = {
+  model?: string;
   variableName?: string;
   credentialId?: string;
   systemPrompt?: string;
@@ -105,16 +107,17 @@ export const geminiExecutor: NodeExecutor<GeminiData> = async ({
         operation: "generate_text",
         nodeId,
         nodeType: "GEMINI",
-        model: "gemini-3-flash-preview",
+        model: data.model ?? "gemini-3-flash-preview",
       },
       () =>
         step.ai.wrap(
           "gemini-generate-text",
           generateText,
           {
-            model: google("gemini-3-flash-preview"),
+            model: google(data.model ?? "gemini-3-flash-preview"),
             system: systemPrompt,
             prompt: userPrompt,
+            abortSignal: AbortSignal.timeout(OUTBOUND_TIMEOUTS.aiModelMs),
             experimental_telemetry: aiTelemetryOptions(),
           },
         ),

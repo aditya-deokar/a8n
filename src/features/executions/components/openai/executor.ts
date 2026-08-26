@@ -1,4 +1,4 @@
-import Handlebars from "handlebars";
+﻿import Handlebars from "handlebars";
 import { NonRetriableError } from "inngest";
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -7,6 +7,7 @@ import { openAiChannel } from "@/inngest/channels/openai";
 import prisma from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import { aiTelemetryOptions, observeExternalProvider } from "@/lib/logging";
+import { OUTBOUND_TIMEOUTS } from "@/lib/with-timeout";
 
 Handlebars.registerHelper("json", (context) => {
   if (context === undefined) {
@@ -19,6 +20,7 @@ Handlebars.registerHelper("json", (context) => {
 });
 
 type OpenAiData = {
+  model?: string;
   variableName?: string;
   credentialId?: string;
   systemPrompt?: string;
@@ -105,16 +107,17 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
         operation: "generate_text",
         nodeId,
         nodeType: "OPENAI",
-        model: "gpt-4",
+        model: data.model ?? "gpt-4",
       },
       () =>
         step.ai.wrap(
           "openai-generate-text",
           generateText,
           {
-            model: openai("gpt-4"),
+            model: openai(data.model ?? "gpt-4"),
             system: systemPrompt,
             prompt: userPrompt,
+            abortSignal: AbortSignal.timeout(OUTBOUND_TIMEOUTS.aiModelMs),
             experimental_telemetry: aiTelemetryOptions(),
           },
         ),

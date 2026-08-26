@@ -1,10 +1,10 @@
-# ⚙️ Workflow Execution Engine
+﻿# âš™ï¸ Workflow Execution Engine
 
-> **Last Updated:** April 2026  
+> **Last Updated:** August 2026 (Phases 0-3 hardening)  
 > **Engine:** Inngest v4.2.0 with Realtime Middleware  
 > **Pattern:** Event-driven, durable step functions with topological DAG execution
 
-This is the **heart of a8n** — the system that transforms a visual DAG of nodes into a reliable, observable execution pipeline.
+This is the **heart of a8n** â€” the system that transforms a visual DAG of nodes into a reliable, observable execution pipeline.
 
 ---
 
@@ -28,19 +28,19 @@ This is the **heart of a8n** — the system that transforms a visual DAG of node
 
 ```mermaid
 graph TD
-    subgraph Trigger["🔌 Entry Points"]
+    subgraph Trigger["ðŸ”Œ Entry Points"]
         Manual["Manual Trigger<br/>(button click)"]
         GForm["Google Forms<br/>(webhook POST)"]
         Stripe["Stripe<br/>(webhook POST)"]
     end
 
-    subgraph Dispatch["📤 Event Dispatch"]
+    subgraph Dispatch["ðŸ“¤ Event Dispatch"]
         tRPCMutation["tRPC: workflows.execute"]
         WebhookHandler["Webhook Route Handler"]
         InngestSend["inngest.send()<br/>workflows/execute.workflow"]
     end
 
-    subgraph Engine["⚙️ Inngest Function"]
+    subgraph Engine["âš™ï¸ Inngest Function"]
         Step1["Step 1: create-execution<br/>Persist Execution record"]
         Step2["Step 2: prepare-workflow<br/>Fetch DAG + topological sort"]
         Step3["Step 3: find-user-id<br/>Resolve workflow owner"]
@@ -48,15 +48,15 @@ graph TD
         Step5["Step 5: update-execution<br/>Mark SUCCESS + persist output"]
     end
 
-    subgraph Executors["🧩 Node Executors"]
+    subgraph Executors["ðŸ§© Node Executors"]
         TriggerExec["Trigger Executors<br/>(pass-through context)"]
         HTTPExec["HTTP Request<br/>(ky HTTP client)"]
         AIExec["AI Executors<br/>(Vercel AI SDK)"]
         IntegExec["Integration Executors<br/>(Discord/Slack webhooks)"]
     end
 
-    subgraph Realtime["📡 Realtime"]
-        Channels["9 Inngest Channels<br/>(one per node type)"]
+    subgraph Realtime["ðŸ“¡ Realtime"]
+        Channels["11 Inngest Channels<br/>(one per node type)"]
         Browser["Browser<br/>(useInngestSubscription)"]
     end
 
@@ -95,7 +95,7 @@ import { Inngest } from "inngest";
 
 export const inngest = new Inngest({ 
   id: "a8n",
-  middleware: [realtimeMiddleware() as any],
+  middleware: [realtimeMiddleware()],
 });
 ```
 
@@ -147,7 +147,7 @@ export const sendWorkflowExecution = async (data) => {
 
 ## Execution Pipeline
 
-The `executeWorkflow` function is the main Inngest function. Each step is **individually durable** — if step 3 fails and retries, steps 1-2 do not re-execute.
+The `executeWorkflow` function is the main Inngest function. Each step is **individually durable** â€” if step 3 fails and retries, steps 1-2 do not re-execute.
 
 ```typescript
 // src/inngest/functions.ts
@@ -204,7 +204,7 @@ const userId = await step.run("find-user-id", async () => {
 });
 ```
 
-Resolves the workflow owner — needed for credential access (executors can only decrypt credentials belonging to the workflow owner).
+Resolves the workflow owner â€” needed for credential access (executors can only decrypt credentials belonging to the workflow owner).
 
 ### Step 4: Node Execution Loop
 
@@ -228,7 +228,7 @@ Nodes execute **sequentially** in topological order. Each node:
 1. Receives the **accumulated context** from all upstream nodes
 2. Performs its action (API call, AI generation, etc.)
 3. Returns an **updated context** (merged with its output)
-4. Publishes realtime status updates (loading → success/error)
+4. Publishes realtime status updates (loading â†’ success/error)
 
 ### Step 5: Update Execution
 
@@ -249,7 +249,7 @@ await step.run("update-execution", async () => {
 
 ## Topological Sort Algorithm
 
-The topological sort ensures nodes execute in dependency order — a node only runs after all its upstream nodes have completed.
+The topological sort ensures nodes execute in dependency order â€” a node only runs after all its upstream nodes have completed.
 
 ```typescript
 // src/inngest/utils.ts
@@ -289,8 +289,8 @@ export const topologicalSort = (nodes: Node[], connections: Connection[]): Node[
 | **No connections** | Returns nodes as-is (all independent) |
 | **Disconnected nodes** | Added as self-edges to include them in the sort |
 | **Cyclic graph** | Throws `"Workflow contains a cycle"` error |
-| **Linear chain** | A → B → C returns `[A, B, C]` |
-| **Diamond pattern** | A → B, A → C, B → D, C → D returns `[A, B, C, D]` or `[A, C, B, D]` |
+| **Linear chain** | A â†’ B â†’ C returns `[A, B, C]` |
+| **Diamond pattern** | A â†’ B, A â†’ C, B â†’ D, C â†’ D returns `[A, B, C, D]` or `[A, C, B, D]` |
 
 **Library:** Uses the `toposort` npm package for the core algorithm.
 
@@ -298,7 +298,7 @@ export const topologicalSort = (nodes: Node[], connections: Connection[]): Node[
 
 ## Node Executor Pattern
 
-Every node type implements the `NodeExecutor` interface — a function that receives context and returns updated context.
+Every node type implements the `NodeExecutor` interface â€” a function that receives context and returns updated context.
 
 ### Type Definitions
 
@@ -337,7 +337,7 @@ Every executor follows the same pattern:
 
 **On error:**
 ```
-catch → Publish "error" status → Re-throw error
+catch â†’ Publish "error" status â†’ Re-throw error
 ```
 
 ---
@@ -371,7 +371,7 @@ export const getExecutor = (type: NodeType): NodeExecutor => {
 };
 ```
 
-> **Note:** `INITIAL` maps to `manualTriggerExecutor` because INITIAL is the placeholder node created when a workflow is first generated — it acts as a pass-through.
+> **Note:** `INITIAL` maps to `manualTriggerExecutor` because INITIAL is the placeholder node created when a workflow is first generated â€” it acts as a pass-through.
 
 ---
 
@@ -379,7 +379,7 @@ export const getExecutor = (type: NodeType): NodeExecutor => {
 
 ### Manual Trigger Executor (Simplest)
 
-The simplest executor — passes context through unchanged. Acts as the workflow entry point.
+The simplest executor â€” passes context through unchanged. Acts as the workflow entry point.
 
 ```typescript
 export const manualTriggerExecutor: NodeExecutor<ManualTriggerData> = async ({
@@ -470,7 +470,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 ```
 
 **Key Details:**
-- **Credential Security**: API key decrypted at runtime — never stored in Inngest event payload
+- **Credential Security**: API key decrypted at runtime â€” never stored in Inngest event payload
 - **User Scoping**: `where: { id: data.credentialId, userId }` ensures users can only use their own credentials
 - **AI SDK Instrumentation**: `step.ai.wrap()` enables Inngest telemetry and step-level durability for AI calls
 - **Prompt Templates**: System and user prompts support `{{variable}}` references to upstream context
@@ -511,6 +511,8 @@ export const httpRequestChannel = channel(HTTP_REQUEST_CHANNEL_NAME)
 | `anthropic-execution` | `anthropicChannel` | `ANTHROPIC` |
 | `discord-execution` | `discordChannel` | `DISCORD` |
 | `slack-execution` | `slackChannel` | `SLACK` |
+| `email-execution` | `emailChannel` | `EMAIL` |
+| `google-sheets-execution` | `googleSheetsChannel` | `GOOGLE_SHEETS` |
 
 ### Browser-Side Subscription
 
@@ -546,9 +548,9 @@ export function useNodeStatus({ nodeId, channel, topic, refreshToken }) {
 ### Status Flow
 
 ```
-Executor publishes "loading" → Channel → useNodeStatus → NodeStatusIndicator (spinner)
-Executor publishes "success" → Channel → useNodeStatus → NodeStatusIndicator (✓ green)
-Executor publishes "error"   → Channel → useNodeStatus → NodeStatusIndicator (✗ red)
+Executor publishes "loading" â†’ Channel â†’ useNodeStatus â†’ NodeStatusIndicator (spinner)
+Executor publishes "success" â†’ Channel â†’ useNodeStatus â†’ NodeStatusIndicator (âœ“ green)
+Executor publishes "error"   â†’ Channel â†’ useNodeStatus â†’ NodeStatusIndicator (âœ— red)
 ```
 
 ---
@@ -572,7 +574,7 @@ Node B (HTTP Request, variableName: "apiData"):
 
 Node C (OpenAI, variableName: "aiResponse"):
   Input:  { apiData: { httpResponse: {...} } }
-  Prompt: "Summarize this: {{apiData.httpResponse.data}}"    ← Handlebars
+  Prompt: "Summarize this: {{apiData.httpResponse.data}}"    â† Handlebars
   Output: { apiData: {...}, aiResponse: { text: "..." } }
 
 Node D (Slack, message: "AI said: {{aiResponse.text}}"):
@@ -582,10 +584,10 @@ Node D (Slack, message: "AI said: {{aiResponse.text}}"):
 
 ### Key Rules
 
-1. **Context is immutable per node** — each node spreads the existing context and adds its own key
-2. **Variable names are configurable** — users set `variableName` in the node's data configuration
-3. **Template access** — Handlebars `{{variable.path}}` syntax accesses any upstream context value
-4. **Final context = execution output** — stored in `Execution.output`
+1. **Context is immutable per node** â€” each node spreads the existing context and adds its own key
+2. **Variable names are configurable** â€” users set `variableName` in the node's data configuration
+3. **Template access** â€” Handlebars `{{variable.path}}` syntax accesses any upstream context value
+4. **Final context = execution output** â€” stored in `Execution.output`
 
 ---
 
@@ -603,7 +605,7 @@ if (!data.endpoint) {
 
 ### Failure Handler
 
-The function-level `onFailure` callback marks executions as `FAILED`:
+The function-level `onFailure` callback marks executions as `FAILED` (guarded against P2025 when the run failed before the execution row was created), then best-effort publishes `error` statuses to every node's realtime channel so canvas nodes never stay stuck on "loading" after a failed run. It also records the failure in `ExecutionNodeRun` via the node loop below.
 
 ```typescript
 onFailure: async ({ event, step }) => {
@@ -628,8 +630,8 @@ onFailure: async ({ event, step }) => {
 ### Error Propagation
 
 ```
-Node executor throws → Inngest retries (if retriable) → 
-  All retries exhausted → onFailure handler → 
+Node executor throws â†’ Inngest retries (if retriable) â†’ 
+  All retries exhausted â†’ onFailure handler â†’ 
   Execution.status = FAILED, error + errorStack saved
 ```
 
@@ -765,9 +767,68 @@ export async function fetchWebhookRealtimeToken() {
 
 ---
 
+
+---
+
+## Per-Node Execution Persistence (ExecutionNodeRun)
+
+Every node execution is persisted to the `ExecutionNodeRun` table, giving execution history a per-node timeline (previously node status existed only in ephemeral realtime messages):
+
+```typescript
+// src/inngest/functions.ts — node loop
+for (const node of sortedNodes) {
+  await recordNodeRunStart({ executionId, nodeId: node.id, nodeType });
+  try {
+    context = await executor({ data, nodeId, userId, context, step, publish });
+    await recordNodeRunSuccess({ executionId, nodeId, durationMs });
+  } catch (error) {
+    await recordNodeRunFailure({ executionId, nodeId, durationMs, errorMessage });
+    throw error;
+  }
+}
+```
+
+- Writes are **idempotent upserts** on the `[executionId, nodeId]` unique pair, so Inngest retries never duplicate rows.
+- Writes are wrapped in try/catch — observability can never break execution.
+- The execution detail page renders this as a vertical timeline with status icons, durations and error lines, polling every 3s while the run is `RUNNING`.
+
+## Outbound Timeouts
+
+All executors enforce timeouts so a hung external call cannot stall a workflow indefinitely:
+
+| Provider | Mechanism | Limit |
+|---|---|---|
+| HTTP Request | ky `timeout` option + `withTimeout` race | 30s |
+| OpenAI / Anthropic / Gemini | Vercel AI SDK `abortSignal` | 120s |
+| SMTP Email | nodemailer `connectionTimeout`/`socketTimeout` | 30s |
+| Google Sheets | `withTimeout` promise race (googleapis has no native option) | 30s |
+
+Helper: `src/lib/with-timeout.ts` (`withTimeout`, `OUTBOUND_TIMEOUTS`, `TimeoutError`).
+
+## Stuck-RUNNING Reaper
+
+If an Inngest worker dies after accepting an event, the `Execution` row would stay `RUNNING` forever. A cron endpoint reaps these:
+
+```
+GET/POST /api/cron/executions-reaper
+Authorization: Bearer <EXECUTIONS_REAPER_SECRET>   # falls back to CRON_SECRET
+```
+
+Marks executions `FAILED` when `RUNNING` for more than 15 minutes. Register in your cron runner every ~5 minutes.
+
+## Webhook Security Model
+
+| Layer | Behavior |
+|---|---|
+| Secret transport | Header-only (`x-a8n-webhook-secret`) — query-param secrets removed (they leak into access logs) |
+| Secret candidates | Env secret **or** per-workflow encrypted secret stored on the trigger node (`workflows.setWebhookSecret` encrypts server-side; plaintext never round-trips through the client) |
+| Stripe signatures | HMAC verification with 300s replay tolerance; verified against env secret first, then per-node secrets |
+| Activation gate | Inactive workflows return `409 Conflict` — pause automations without deleting them |
+| Rate limiting | In-memory sliding window, 30 req/min per provider+workflow (per-instance; documented limitation) |
+| Apps Script generator | Now emits the `x-a8n-webhook-secret` header with a `WEBHOOK_SECRET` placeholder |
 ## Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — How the engine fits into the system
-- [DATABASE.md](./DATABASE.md) — Node, Connection, and Execution schemas
-- [API_REFERENCE.md](./API_REFERENCE.md) — `workflows.execute` mutation
-- [FEATURE_MODULES.md](./FEATURE_MODULES.md) — Feature module structure for executors
+- [ARCHITECTURE.md](./ARCHITECTURE.md) â€” How the engine fits into the system
+- [DATABASE.md](./DATABASE.md) â€” Node, Connection, and Execution schemas
+- [API_REFERENCE.md](./API_REFERENCE.md) â€” `workflows.execute` mutation
+- [FEATURE_MODULES.md](./FEATURE_MODULES.md) â€” Feature module structure for executors

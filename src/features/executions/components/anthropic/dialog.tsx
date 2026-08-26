@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   Dialog,
@@ -24,8 +24,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials";
-import { CredentialType } from "@/generated/prisma";
+import {
+  CredentialSelectWithCreate,
+  TemplateVariablePicker,
+  TestNodeButton,
+  useUpstreamVariables,
+} from "@/features/editor/components/node-config-extras";
 import {
   Select,
   SelectContent,
@@ -33,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
+import { CredentialType, NodeType } from "@/generated/prisma";
 
 const formSchema = z.object({
   variableName: z
@@ -43,9 +47,16 @@ const formSchema = z.object({
       message: "Variable name must start with a letter or underscore and container only letters, numbers, and underscores",
     }),
   credentialId: z.string().min(1, "Credential is required"),
+  model: z.string().min(1),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),
 });
+
+export const ANTHROPIC_MODELS = [
+  { value: "claude-sonnet-4-5", label: "Claude Sonnet 4.5" },
+  { value: "claude-opus-4-1", label: "Claude Opus 4.1" },
+  { value: "claude-3-5-haiku-latest", label: "Claude 3.5 Haiku" },
+];
 
 export type AnthropicFormValues = z.infer<typeof formSchema>;
 
@@ -54,6 +65,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
   defaultValues?: Partial<AnthropicFormValues>;
+  nodeId?: string;
 };
 
 export const AnthropicDialog = ({
@@ -61,17 +73,16 @@ export const AnthropicDialog = ({
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  nodeId,
 }: Props) => {
-  const { 
-    data: credentials,
-    isLoading: isLoadingCredentials,
-  } = useCredentialsByType(CredentialType.ANTHROPIC);
+  const variables = useUpstreamVariables(nodeId ?? "");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "",
       credentialId: defaultValues.credentialId || "",
+      model: defaultValues.model || "claude-sonnet-4-5",
       systemPrompt: defaultValues.systemPrompt || "",
       userPrompt: defaultValues.userPrompt || "",
     },
@@ -83,6 +94,7 @@ export const AnthropicDialog = ({
       form.reset({
         variableName: defaultValues.variableName || "",
         credentialId: defaultValues.credentialId || "",
+        model: defaultValues.model || "claude-sonnet-4-5",
         systemPrompt: defaultValues.systemPrompt || "",
         userPrompt: defaultValues.userPrompt || "",
       });
@@ -100,7 +112,7 @@ export const AnthropicDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <NodeDialogContent>
         <DialogHeader>
-          <DialogTitle>Anthropic Configuration</DialogTitle>
+          <DialogTitle>OpenAI Configuration</DialogTitle>
           <DialogDescription>
             Configure the AI model and prompts for this node.
           </DialogDescription>
@@ -133,42 +145,43 @@ export const AnthropicDialog = ({
 
             <FormField
               control={form.control}
-              name="credentialId"
+              name="model"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Anthropic Credential</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={
-                      isLoadingCredentials
-                      || !credentials?.length
-                    }
-                  >
+                  <FormLabel>Model</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a credential" />
+                        <SelectValue placeholder="Select a model" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {credentials?.map((credential) => (
-                        <SelectItem
-                          key={credential.id}
-                          value={credential.id}
-                        >
-                          <div className="flex items-center gap-2">
-                            <Image
-                              src="/logos/anthropic.svg"
-                              alt="Anthropic"
-                              width={16}
-                              height={16}
-                            />
-                            {credential.name}
-                          </div>
+                      {ANTHROPIC_MODELS.map((model) => (
+                        <SelectItem key={model.value} value={model.value}>
+                          {model.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="credentialId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Anthropic Credential</FormLabel>
+                  <FormControl>
+                    <CredentialSelectWithCreate
+                      credentialType={CredentialType.ANTHROPIC}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select a credential"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -190,6 +203,12 @@ export const AnthropicDialog = ({
                   <FormDescription>
                     Sets the behavior of the assistant. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                 <FormMessage />
               </FormItem>
             )}
@@ -210,11 +229,24 @@ export const AnthropicDialog = ({
                   <FormDescription>
                     The prompt to send to the AI. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects
                   </FormDescription>
+                  <TemplateVariablePicker
+                    variables={variables}
+                    onInsert={(token) =>
+                      field.onChange(`${String(field.value ?? "")}${token}`)
+                    }
+                  />
                 <FormMessage />
               </FormItem>
             )}
             />
-            <DialogFooter className="mt-4">
+            <DialogFooter className="mt-4 flex-row gap-2">
+              {nodeId && (
+                <TestNodeButton
+                  nodeType={NodeType.ANTHROPIC}
+                  values={form.watch()}
+                  className="mr-auto"
+                />
+              )}
               <Button type="submit">Save</Button>
             </DialogFooter>
           </form>
