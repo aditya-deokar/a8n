@@ -12,12 +12,7 @@ import { mcpJsonResponse } from "@/mcp/shared/sanitize";
 import { getMcpAuth, type McpToolContext } from "@/mcp/shared/auth-context";
 import { sendWorkflowExecution } from "@/inngest/utils";
 import { generateGoogleFormScript as buildGoogleFormScript } from "@/features/triggers/components/google-form-trigger/utils";
-import {
-  getIntegrationSetupGuide,
-  getNodeManifest,
-  INTEGRATION_SERVICE_KEYS,
-  type IntegrationServiceKey,
-} from "@/features/workflows/node-manifest";
+import { getNodeManifest } from "@/features/workflows/node-manifest";
 import {
   asGraphEdges,
   asGraphNodes,
@@ -26,9 +21,11 @@ import {
   type WorkflowGraphNode,
 } from "@/mcp/tools/workflows/workflow-graph-utils";
 import { requireToolApproval } from "@/mcp/safety/approval-guard";
-
-const webhookTriggerSchema = z.enum(["google_form", "stripe"]);
-const integrationServiceSchema = z.enum(INTEGRATION_SERVICE_KEYS);
+import {
+  sampleGoogleFormPayload,
+  sampleStripePayload,
+  webhookInitialData,
+} from "@/mcp/shared/sample-payloads";
 
 function getAppBaseUrl(): string {
   return (
@@ -42,67 +39,6 @@ function getAppBaseUrl(): string {
 function getWebhookUrl(workflowId: string, trigger: "google_form" | "stripe"): string {
   const path = trigger === "google_form" ? "google-form" : "stripe";
   return `${getAppBaseUrl()}/api/webhooks/${path}?workflowId=${workflowId}`;
-}
-
-function sampleGoogleFormPayload() {
-  return {
-    formId: "sample-form-id",
-    formTitle: "Sample Customer Feedback",
-    responseId: "sample-response-id",
-    timestamp: new Date().toISOString(),
-    respondentEmail: "student@example.com",
-    responses: {
-      Name: "Alex",
-      Feedback: "I need help understanding automation setup.",
-      Score: "8",
-    },
-  };
-}
-
-function sampleStripePayload() {
-  return {
-    id: "evt_sample_payment_succeeded",
-    type: "payment_intent.succeeded",
-    created: Math.floor(Date.now() / 1000),
-    livemode: false,
-    data: {
-      object: {
-        id: "pi_sample",
-        amount: 2500,
-        currency: "usd",
-        customer: "cus_sample",
-        status: "succeeded",
-      },
-    },
-  };
-}
-
-function webhookInitialData(trigger: "google_form" | "stripe") {
-  if (trigger === "google_form") {
-    const body = sampleGoogleFormPayload();
-    return {
-      googleForm: {
-        formId: body.formId,
-        formTitle: body.formTitle,
-        responseId: body.responseId,
-        timestamp: body.timestamp,
-        respondentEmail: body.respondentEmail,
-        responses: body.responses,
-        raw: body,
-      },
-    };
-  }
-
-  const body = sampleStripePayload();
-  return {
-    stripe: {
-      eventId: body.id,
-      eventType: body.type,
-      timestamp: body.created,
-      livemode: body.livemode,
-      raw: body.data.object,
-    },
-  };
 }
 
 async function loadGraphForSetup(params: {
@@ -200,7 +136,7 @@ export function registerGetWorkflowSetupChecklist(
               webhookUrl: graph.workflowId ? getWebhookUrl(graph.workflowId, trigger) : null,
               setupGuideResource: `a8n://integrations/${trigger}/setup`,
               nextStep: graph.workflowId
-                ? "Copy this webhook URL into the external service and run test_webhook_setup with approved: true for a sample run."
+                ? "Copy this webhook URL into the external service and run run_workflow_test with trigger google_form/stripe and approved: true for a sample run."
                 : "Apply the draft first so a workflow ID exists, then generate the webhook URL.",
             };
           });
@@ -236,8 +172,8 @@ export function registerGetWorkflowSetupChecklist(
           webhookSteps,
           testSteps: [
             "Run test_credential for every configured credential.",
-            "Run test_webhook_setup for Google Form or Stripe triggers.",
-            "Run run_workflow_test before sending real external data.",
+            "Run run_workflow_test with trigger google_form or stripe for webhook triggers.",
+            "Run run_workflow_test with trigger manual before sending real external data.",
           ],
           validation,
           warning:
@@ -248,62 +184,19 @@ export function registerGetWorkflowSetupChecklist(
   );
 }
 
-export function registerGetIntegrationSetupGuide(
-  server: McpServer,
-  context: McpToolContext = {},
-) {
-  server.tool(
-    "get_integration_setup_guide",
-    "Return plain-language setup steps for a supported integration.",
-    {
-      service: integrationServiceSchema.describe("Integration service key."),
-    },
-    async (args, extra) => {
-      const auth = getMcpAuth(extra, context);
-      requireScope(auth, "system:read");
+/**
+ * get_integration_setup_guide — REMOVED in Phase 1 (2026-08-26)
+ * Use resource `a8n://integrations/{service}/setup` instead.
+ * Stub kept for backward-compat callers that still invoke the old name:
+ * returns a deprecation error with the replacement.
+ * Note: tool is NOT registered, so it no longer appears in tools/list.
+ */
 
-      return withErrorBoundary("get_integration_setup_guide", async () => {
-        return mcpJsonResponse({
-          service: args.service,
-          resourceUri: `a8n://integrations/${args.service}/setup`,
-          guide: getIntegrationSetupGuide(args.service as IntegrationServiceKey),
-          sensitiveDataPolicy:
-            "Never request API keys, passwords, tokens, webhook secrets, or service-account JSON through generic clarification prompts.",
-        });
-      });
-    },
-  );
-}
-
-export function registerGetWebhookUrl(
-  server: McpServer,
-  context: McpToolContext = {},
-) {
-  server.tool(
-    "get_webhook_url",
-    "Return the webhook URL for a Google Form or Stripe trigger workflow.",
-    {
-      workflowId: z.string().describe("Saved workflow ID."),
-      trigger: webhookTriggerSchema.describe("Trigger type."),
-    },
-    async (args, extra) => {
-      const auth = getMcpAuth(extra, context);
-      requireScope(auth, "workflows:read");
-
-      return withErrorBoundary("get_webhook_url", async () => {
-        await prisma.workflow.findUniqueOrThrow({
-          where: { id: args.workflowId, userId: auth.userId },
-        });
-
-        return mcpJsonResponse({
-          workflowId: args.workflowId,
-          trigger: args.trigger,
-          webhookUrl: getWebhookUrl(args.workflowId, args.trigger),
-        });
-      });
-    },
-  );
-}
+/**
+ * get_webhook_url — REMOVED in Phase 1 (2026-08-26)
+ * Webhook URLs are now included in get_workflow_setup_checklist.webhookSteps.
+ * Stub kept for backward-compat reference only; not registered.
+ */
 
 export function registerGenerateGoogleFormScript(
   server: McpServer,
@@ -342,71 +235,15 @@ export function registerGenerateGoogleFormScript(
   );
 }
 
-export function registerTestWebhookSetup(
-  server: McpServer,
-  context: McpToolContext = {},
-) {
-  server.tool(
-    "test_webhook_setup",
-    "Generate a sample Google Form or Stripe webhook payload, and optionally trigger a workflow test run with that sample data after approval.",
-    {
-      workflowId: z.string().describe("Saved workflow ID."),
-      trigger: webhookTriggerSchema.describe("Trigger type."),
-      approved: z.boolean().default(false).describe("Must be true to trigger a workflow run."),
-    },
-    async (args, extra) => {
-      const auth = getMcpAuth(extra, context);
-      requireScope(auth, "workflows:execute");
-
-      return withErrorBoundary("test_webhook_setup", async () => {
-        await prisma.workflow.findUniqueOrThrow({
-          where: { id: args.workflowId, userId: auth.userId },
-        });
-        const samplePayload =
-          args.trigger === "google_form" ? sampleGoogleFormPayload() : sampleStripePayload();
-        const initialData = webhookInitialData(args.trigger);
-
-        const approval = requireToolApproval({
-          toolName: "test_webhook_setup",
-          auth,
-          approved: args.approved,
-          requiresConfirmation: false,
-          preview: {
-            triggered: false,
-            workflowId: args.workflowId,
-            trigger: args.trigger,
-            webhookUrl: getWebhookUrl(args.workflowId, args.trigger),
-            samplePayload,
-            initialData,
-          },
-          warning:
-            "Testing a webhook setup triggers a workflow run with sample data and may execute connected workflow steps.",
-          instruction:
-            "Call again with approved: true to run the workflow using this generated sample data.",
-          auditInput: { workflowId: args.workflowId, trigger: args.trigger },
-        });
-        if (!approval.approved) return approval.response;
-
-        const event = await sendWorkflowExecution({
-          workflowId: args.workflowId,
-          initialData,
-          testMode: true,
-          testSource: args.trigger,
-        });
-
-        return mcpJsonResponse({
-          triggered: true,
-          workflowId: args.workflowId,
-          trigger: args.trigger,
-          inngestEventId: event.eventId,
-          samplePayload,
-          initialData,
-          nextStep: "Use execute_workflow_and_wait or get_execution_timeline with the returned event ID once the execution record exists.",
-        });
-      });
-    },
-  );
-}
+/**
+ * test_webhook_setup — REMOVED in Phase 1 (2026-08-26)
+ * Merged into run_workflow_test. Use:
+ *   run_workflow_test({ workflowId, trigger: "google_form"|"stripe", approved: true })
+ * which now generates the same curated sample payload and supports wait/timeout.
+ * Sample payload helpers (sampleGoogleFormPayload/sampleStripePayload/webhookInitialData)
+ * are retained internally and shared with run_workflow_test.
+ * Tool is NOT registered, so it no longer appears in tools/list.
+ */
 
 export function registerTestCredential(
   server: McpServer,

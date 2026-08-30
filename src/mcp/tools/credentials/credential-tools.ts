@@ -1,5 +1,5 @@
 /**
- * Credential Tools — All 6 credential MCP tools
+ * Credential Tools — All 5 credential MCP tools (Phase 1: list-by-type merged)
  * 
  * Tools: list_credentials, get_credential, create_credential,
  *        update_credential, delete_credential, list_credentials_by_type
@@ -34,7 +34,7 @@ const SAFE_CREDENTIAL_SELECT = {
   updatedAt: true,
 } as const;
 
-// ─── list_credentials ────────────────────────────────────────
+// ─── list_credentials (Phase 1: merged list_credentials_by_type) ───
 
 export function registerListCredentials(
   server: McpServer,
@@ -42,11 +42,12 @@ export function registerListCredentials(
 ) {
   server.tool(
     "list_credentials",
-    "List all credentials for the authenticated user with pagination and search. Secret values are never returned — only metadata.",
+    "List credentials for the authenticated user with pagination, search, and optional type filter. Secret values are never returned — only metadata.",
     {
       page: z.number().min(1).default(1).describe("Page number"),
       pageSize: z.number().min(1).max(100).default(10).describe("Results per page"),
       search: z.string().default("").describe("Filter by name (case-insensitive)"),
+      type: z.enum(CredentialType).optional().describe("Optional credential type filter (OPENAI, ANTHROPIC, GEMINI, SMTP_EMAIL, GOOGLE_SHEETS). Omit to list all types."),
     },
     async (args, extra) => {
       const auth = getMcpAuth(extra, context);
@@ -62,6 +63,7 @@ export function registerListCredentials(
         const where = {
           userId: auth.userId,
           name: { contains: args.search || "", mode: "insensitive" as const },
+          ...(args.type ? { type: args.type as CredentialType } : {}),
         };
 
         const [items, totalCount] = await Promise.all([
@@ -276,40 +278,9 @@ export function registerDeleteCredential(
   );
 }
 
-// ─── list_credentials_by_type ────────────────────────────────
-
-export function registerListCredentialsByType(
-  server: McpServer,
-  context: McpToolContext = {},
-) {
-  server.tool(
-    "list_credentials_by_type",
-    "List all credentials of a specific type. Useful for finding credentials to attach to workflow nodes.",
-    {
-      type: z.enum(CredentialType).describe("Credential type to filter by"),
-    },
-    async (args, extra) => {
-      const auth = getMcpAuth(extra, context);
-      requireScope(auth, "credentials:read");
-
-      const audit = createAuditContext({
-        userId: auth.userId, apiKeyId: auth.apiKeyId,
-        authMethod: auth.method, tool: "list_credentials_by_type", input: args,
-      });
-
-      return withErrorBoundary("list_credentials_by_type", async () => {
-        const credentials = await prisma.credential.findMany({
-          where: {
-            type: args.type as CredentialType,
-            userId: auth.userId,
-          },
-          select: SAFE_CREDENTIAL_SELECT,
-          orderBy: { updatedAt: "desc" },
-        });
-
-        audit.success();
-        return mcpJsonResponse({ credentials, count: credentials.length });
-      });
-    },
-  );
-}
+/**
+ * list_credentials_by_type — REMOVED in Phase 1 (2026-08-26)
+ * Merged into list_credentials(type?). Use:
+ *   list_credentials({ type: "OPENAI" })
+ * Tool is NOT registered, so it no longer appears in tools/list.
+ */

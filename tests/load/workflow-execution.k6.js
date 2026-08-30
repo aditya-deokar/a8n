@@ -30,9 +30,9 @@ export default function workflowExecutionLoad() {
       id: `load-workflow-${__VU}-${__ITER}`,
       method: "tools/call",
       params: {
-        name: "execute_workflow",
+        name: "execute_workflow_and_wait",
         arguments: {
-          id: workflowId,
+          workflowId,
           approved: __ENV.WORKFLOW_LOAD_APPROVED === "true",
         },
       },

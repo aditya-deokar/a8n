@@ -1,5 +1,5 @@
-import { createHash } from "crypto";
 import prisma from "@/lib/db";
+import { stableApprovalHash } from "@/mcp/safety/approval-guard";
 import { CredentialType, NodeType, type Prisma } from "@/generated/prisma";
 import {
   getNodeManifest,
@@ -55,10 +55,35 @@ export const TRIGGER_NODE_TYPES = new Set<NodeType>([
 ]);
 
 export function stableHash(value: unknown): string {
-  return createHash("sha256")
-    .update(JSON.stringify(value))
-    .digest("hex")
-    .slice(0, 16);
+  return stableApprovalHash(value);
+}
+
+/**
+ * Shared graph diff — canonical implementation (Phase 1 dedup).
+ * Previously duplicated as `buildGraphDiff` in workflow-drafts.tool.ts
+ * and `graphDiff` in workflow-versioning.tool.ts.
+ */
+export function computeGraphDiff(
+  beforeNodes: WorkflowGraphNode[],
+  beforeEdges: WorkflowGraphEdge[],
+  afterNodes: WorkflowGraphNode[],
+  afterEdges: WorkflowGraphEdge[],
+) {
+  const beforeById = new Map(beforeNodes.map((node) => [node.id, node]));
+  const afterById = new Map(afterNodes.map((node) => [node.id, node]));
+  const beforeEdgeKeys = new Set(beforeEdges.map((edge) => `${edge.source}->${edge.target}`));
+  const afterEdgeKeys = new Set(afterEdges.map((edge) => `${edge.source}->${edge.target}`));
+
+  return {
+    addedNodes: afterNodes.filter((node) => !beforeById.has(node.id)),
+    removedNodes: beforeNodes.filter((node) => !afterById.has(node.id)),
+    changedNodes: afterNodes.filter((node) => {
+      const before = beforeById.get(node.id);
+      return before && JSON.stringify(before) !== JSON.stringify(node);
+    }),
+    addedEdges: afterEdges.filter((edge) => !beforeEdgeKeys.has(`${edge.source}->${edge.target}`)),
+    removedEdges: beforeEdges.filter((edge) => !afterEdgeKeys.has(`${edge.source}->${edge.target}`)),
+  };
 }
 
 export function asGraphNodes(value: unknown): WorkflowGraphNode[] {

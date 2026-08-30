@@ -14,6 +14,7 @@ import { requireToolApproval } from "@/mcp/safety/approval-guard";
 import {
   asGraphEdges,
   asGraphNodes,
+  computeGraphDiff,
   createWorkflowVersion,
   getWorkflowGraph,
   replaceWorkflowGraph,
@@ -26,29 +27,6 @@ type ApprovalArgs = {
   approved?: boolean;
   confirmationHash?: string;
 };
-
-function graphDiff(
-  beforeNodes: WorkflowGraphNode[],
-  beforeEdges: WorkflowGraphEdge[],
-  afterNodes: WorkflowGraphNode[],
-  afterEdges: WorkflowGraphEdge[],
-) {
-  const beforeById = new Map(beforeNodes.map((node) => [node.id, node]));
-  const afterById = new Map(afterNodes.map((node) => [node.id, node]));
-  const beforeEdgeKeys = new Set(beforeEdges.map((edge) => `${edge.source}->${edge.target}`));
-  const afterEdgeKeys = new Set(afterEdges.map((edge) => `${edge.source}->${edge.target}`));
-
-  return {
-    addedNodes: afterNodes.filter((node) => !beforeById.has(node.id)),
-    removedNodes: beforeNodes.filter((node) => !afterById.has(node.id)),
-    changedNodes: afterNodes.filter((node) => {
-      const before = beforeById.get(node.id);
-      return before && JSON.stringify(before) !== JSON.stringify(node);
-    }),
-    addedEdges: afterEdges.filter((edge) => !beforeEdgeKeys.has(`${edge.source}->${edge.target}`)),
-    removedEdges: beforeEdges.filter((edge) => !afterEdgeKeys.has(`${edge.source}->${edge.target}`)),
-  };
-}
 
 async function previewOrApplyMutation(params: {
   auth: McpAuthInfo;
@@ -68,7 +46,7 @@ async function previewOrApplyMutation(params: {
     nodes: after.nodes,
     edges: after.edges,
   });
-  const diff = graphDiff(before.nodes, before.edges, after.nodes, after.edges);
+  const diff = computeGraphDiff(before.nodes, before.edges, after.nodes, after.edges);
   const confirmationSummary = {
     toolName: params.toolName,
     workflowId: params.workflowId,
@@ -269,7 +247,7 @@ export function registerRollbackWorkflowVersion(
           nodes: versionNodes,
           edges: versionEdges,
         });
-        const diff = graphDiff(current.nodes, current.edges, versionNodes, versionEdges);
+        const diff = computeGraphDiff(current.nodes, current.edges, versionNodes, versionEdges);
         const confirmationSummary = {
           toolName: "rollback_workflow_version",
           workflowId: args.workflowId,
@@ -563,33 +541,50 @@ export function registerMoveWorkflowNode(
 ) {
   server.tool(
     "move_workflow_node",
-    "Safely move one workflow node. Validates the whole graph and saves only after approval.",
+    "Move a workflow node to a new canvas position. Cosmetic edit — no approval or version snapshot.",
     {
-      workflowId: z.string(),
-      nodeId: z.string(),
-      position: z.object({ x: z.number(), y: z.number() }),
-      approved: z.boolean().default(false),
-      confirmationHash: z.string().optional(),
+      workflowId: z.string().describe("Workflow ID."),
+      nodeId: z.string().describe("Node ID to move."),
+      position: z.object({ x: z.number(), y: z.number() }).describe("New position."),
     },
     async (args, extra) => {
       const auth = getMcpAuth(extra, context);
       requireScope(auth, "workflows:write");
 
-      return withErrorBoundary("move_workflow_node", async () =>
-        previewOrApplyMutation({
-          auth,
+      const audit = createAuditContext({
+        userId: auth.userId,
+        apiKeyId: auth.apiKeyId,
+        authMethod: auth.method,
+        tool: "move_workflow_node",
+        input: args as Record<string, unknown>,
+      });
+
+      return withErrorBoundary("move_workflow_node", async () => {
+        const before = await getWorkflowGraph(args.workflowId, auth.userId);
+        const exists = before.nodes.some((node) => node.id === args.nodeId);
+        if (!exists) {
+          throw new Error(`Node ${args.nodeId} not found in workflow ${args.workflowId}.`);
+        }
+        const nodes = before.nodes.map((node) =>
+          node.id === args.nodeId ? { ...node, position: args.position } : node,
+        );
+
+        await prisma.$transaction(async (tx) => {
+          await replaceWorkflowGraph({
+            workflowId: args.workflowId,
+            nodes,
+            edges: before.edges,
+            tx,
+          });
+        });
+        audit.success();
+        return mcpJsonResponse({
+          moved: true,
           workflowId: args.workflowId,
-          toolName: "move_workflow_node",
-          approval: args,
-          input: { ...args, approved: undefined, confirmationHash: undefined },
-          mutate: (nodes, edges) => ({
-            nodes: nodes.map((node) =>
-              node.id === args.nodeId ? { ...node, position: args.position } : node,
-            ),
-            edges,
-          }),
-        }),
-      );
+          nodeId: args.nodeId,
+          position: args.position,
+        });
+      });
     },
   );
 }

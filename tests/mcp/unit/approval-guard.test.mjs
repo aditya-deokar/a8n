@@ -8,7 +8,7 @@ import { mcpAuthForUser } from "../helpers/auth-fixtures.mjs";
 describe("MCP approval guard", () => {
   it("returns an approval preview for side-effect tools before execution", () => {
     const result = requireToolApproval({
-      toolName: "execute_workflow",
+      toolName: "execute_workflow_and_wait",
       auth: mcpAuthForUser(),
       approved: false,
       requiresConfirmation: false,

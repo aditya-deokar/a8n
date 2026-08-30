@@ -20,50 +20,12 @@ import {
 } from "@/mcp/tools/workflows/workflow-graph-utils";
 import { getNodeManifest } from "@/features/workflows/node-manifest";
 import { requireToolApproval } from "@/mcp/safety/approval-guard";
+import { sampleInitialData } from "@/mcp/shared/sample-payloads";
 
 const testTriggerSchema = z.enum(["manual", "google_form", "stripe"]);
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function sampleInitialData(trigger: "manual" | "google_form" | "stripe", sampleData?: Record<string, unknown>) {
-  if (sampleData) return sampleData;
-  if (trigger === "google_form") {
-    return {
-      googleForm: {
-        formId: "sample-form-id",
-        formTitle: "Sample Customer Feedback",
-        responseId: "sample-response-id",
-        timestamp: new Date().toISOString(),
-        respondentEmail: "student@example.com",
-        responses: {
-          Name: "Alex",
-          Feedback: "I need help understanding automation setup.",
-          Score: "8",
-        },
-        raw: { source: "mcp-test" },
-      },
-    };
-  }
-  if (trigger === "stripe") {
-    return {
-      stripe: {
-        eventId: "evt_sample_payment_succeeded",
-        eventType: "payment_intent.succeeded",
-        timestamp: Math.floor(Date.now() / 1000),
-        livemode: false,
-        raw: {
-          id: "pi_sample",
-          amount: 2500,
-          currency: "usd",
-          customer: "cus_sample",
-          status: "succeeded",
-        },
-      },
-    };
-  }
-  return {};
 }
 
 async function waitForExecutionByEventId(params: {
@@ -386,7 +348,7 @@ export function registerRunWorkflowTest(
 ) {
   server.tool(
     "run_workflow_test",
-    "Run a workflow with manual, Google Form, or Stripe sample data. Requires approval because workflow steps may send messages, emails, or external API calls.",
+    "Run a workflow with curated sample data for manual, Google Form, or Stripe triggers. For webhook workflows, generates realistic Google Form/Stripe payloads (replaces deprecated test_webhook_setup). Requires approval because steps may send messages or call external APIs.",
     {
       workflowId: z.string(),
       trigger: testTriggerSchema.default("manual"),

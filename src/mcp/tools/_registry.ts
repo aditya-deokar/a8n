@@ -26,16 +26,17 @@ import { logger } from "@/lib/logging";
 import { registerEmbeddedAgentTools } from "./embedded-agent-profile";
 
 /**
- * Register all MCP tools from all domains.
+ * Register all MCP tools from all domains. (Phase 1: consolidated from 57 → 52)
  *
- * Tool count: 53
- *   - Workflows:   23 (CRUD, execution, drafts, safe partial edits, versions)
- *   - Credentials: 6 (list, get, create, update, delete, list-by-type)
+ * Tool count: 52
+ *   - Workflows:   22 (CRUD, drafts, safe partial edits, versions — execute_workflow removed)
+ *   - Credentials: 5 (list, get, create, update, delete — list-by-type merged into list)
  *   - Executions:  8 (list, get, wait, tests, timeline, diagnosis, repair)
  *   - Nodes:       2 (list-node-types, search-capabilities)
  *   - System:      5 (whoami, server-info, health-check, security, audit)
  *   - API Keys:    3 (create, list, revoke)
- *   - Integrations: 6 (setup checklists, guides, webhooks, credential tests)
+ *   - Integrations: 3 (setup checklist, Google Form script, credential tests — webhook/guide/test_webhook removed)
+ *   - Apps:         4 (render widgets)
  */
 import { registerChatGptRenderTools } from "@/mcp/apps/render-tools";
 
@@ -87,7 +88,7 @@ export function registerAllTools(
       event: "mcp_registry_registered",
       registry: "tools",
       profile: "default",
-      count: 57,
+      count: 52,
       domains: 8,
     },
     "MCP tools registered.",
