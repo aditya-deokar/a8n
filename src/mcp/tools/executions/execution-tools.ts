@@ -44,7 +44,16 @@ export function registerListExecutions(
           prisma.execution.findMany({
             skip, take, where,
             orderBy: { startedAt: "desc" },
-            include: {
+            // Explicit select: the default shape pulls `output` (a full
+            // execution payload) and `errorStack` for every row, and the
+            // response below uses neither.
+            select: {
+              id: true,
+              status: true,
+              workflowId: true,
+              startedAt: true,
+              completedAt: true,
+              error: true,
               workflow: { select: { id: true, name: true } },
             },
           }),

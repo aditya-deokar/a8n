@@ -15,6 +15,7 @@ import prisma from "@/lib/db";
 import { MCP_CONFIG } from "../config";
 import type { McpScope } from "./scopes";
 import { DEFAULT_SCOPES } from "./scopes";
+import { shouldRecordLastUsed } from "./last-used";
 
 // ─── Hashing ────────────────────────────────────────────────
 
@@ -136,15 +137,18 @@ export async function validateApiKey(rawKey: string) {
   // Check if the key has expired
   if (apiKey.expiresAt && apiKey.expiresAt < new Date()) return null;
 
-  // Update last used timestamp (fire-and-forget, don't block the request)
-  prisma.apiKey
-    .update({
-      where: { id: apiKey.id },
-      data: { lastUsedAt: new Date() },
-    })
-    .catch(() => {
-      // Non-critical — silently ignore update failures
-    });
+  // Update last used timestamp (fire-and-forget, don't block the request).
+  // Throttled: this runs on every authenticated MCP request.
+  if (shouldRecordLastUsed(apiKey.lastUsedAt)) {
+    prisma.apiKey
+      .update({
+        where: { id: apiKey.id },
+        data: { lastUsedAt: new Date() },
+      })
+      .catch(() => {
+        // Non-critical — silently ignore update failures
+      });
+  }
 
   return apiKey;
 }

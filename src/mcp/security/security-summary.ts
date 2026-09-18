@@ -100,80 +100,105 @@ export async function listMcpOAuthConnectionsForUser(
     options.onSchemaMissing,
   );
 
-  return Promise.all(
-    consents.map(async (consent) => {
-      const [activeAccessTokens, activeRefreshTokens, latestAccess, latestRefresh] =
-        await Promise.all([
-          withMcpSchemaFallback(
-            "MCP OAuth access-token count",
-            () =>
-              prisma.mcpOAuthAccessToken.count({
-                where: {
-                  userId,
-                  clientId: consent.clientId,
-                  revokedAt: null,
-                  expiresAt: { gt: now },
-                },
-              }),
-            0,
-            options.onSchemaMissing,
-          ),
-          withMcpSchemaFallback(
-            "MCP OAuth refresh-token count",
-            () =>
-              prisma.mcpOAuthRefreshToken.count({
-                where: {
-                  userId,
-                  clientId: consent.clientId,
-                  revokedAt: null,
-                  expiresAt: { gt: now },
-                },
-              }),
-            0,
-            options.onSchemaMissing,
-          ),
-          withMcpSchemaFallback(
-            "MCP OAuth latest access-token usage",
-            () =>
-              prisma.mcpOAuthAccessToken.findFirst({
-                where: { userId, clientId: consent.clientId, lastUsedAt: { not: null } },
-                orderBy: { lastUsedAt: "desc" },
-                select: { lastUsedAt: true },
-              }),
-            null,
-            options.onSchemaMissing,
-          ),
-          withMcpSchemaFallback(
-            "MCP OAuth latest refresh-token usage",
-            () =>
-              prisma.mcpOAuthRefreshToken.findFirst({
-                where: { userId, clientId: consent.clientId, lastUsedAt: { not: null } },
-                orderBy: { lastUsedAt: "desc" },
-                select: { lastUsedAt: true },
-              }),
-            null,
-            options.onSchemaMissing,
-          ),
-        ]);
+  if (consents.length === 0) return [];
 
-      const lastUsedTimes = [latestAccess?.lastUsedAt, latestRefresh?.lastUsedAt]
-        .filter((value): value is Date => Boolean(value))
-        .sort((a, b) => b.getTime() - a.getTime());
+  // One grouped query per token table instead of four per consent row: the
+  // previous shape issued 4N+1 statements and this page is prefetched on
+  // every MCP dashboard load.
+  const clientIds = [...new Set(consents.map((consent) => consent.clientId))];
+  const activeTokenWhere = {
+    userId,
+    clientId: { in: clientIds },
+    revokedAt: null,
+    expiresAt: { gt: now },
+  };
+  const lastUsedWhere = {
+    userId,
+    clientId: { in: clientIds },
+    lastUsedAt: { not: null },
+  };
 
-      return {
-        consentId: consent.id,
-        clientId: consent.clientId,
-        clientName: consent.client?.clientName || consent.client?.clientId || consent.clientId,
-        scopes: consent.scopes || [],
-        redirectUri: consent.redirectUri || "",
-        resource: consent.resource || "",
-        connectedAt: consent.createdAt,
-        activeAccessTokens,
-        activeRefreshTokens,
-        lastUsedAt: lastUsedTimes[0] || null,
-      };
-    }),
-  );
+  const [accessCounts, refreshCounts, accessLastUsed, refreshLastUsed] =
+    await Promise.all([
+      withMcpSchemaFallback(
+        "MCP OAuth access-token counts",
+        () =>
+          prisma.mcpOAuthAccessToken.groupBy({
+            by: ["clientId"],
+            where: activeTokenWhere,
+            _count: { _all: true },
+          }),
+        [] as Array<{ clientId: string; _count: { _all: number } }>,
+        options.onSchemaMissing,
+      ),
+      withMcpSchemaFallback(
+        "MCP OAuth refresh-token counts",
+        () =>
+          prisma.mcpOAuthRefreshToken.groupBy({
+            by: ["clientId"],
+            where: activeTokenWhere,
+            _count: { _all: true },
+          }),
+        [] as Array<{ clientId: string; _count: { _all: number } }>,
+        options.onSchemaMissing,
+      ),
+      withMcpSchemaFallback(
+        "MCP OAuth latest access-token usage",
+        () =>
+          prisma.mcpOAuthAccessToken.groupBy({
+            by: ["clientId"],
+            where: lastUsedWhere,
+            _max: { lastUsedAt: true },
+          }),
+        [] as Array<{ clientId: string; _max: { lastUsedAt: Date | null } }>,
+        options.onSchemaMissing,
+      ),
+      withMcpSchemaFallback(
+        "MCP OAuth latest refresh-token usage",
+        () =>
+          prisma.mcpOAuthRefreshToken.groupBy({
+            by: ["clientId"],
+            where: lastUsedWhere,
+            _max: { lastUsedAt: true },
+          }),
+        [] as Array<{ clientId: string; _max: { lastUsedAt: Date | null } }>,
+        options.onSchemaMissing,
+      ),
+    ]);
+
+  const countByClient = (
+    rows: Array<{ clientId: string; _count: { _all: number } }>,
+  ) => new Map(rows.map((row) => [row.clientId, row._count._all]));
+  const lastUsedByClient = (
+    rows: Array<{ clientId: string; _max: { lastUsedAt: Date | null } }>,
+  ) => new Map(rows.map((row) => [row.clientId, row._max.lastUsedAt]));
+
+  const accessCountByClient = countByClient(accessCounts);
+  const refreshCountByClient = countByClient(refreshCounts);
+  const accessLastUsedByClient = lastUsedByClient(accessLastUsed);
+  const refreshLastUsedByClient = lastUsedByClient(refreshLastUsed);
+
+  return consents.map((consent) => {
+    const lastUsedTimes = [
+      accessLastUsedByClient.get(consent.clientId),
+      refreshLastUsedByClient.get(consent.clientId),
+    ]
+      .filter((value): value is Date => Boolean(value))
+      .sort((a, b) => b.getTime() - a.getTime());
+
+    return {
+      consentId: consent.id,
+      clientId: consent.clientId,
+      clientName: consent.client?.clientName || consent.client?.clientId || consent.clientId,
+      scopes: consent.scopes || [],
+      redirectUri: consent.redirectUri || "",
+      resource: consent.resource || "",
+      connectedAt: consent.createdAt,
+      activeAccessTokens: accessCountByClient.get(consent.clientId) ?? 0,
+      activeRefreshTokens: refreshCountByClient.get(consent.clientId) ?? 0,
+      lastUsedAt: lastUsedTimes[0] || null,
+    };
+  });
 }
 
 export async function getMcpUserSecuritySummary(userId: string) {
