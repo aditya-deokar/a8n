@@ -41,6 +41,9 @@ server registers at runtime. Three tools were added:
   path issues, and fails when the count scales with the number of connected
   OAuth clients.
 
+Command output from before and after the change is in
+[`evidence/audit-2026-09-18/`](evidence/audit-2026-09-18/).
+
 For the widgets, `tests/e2e/mcp/host-harness.ts` implements a minimal MCP Apps
 host that speaks the real `ui/initialize` → `ui/notifications/*` postMessage
 protocol, so tests drive the widgets the way ChatGPT or Claude would.
