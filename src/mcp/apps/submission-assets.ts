@@ -70,7 +70,6 @@ export const CHATGPT_APP_SUBMISSION_PROMPTS: ChatGptSubmissionPrompt[] = [
       "ChatGPT should use a8n only when a workflow is in context, then call setup-guide/checklist tools and render the checklist widget.",
     expectedTools: [
       "get_workflow_setup_checklist",
-      "get_integration_setup_guide",
       "render_workflow_setup_checklist",
     ],
     expectedWidgets: [CHATGPT_WIDGET_URIS.workflowSetupChecklist],

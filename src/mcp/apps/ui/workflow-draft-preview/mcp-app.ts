@@ -1,17 +1,28 @@
 /**
  * Workflow Draft Preview — MCP App widget.
  *
- * Displays draft name, goal, node list, validation status, and
- * beginner-friendly explanation. Read-only — supports streaming input
- * (`ontoolinputpartial`) and host display mode toggle (`app.requestDisplayMode`).
+ * Read-only. Shows what a drafted workflow will do in plain language, the
+ * ordered steps, and anything blocking it from being applied.
  *
- * Data shape matches the `draftPreview()` function in
+ * Data shape matches `draftPreview()` in
  * `src/mcp/resources/app-resources.resource.ts`.
  */
 
 import "../shared/styles.css";
-import { initWidget, setupFullscreenToggle } from "../shared/bridge";
-import { html, list, panel, setStatus, safeText } from "../shared/utils";
+import { initWidget } from "../shared/bridge";
+import {
+  emptyState,
+  errorState,
+  html,
+  list,
+  metric,
+  metricRow,
+  panel,
+  setHeader,
+  setStatus,
+  skeleton,
+  steps,
+} from "../shared/utils";
 import type { WidgetRenderData } from "../shared/bridge";
 
 // ── Types (mirror server-side data shape) ──────────────────────────
@@ -21,6 +32,8 @@ interface DraftNode {
   type: string;
   label?: string;
   description?: string;
+  riskLevel?: string;
+  sideEffect?: boolean;
 }
 
 interface DraftData {
@@ -34,6 +47,7 @@ interface DraftData {
   validation?: {
     valid: boolean;
     errors: string[];
+    missingFields?: Array<{ label: string; nodeType: string }>;
   };
   explanation?: {
     beginnerExplanation: string;
@@ -45,74 +59,118 @@ interface DraftData {
 // ── Render ──────────────────────────────────────────────────────────
 
 function renderDraft(data: DraftData, isPartial?: boolean): string {
-  const titleEl = document.getElementById("title");
-  if (titleEl) {
-    titleEl.textContent = safeText(
-      data.draft?.name || "Workflow Draft Preview",
-    );
-  }
+  const draft = data.draft;
+  setHeader(
+    draft?.name || "Workflow draft",
+    draft?.goal || "Preview of the workflow before it is applied.",
+  );
 
+  const valid = Boolean(data.validation?.valid);
   if (isPartial) {
-    setStatus("Streaming...", "warn");
+    setStatus("Building", "warn");
   } else {
-    const valid = Boolean(data.validation?.valid);
-    setStatus(valid ? "Ready" : "Needs setup", valid ? "ok" : "warn");
+    setStatus(valid ? "Ready to apply" : "Needs setup", valid ? "ok" : "warn");
   }
 
-  const explanation =
-    data.explanation?.beginnerExplanation || "No explanation available.";
+  const nodes = data.nodes ?? [];
+  const errors = data.validation?.errors ?? [];
+  const sideEffectCount = nodes.filter((node) => node.sideEffect).length;
 
-  const steps = list(data.nodes, (node) => {
-    const n = node as DraftNode;
-    return (
-      "<li><strong>" +
-      html(n.label || n.type) +
-      '</strong><br><span class="subtle">' +
-      html(n.description || n.id) +
-      "</span></li>"
-    );
-  });
+  const summary = panel(
+    "What this does",
+    `<p>${html(data.explanation?.beginnerExplanation || "No description available for this draft yet.")}</p>` +
+      metricRow([
+        metric("Steps", nodes.length),
+        metric("Connections", (data.edges ?? []).length),
+        metric(
+          "Acts outside a8n",
+          sideEffectCount,
+          sideEffectCount > 0 ? "warn" : "neutral",
+        ),
+      ]),
+  );
 
-  const errors = data.validation?.errors || [];
-
-  return [
-    panel("Summary", "<p>" + html(explanation) + "</p>"),
-    panel("Steps", steps),
-    panel(
-      "Validation",
-      data.validation?.valid
-        ? "<p>Ready to apply.</p>"
-        : list(errors, (item) => "<li>" + html(item) + "</li>"),
+  const stepList = panel(
+    "Steps",
+    steps(
+      nodes,
+      (item) => {
+        const node = item as DraftNode;
+        return {
+          title: node.label || node.type,
+          meta: node.description || node.id,
+          tone: node.sideEffect ? "warn" : "neutral",
+        };
+      },
+      "This draft has no steps yet.",
     ),
-  ].join("");
+  );
+
+  const validation = valid
+    ? panel(
+        "Validation",
+        '<p class="muted">Everything checks out. This draft can be applied.</p>',
+        { tone: "ok" },
+      )
+    : panel(
+        "Before this can run",
+        list(
+          errors,
+          (item) => `<li>${html(item)}</li>`,
+          "No blocking problems were reported.",
+        ),
+        { tone: "warn" },
+      );
+
+  return [summary, stepList, validation].join("");
 }
 
 // ── Init ────────────────────────────────────────────────────────────
 
-function handleRender(renderData: WidgetRenderData): void {
-  const data = (renderData.details && Object.keys(renderData.details).length > 0
-    ? renderData.details
-    : renderData.result || renderData.input) as unknown as DraftData;
+function payloadOf(renderData: WidgetRenderData): DraftData | null {
+  const candidate =
+    renderData.details && Object.keys(renderData.details).length > 0
+      ? renderData.details
+      : renderData.result && Object.keys(renderData.result).length > 0
+        ? renderData.result
+        : renderData.input;
 
+  if (!candidate || Object.keys(candidate).length === 0) return null;
+  return candidate as unknown as DraftData;
+}
+
+function handleRender(renderData: WidgetRenderData): void {
   const content = document.getElementById("content");
   if (!content) return;
 
-  if (!data || Object.keys(data).length === 0) {
-    setStatus(renderData.isPartial ? "Streaming..." : "Waiting", "warn");
-    content.innerHTML = panel(
-      "Status",
-      `<p class="subtle">${renderData.isPartial ? "Receiving streaming draft arguments..." : "Waiting for widget data."}</p>`,
+  const data = payloadOf(renderData);
+
+  if (!data) {
+    if (renderData.connectionError) {
+      setStatus("Disconnected", "bad");
+      content.innerHTML = errorState(
+        "Could not reach the host",
+        renderData.connectionError,
+      );
+      return;
+    }
+
+    if (renderData.isPartial) {
+      setStatus("Building", "warn");
+      content.innerHTML = skeleton();
+      return;
+    }
+
+    setStatus("Waiting", "neutral");
+    content.innerHTML = emptyState(
+      "Nothing to preview yet",
+      "Ask for a workflow draft and its preview will appear here.",
     );
     return;
   }
 
+  // A partial payload is still worth rendering: the steps stream in.
   content.innerHTML = renderDraft(data, renderData.isPartial);
 }
 
-initWidget("a8n Draft Preview", "1.0.0", (renderData) => {
-  handleRender(renderData);
-})
-  .then((app) => {
-    setupFullscreenToggle(app);
-  })
-  .catch(() => undefined);
+initWidget("a8n Draft Preview", "1.0.0", handleRender);

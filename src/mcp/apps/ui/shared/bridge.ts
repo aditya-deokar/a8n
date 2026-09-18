@@ -5,6 +5,12 @@
  * `ontoolinput`, `ontoolinputpartial`, `ontoolresult`, `onhostcontextchanged`,
  * and `onteardown` handlers. All handlers are registered BEFORE
  * `app.connect()` per the ext-apps SDK requirement.
+ *
+ * The bridge keeps the last payload it received and re-renders whenever either
+ * the payload or the connection changes. Widgets previously captured the `App`
+ * from `initWidget(...).then(...)`, which loses the race when a tool result
+ * arrives before `connect()` resolves: the render ran with a null app, every
+ * action button stayed disabled, and nothing ever re-rendered to fix it.
  */
 
 import {
@@ -25,6 +31,20 @@ export interface WidgetRenderData {
   details?: Record<string, unknown>;
   /** Whether the input is currently being streamed (partial). */
   isPartial?: boolean;
+  /**
+   * The connected app, or null while the host handshake is still in flight.
+   * Widgets should render actions as pending rather than hiding them.
+   */
+  app: App | null;
+  /** Set when the host handshake failed; the widget stays read-only. */
+  connectionError?: string;
+}
+
+export interface WidgetController {
+  /** Re-render with the payload already held, e.g. after an action. */
+  rerender: () => void;
+  /** The connected app, once available. */
+  getApp: () => App | null;
 }
 
 /**
@@ -32,29 +52,41 @@ export interface WidgetRenderData {
  *
  * @param name - Widget display name (e.g. "a8n Draft Preview")
  * @param version - Widget version (should match the MCP server version)
- * @param onRender - Callback invoked when the widget receives data to render.
- *   Called on `ontoolinput`, `ontoolinputpartial`, and `ontoolresult` events.
- * @returns The connected `App` instance for calling server tools via
- *   `app.callServerTool()`.
+ * @param onRender - Invoked whenever the payload or the connection changes.
  */
-export async function initWidget(
+export function initWidget(
   name: string,
   version: string,
   onRender: (data: WidgetRenderData) => void,
-): Promise<App> {
+): WidgetController {
   const app = new App({ name, version });
+
+  let connectedApp: App | null = null;
+  let connectionError: string | undefined;
+  let latest: Omit<WidgetRenderData, "app" | "connectionError"> = {};
+
+  const render = () => {
+    onRender({ ...latest, app: connectedApp, connectionError });
+  };
+
+  const update = (
+    next: Omit<WidgetRenderData, "app" | "connectionError">,
+  ) => {
+    latest = next;
+    render();
+  };
 
   // ── Register ALL handlers BEFORE connect() ──────────────────────
 
   app.ontoolinputpartial = (params) => {
-    onRender({
+    update({
       input: (params.arguments as Record<string, unknown>) ?? {},
       isPartial: true,
     });
   };
 
   app.ontoolinput = (params) => {
-    onRender({
+    update({
       input: (params.arguments as Record<string, unknown>) ?? {},
       isPartial: false,
     });
@@ -64,7 +96,7 @@ export async function initWidget(
     const meta = (result as Record<string, unknown>)?._meta as
       | Record<string, unknown>
       | undefined;
-    onRender({
+    update({
       result: (result.structuredContent as Record<string, unknown>) ?? {},
       details: (meta?.details as Record<string, unknown>) ?? {},
       isPartial: false,
@@ -90,12 +122,34 @@ export async function initWidget(
   app.onteardown = async () => ({});
 
   // ── Connect ─────────────────────────────────────────────────────
-  await app.connect(new PostMessageTransport(window.parent, window.parent));
-  return app;
+  app
+    .connect(new PostMessageTransport(window.parent, window.parent))
+    .then(() => {
+      connectedApp = app;
+      setupFullscreenToggle(app);
+      // Re-render: a result may already have arrived while connecting, and
+      // actions stay inert until the app exists.
+      render();
+    })
+    .catch((error: unknown) => {
+      connectionError =
+        error instanceof Error ? error.message : "Could not reach the host app.";
+      render();
+    });
+
+  // Render once immediately so the widget shows a skeleton rather than
+  // an empty frame while the handshake completes.
+  render();
+
+  return {
+    rerender: render,
+    getApp: () => connectedApp,
+  };
 }
 
 /**
- * Helper to attach a fullscreen toggle button handler using `app.requestDisplayMode()`.
+ * Attach a fullscreen toggle handler using `app.requestDisplayMode()`.
+ * The button stays hidden until the host says fullscreen is available.
  */
 export function setupFullscreenToggle(
   app: App,
@@ -107,12 +161,13 @@ export function setupFullscreenToggle(
 
   app.addEventListener("hostcontextchanged", (ctx) => {
     if (ctx.availableDisplayModes?.includes("fullscreen")) {
-      btn.style.display = "inline-flex";
+      btn.removeAttribute("hidden");
     }
     if (ctx.displayMode) {
       currentMode = ctx.displayMode;
-      btn.textContent =
-        ctx.displayMode === "fullscreen" ? "Exit Fullscreen" : "Fullscreen";
+      const isFullscreen = ctx.displayMode === "fullscreen";
+      btn.textContent = isFullscreen ? "Exit full screen" : "Full screen";
+      btn.setAttribute("aria-pressed", String(isFullscreen));
     }
   });
 
@@ -122,7 +177,7 @@ export function setupFullscreenToggle(
       const res = await app.requestDisplayMode({ mode: newMode });
       if (res.mode) currentMode = res.mode;
     } catch {
-      // Host un-support or refusal fallback
+      // Host does not support the requested mode; leave the widget inline.
     }
   });
 }

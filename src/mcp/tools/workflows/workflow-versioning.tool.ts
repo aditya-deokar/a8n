@@ -2,7 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import prisma from "@/lib/db";
-import { NodeType, type Prisma } from "@/generated/prisma";
+import { NodeType } from "@/generated/prisma";
 import { requireScope } from "@/mcp/middleware/scope-guard";
 import { requireActiveSubscription } from "@/mcp/middleware/subscription-guard";
 import { withErrorBoundary } from "@/mcp/middleware/error-boundary";
@@ -560,22 +560,26 @@ export function registerMoveWorkflowNode(
       });
 
       return withErrorBoundary("move_workflow_node", async () => {
-        const before = await getWorkflowGraph(args.workflowId, auth.userId);
-        const exists = before.nodes.some((node) => node.id === args.nodeId);
-        if (!exists) {
+        // Scoped by workflow + owner so a node id alone cannot move another
+        // tenant's node. updateMany returns a count instead of throwing, which
+        // doubles as the existence check.
+        const moved = await prisma.node.updateMany({
+          where: {
+            id: args.nodeId,
+            workflowId: args.workflowId,
+            workflow: { userId: auth.userId },
+          },
+          data: { position: args.position },
+        });
+
+        if (moved.count === 0) {
           throw new Error(`Node ${args.nodeId} not found in workflow ${args.workflowId}.`);
         }
-        const nodes = before.nodes.map((node) =>
-          node.id === args.nodeId ? { ...node, position: args.position } : node,
-        );
 
-        await prisma.$transaction(async (tx) => {
-          await replaceWorkflowGraph({
-            workflowId: args.workflowId,
-            nodes,
-            edges: before.edges,
-            tx,
-          });
+        // Keep the workflow's updatedAt honest for list ordering.
+        await prisma.workflow.update({
+          where: { id: args.workflowId },
+          data: { updatedAt: new Date() },
         });
         audit.success();
         return mcpJsonResponse({

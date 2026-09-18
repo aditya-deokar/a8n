@@ -1,0 +1,57 @@
+{
+  "suite": "incident-readiness-check",
+  "generatedAt": "2026-09-18T16:13:54.941Z",
+  "strict": true,
+  "passed": true,
+  "failedRequired": [],
+  "checks": [
+    {
+      "name": "incident response runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Incident response runbook should define severity, roles, communication, and postmortems."
+    },
+    {
+      "name": "incident template",
+      "status": "passed",
+      "required": true,
+      "message": "Incident template should capture severity, commander, timeline, and customer impact."
+    },
+    {
+      "name": "postmortem template",
+      "status": "passed",
+      "required": true,
+      "message": "Postmortem template should capture root cause, impact, action items, and follow-up ownership."
+    },
+    {
+      "name": "rollback runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Rollback runbook should cover feature flags, deployment rollback, database decisions, and validation."
+    },
+    {
+      "name": "secret leak runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Secret leak runbook should cover revoke, rotate, audit, and notification steps."
+    },
+    {
+      "name": "incident issue template",
+      "status": "passed",
+      "required": true,
+      "message": "GitHub incident issue template should exist for tracking incidents."
+    },
+    {
+      "name": "release checklist incident coverage",
+      "status": "passed",
+      "required": true,
+      "message": "Release checklist should include incident readiness, restore readiness, and rollback decision checks."
+    },
+    {
+      "name": "production workflow incident gate",
+      "status": "passed",
+      "required": true,
+      "message": "Production deploy workflow should run incident and restore readiness checks."
+    }
+  ]
+}

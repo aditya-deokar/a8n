@@ -231,7 +231,7 @@ export async function setupChecklist(workflowId: string, userId: string) {
     webhookSteps,
     testSteps: [
       "Run test_credential for every configured credential.",
-      "Run test_webhook_setup for Google Form or Stripe triggers.",
+      "Run run_workflow_test for Google Form or Stripe triggers.",
       "Run run_workflow_test before sending real external data.",
     ],
   };

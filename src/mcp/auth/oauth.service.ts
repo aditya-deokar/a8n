@@ -8,6 +8,7 @@ import {
   type McpScope,
 } from "./scopes";
 import type { AuthResult, McpAuthInfo } from "./types";
+import { shouldRecordLastUsed } from "./last-used";
 
 const CHATGPT_APP_SCOPES: McpScope[] = [
   "workflows:read",
@@ -769,12 +770,16 @@ export async function validateOAuthAccessToken(
     return { ok: false, error: "OAuth token resource does not match this MCP server", status: 401 };
   }
 
-  void prisma.mcpOAuthAccessToken
-    .update({
-      where: { id: accessToken.id },
-      data: { lastUsedAt: new Date() },
-    })
-    .catch(() => undefined);
+  // Throttled: this runs on every authenticated MCP request, and the OAuth
+  // path is the one ChatGPT and Claude connectors use.
+  if (shouldRecordLastUsed(accessToken.lastUsedAt)) {
+    void prisma.mcpOAuthAccessToken
+      .update({
+        where: { id: accessToken.id },
+        data: { lastUsedAt: new Date() },
+      })
+      .catch(() => undefined);
+  }
 
   const authInfo: McpAuthInfo = {
     userId: accessToken.user.id,

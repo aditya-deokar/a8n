@@ -1,0 +1,131 @@
+{
+  "label": "before-2",
+  "generatedAt": "2026-09-18T14:49:21.516Z",
+  "seed": {
+    "users": 3,
+    "workflowsPerUser": 400,
+    "nodesPerWorkflow": 8,
+    "executionsPerWorkflow": 12,
+    "auditLogsPerUser": 60000,
+    "oauthClientsPerUser": 10,
+    "tokensPerClient": 200
+  },
+  "results": [
+    {
+      "name": "graph: nodes by workflow",
+      "executionMs": 0.817,
+      "planningMs": 0.075,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 231,
+      "scanTypes": [
+        "Seq Scan"
+      ],
+      "usesSeqScan": true
+    },
+    {
+      "name": "graph: connections by workflow",
+      "executionMs": 0.713,
+      "planningMs": 0.079,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 155,
+      "scanTypes": [
+        "Seq Scan"
+      ],
+      "usesSeqScan": true
+    },
+    {
+      "name": "list_executions: page 1",
+      "executionMs": 3.17,
+      "planningMs": 0.27,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 645,
+      "scanTypes": [
+        "Hash",
+        "Hash Join",
+        "Index Scan",
+        "Limit",
+        "Seq Scan",
+        "Sort"
+      ],
+      "usesSeqScan": true
+    },
+    {
+      "name": "list_workflows: page 1",
+      "executionMs": 0.13,
+      "planningMs": 0.093,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 7,
+      "scanTypes": [
+        "Index Scan",
+        "Limit",
+        "Sort"
+      ],
+      "usesSeqScan": false
+    },
+    {
+      "name": "audit: failed events last 24h",
+      "executionMs": 0.853,
+      "planningMs": 0.08,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 78,
+      "scanTypes": [
+        "Aggregate",
+        "Bitmap Heap Scan",
+        "Bitmap Index Scan",
+        "BitmapAnd"
+      ],
+      "usesSeqScan": false
+    },
+    {
+      "name": "audit: retention sweep scan",
+      "executionMs": 11.225,
+      "planningMs": 0.095,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 3692,
+      "scanTypes": [
+        "Aggregate",
+        "Gather",
+        "Seq Scan"
+      ],
+      "usesSeqScan": true
+    },
+    {
+      "name": "oauth: active access tokens per client",
+      "executionMs": 0.566,
+      "planningMs": 0.071,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 58,
+      "scanTypes": [
+        "Aggregate",
+        "Index Scan"
+      ],
+      "usesSeqScan": false
+    },
+    {
+      "name": "oauth: latest token usage per client",
+      "executionMs": 0.374,
+      "planningMs": 0.053,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 58,
+      "scanTypes": [
+        "Aggregate",
+        "Index Scan"
+      ],
+      "usesSeqScan": false
+    },
+    {
+      "name": "oauth: consent listing",
+      "executionMs": 0.029,
+      "planningMs": 0.06,
+      "sharedBlocksRead": 0,
+      "sharedBlocksHit": 2,
+      "scanTypes": [
+        "Seq Scan",
+        "Sort"
+      ],
+      "usesSeqScan": true
+    }
+  ],
+  "seqScanCount": 5,
+  "totalExecutionMs": 17.877
+}

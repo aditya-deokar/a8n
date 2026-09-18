@@ -7,7 +7,7 @@ import { LinkIcon, ShieldCheckIcon, XIcon, KeyIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export const McpOAuthConnections = () => {
-  const { data: connections, isLoading } = useMcpOAuthConnections();
+  const { data: connections, isLoading, isError } = useMcpOAuthConnections();
   const revokeMutation = useRevokeMcpOAuthConnection();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
@@ -22,6 +22,23 @@ export const McpOAuthConnections = () => {
             <LinkIcon className="size-4" />
             <span>Loading OAuth connections…</span>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Without this, a failed query fell through to the empty state and told the
+  // user they had no connected clients.
+  if (isError) {
+    return (
+      <div className="flex flex-col gap-3">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 ml-1">
+          OAuth Connections
+        </h2>
+        <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50/60 dark:bg-red-950/20 p-6">
+          <p className="text-sm text-red-700 dark:text-red-300">
+            Could not load OAuth connections. Refresh to try again.
+          </p>
         </div>
       </div>
     );
@@ -128,7 +145,7 @@ export const McpOAuthConnections = () => {
                     className="h-8 gap-1.5 px-3 rounded-lg text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
                     onClick={() => setConfirmingId(connection.clientId)}
                   >
-                    <XIcon className="size-3" />
+                    <XIcon className="size-3" aria-hidden="true" />
                     Revoke
                   </Button>
                 )}

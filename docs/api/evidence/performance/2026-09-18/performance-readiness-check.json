@@ -1,0 +1,85 @@
+{
+  "suite": "performance-readiness-check",
+  "generatedAt": "2026-09-18T16:14:41.537Z",
+  "strict": true,
+  "passed": false,
+  "failedRequired": [
+    "performance workflow"
+  ],
+  "checks": [
+    {
+      "name": "performance budgets",
+      "status": "passed",
+      "required": true,
+      "message": "Performance budgets should exist and define numeric API, webhook, workflow, frontend, and cost thresholds.",
+      "details": {
+        "api": [
+          "p95LatencyMs",
+          "errorRatePercent",
+          "steadyRequestsPerSecond"
+        ],
+        "webhooks": [
+          "p95LatencyMs",
+          "errorRatePercent",
+          "burstRequestsPerSecond"
+        ],
+        "workflowExecution": [
+          "p95DispatchLatencyMs",
+          "failureRatePercent",
+          "steadyExecutionsPerMinute"
+        ],
+        "frontend": [
+          "largestContentfulPaintMs",
+          "interactionToNextPaintMs"
+        ],
+        "cost": [
+          "monthlyCloudBudgetUsd",
+          "monthlyAiProviderBudgetUsd",
+          "monthlyDatabaseBudgetUsd"
+        ]
+      }
+    },
+    {
+      "name": "API load test",
+      "status": "passed",
+      "required": true,
+      "message": "API k6 load test should exist and check that backend endpoints avoid 5xx responses."
+    },
+    {
+      "name": "webhook burst test",
+      "status": "passed",
+      "required": true,
+      "message": "Webhook k6 load test should exist and model burst traffic without expecting production secrets in PR CI."
+    },
+    {
+      "name": "workflow execution load test",
+      "status": "passed",
+      "required": true,
+      "message": "Workflow execution k6 test should exist with explicit workflow id and token controls."
+    },
+    {
+      "name": "performance runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Performance runbook should cover load tests, budgets, p95 guardrails, and rollback conditions."
+    },
+    {
+      "name": "cost control runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Cost control runbook should cover budget ownership, AI/provider cost, database cost, and review cadence."
+    },
+    {
+      "name": "slow query review template",
+      "status": "passed",
+      "required": true,
+      "message": "Slow query review template should exist for database performance reviews."
+    },
+    {
+      "name": "performance workflow",
+      "status": "failed",
+      "required": true,
+      "message": "Performance workflow should run readiness checks and staged load-test commands."
+    }
+  ]
+}

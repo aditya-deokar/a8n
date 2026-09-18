@@ -3,24 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>a8n — Execution Timeline</title>
+    <title>a8n — Execution timeline</title>
   </head>
   <body>
     <main>
       <header>
-        <div>
-          <h1 id="title">Execution Timeline</h1>
-          <p class="subtle" id="subtitle">
-            Shows workflow execution status and node-by-node progress.
-          </p>
+        <div class="header__text">
+          <h1 id="title">Execution timeline</h1>
+          <p class="subtle" id="subtitle">Node-by-node view of a workflow run.</p>
         </div>
-        <span class="pill" id="status">Loading</span>
+        <div class="header__aside">
+          <span class="pill" id="status" role="status" aria-live="polite">Loading</span>
+          <button id="fullscreenBtn" type="button" hidden aria-pressed="false">Full screen</button>
+        </div>
       </header>
-      <section class="stack" id="content">
-        <div class="panel">
-          <p class="subtle">Waiting for widget data.</p>
-        </div>
-      </section>
+      <section class="stack" id="content"></section>
     </main>
     <script type="module" src="./mcp-app.ts"></script>
   </body>

@@ -1,9 +1,10 @@
 /*
  * Shared styles for a8n MCP App widgets.
  *
- * Uses host CSS variables from the ext-apps SDK with sensible fallbacks
- * so widgets look correct in any MCP host (Claude, ChatGPT, embedded
- * agent) and also render acceptably when previewed standalone.
+ * Widgets render inside someone else's chat surface, so the host owns the
+ * palette: every colour here reads a host CSS variable first and only falls
+ * back to a literal when the host provides nothing. The fallbacks are tuned so
+ * the widget is also legible standalone (MCP Inspector, a plain browser).
  *
  * Variable reference: @modelcontextprotocol/ext-apps src/spec.types.ts
  *   --color-background-{primary,secondary,tertiary}
@@ -15,18 +16,104 @@
 
 :root {
   color-scheme: light dark;
+
+  --a8n-bg: var(--color-background-primary, #f6f7f9);
+  --a8n-surface: var(--color-background-secondary, #ffffff);
+  --a8n-surface-muted: var(--color-background-tertiary, #f1f3f6);
+  --a8n-text: var(--color-text-primary, #14161a);
+  --a8n-text-muted: var(--color-text-secondary, #5c6572);
+  --a8n-border: var(--color-border-primary, #e2e5eb);
+  --a8n-border-strong: var(--color-border-secondary, #cdd2da);
+
+  /* Status colours. Hue carries the meaning, but every status is also
+     labelled in text, so the widget does not rely on colour alone. */
+  --a8n-ok-fg: #0f6b45;
+  --a8n-ok-bg: #dff5e9;
+  --a8n-ok-border: #a7ddc3;
+  --a8n-warn-fg: #8a5300;
+  --a8n-warn-bg: #fdf0d5;
+  --a8n-warn-border: #edd09a;
+  --a8n-bad-fg: #a01f2e;
+  --a8n-bad-bg: #fde8ea;
+  --a8n-bad-border: #f2bcc2;
+  --a8n-accent-fg: #3a3f9e;
+  --a8n-accent-bg: #e9ebfb;
+  --a8n-accent-border: #c3c8f0;
+
+  --a8n-radius: var(--border-radius-md, 10px);
+  --a8n-radius-sm: var(--border-radius-sm, 6px);
+  --a8n-gap: 12px;
+
   font-family: var(
     --font-sans,
-    Inter,
     ui-sans-serif,
     system-ui,
     -apple-system,
-    BlinkMacSystemFont,
     "Segoe UI",
+    Inter,
     sans-serif
   );
-  background: var(--color-background-primary, #f7f8fb);
-  color: var(--color-text-primary, #16171d);
+  background: var(--a8n-bg);
+  color: var(--a8n-text);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/*
+ * Dark theme.
+ *
+ * The host decides the theme and tells the widget by setting `data-theme` on
+ * <html> (ext-apps `applyDocumentTheme`). Reacting only to the OS preference
+ * left the widget light inside a dark host on a light machine, so both paths
+ * are handled: the OS media query applies unless the host explicitly asked for
+ * light, and an explicit `data-theme="dark"` always wins.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --a8n-bg: var(--color-background-primary, #0c0e12);
+    --a8n-surface: var(--color-background-secondary, #15181e);
+    --a8n-surface-muted: var(--color-background-tertiary, #1b1f27);
+    --a8n-text: var(--color-text-primary, #eef1f5);
+    --a8n-text-muted: var(--color-text-secondary, #a2abb8);
+    --a8n-border: var(--color-border-primary, #262b34);
+    --a8n-border-strong: var(--color-border-secondary, #333a45);
+
+    --a8n-ok-fg: #7ee0ac;
+    --a8n-ok-bg: #0f2e21;
+    --a8n-ok-border: #1d5039;
+    --a8n-warn-fg: #f2c672;
+    --a8n-warn-bg: #33250b;
+    --a8n-warn-border: #5c451a;
+    --a8n-bad-fg: #f5a3ad;
+    --a8n-bad-bg: #38151b;
+    --a8n-bad-border: #632832;
+    --a8n-accent-fg: #b3baf7;
+    --a8n-accent-bg: #1b1e3d;
+    --a8n-accent-border: #313671;
+  }
+}
+
+:root[data-theme="dark"] {
+    --a8n-bg: var(--color-background-primary, #0c0e12);
+    --a8n-surface: var(--color-background-secondary, #15181e);
+    --a8n-surface-muted: var(--color-background-tertiary, #1b1f27);
+    --a8n-text: var(--color-text-primary, #eef1f5);
+    --a8n-text-muted: var(--color-text-secondary, #a2abb8);
+    --a8n-border: var(--color-border-primary, #262b34);
+    --a8n-border-strong: var(--color-border-secondary, #333a45);
+
+    --a8n-ok-fg: #7ee0ac;
+    --a8n-ok-bg: #0f2e21;
+    --a8n-ok-border: #1d5039;
+    --a8n-warn-fg: #f2c672;
+    --a8n-warn-bg: #33250b;
+    --a8n-warn-border: #5c451a;
+    --a8n-bad-fg: #f5a3ad;
+    --a8n-bad-bg: #38151b;
+    --a8n-bad-border: #632832;
+    --a8n-accent-fg: #b3baf7;
+    --a8n-accent-bg: #1b1e3d;
+    --a8n-accent-border: #313671;
 }
 
 * {
@@ -36,10 +123,13 @@
 body {
   margin: 0;
   background: transparent;
+  color: inherit;
 }
 
 main {
   padding: 16px;
+  display: grid;
+  gap: var(--a8n-gap);
 }
 
 /* ── Header ─────────────────────────────────────────────────────── */
@@ -49,144 +139,244 @@ header {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+}
+
+header .header__text {
+  min-width: 0;
 }
 
 h1 {
-  font-size: 18px;
-  line-height: 1.25;
+  font-size: 16px;
+  font-weight: 640;
+  line-height: 1.3;
   margin: 0;
-  letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 h2 {
-  font-size: 13px;
-  line-height: 1.35;
-  margin: 0 0 8px;
-  letter-spacing: 0;
+  font-size: 11px;
+  font-weight: 640;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-secondary, #626b7a);
+  color: var(--a8n-text-muted);
+  margin: 0;
 }
 
 p {
   margin: 0;
-  line-height: 1.45;
 }
 
-/* ── Button ─────────────────────────────────────────────────────── */
-
-button {
-  min-height: 36px;
-  border: 1px solid var(--color-border-primary, #1f2937);
-  border-radius: var(--border-radius-md, 8px);
-  background: #111827;
-  color: #ffffff;
-  padding: 8px 12px;
-  font: inherit;
-  cursor: pointer;
-  transition: opacity 150ms ease;
-}
-
-button:hover:not(:disabled) {
-  opacity: 0.85;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-/* ── Layout ─────────────────────────────────────────────────────── */
-
-.subtle {
-  color: var(--color-text-secondary, #626b7a);
+.subtle,
+.muted {
+  color: var(--a8n-text-muted);
   font-size: 13px;
 }
 
-.stack {
+/* ── Panels ─────────────────────────────────────────────────────── */
+
+.panel {
+  border: 1px solid var(--a8n-border);
+  border-radius: var(--a8n-radius);
+  background: var(--a8n-surface);
+  padding: 12px 14px;
   display: grid;
   gap: 10px;
 }
 
-.panel {
-  border: 1px solid var(--color-border-primary, #e4e7ee);
-  border-radius: var(--border-radius-md, 8px);
-  background: var(--color-background-secondary, #ffffff);
-  padding: 12px;
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.grid {
+.panel--ok {
+  border-color: var(--a8n-ok-border);
+}
+
+.panel--warn {
+  border-color: var(--a8n-warn-border);
+}
+
+.panel--bad {
+  border-color: var(--a8n-bad-border);
+}
+
+section.stack {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--a8n-gap);
+}
+
+/* ── Metrics ────────────────────────────────────────────────────── */
+
+.metrics {
+  display: grid;
+  /* 110px keeps a 4-metric row as a tidy 2x2 at widget width rather than
+     3 + an orphan, and still spreads out in fullscreen. */
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 8px;
 }
 
 .metric {
-  border: 1px solid var(--color-border-primary, #e4e7ee);
-  border-radius: var(--border-radius-md, 8px);
+  border: 1px solid var(--a8n-border);
+  border-radius: var(--a8n-radius-sm);
+  background: var(--a8n-surface-muted);
   padding: 10px;
-  background: var(--color-background-tertiary, #fafbfc);
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
 .metric strong {
-  display: block;
-  font-size: 18px;
-  line-height: 1.2;
+  font-size: 19px;
+  font-weight: 650;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
-/* ── Pills / badges ─────────────────────────────────────────────── */
+.metric span {
+  font-size: 11px;
+  color: var(--a8n-text-muted);
+}
+
+.metric--ok strong {
+  color: var(--a8n-ok-fg);
+}
+
+.metric--warn strong {
+  color: var(--a8n-warn-fg);
+}
+
+.metric--bad strong {
+  color: var(--a8n-bad-fg);
+}
+
+/* ── Pills ──────────────────────────────────────────────────────── */
 
 .pill {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 12px;
-  font-weight: 650;
-  background: #edf2ff;
-  color: #263fa3;
+  border: 1px solid var(--a8n-accent-border);
+  background: var(--a8n-accent-bg);
+  color: var(--a8n-accent-fg);
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 640;
   white-space: nowrap;
+  text-transform: capitalize;
 }
 
-.ok {
-  background: #dcfce7;
-  color: #166534;
+.pill--ok {
+  background: var(--a8n-ok-bg);
+  color: var(--a8n-ok-fg);
+  border-color: var(--a8n-ok-border);
 }
 
-.warn {
-  background: #fef3c7;
-  color: #92400e;
+.pill--warn {
+  background: var(--a8n-warn-bg);
+  color: var(--a8n-warn-fg);
+  border-color: var(--a8n-warn-border);
 }
 
-.bad {
-  background: #fee2e2;
-  color: #991b1b;
+.pill--bad {
+  background: var(--a8n-bad-bg);
+  color: var(--a8n-bad-fg);
+  border-color: var(--a8n-bad-border);
 }
 
-/* ── Lists ──────────────────────────────────────────────────────── */
+/* ── Step rail ──────────────────────────────────────────────────── */
 
-ol,
-ul {
+.steps {
+  list-style: none;
   margin: 0;
-  padding-left: 20px;
+  padding: 0;
+  display: grid;
+  gap: 2px;
 }
 
-li {
-  margin: 6px 0;
-  line-height: 1.4;
+.step {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  position: relative;
 }
 
-/* ── Code / monospace ───────────────────────────────────────────── */
+.step + .step::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: -2px;
+  width: 1px;
+  height: 8px;
+  background: var(--a8n-border-strong);
+}
 
-code {
-  font-family: var(
-    --font-mono,
-    "SFMono-Regular",
-    Consolas,
-    monospace
-  );
-  font-size: 12px;
+.step__marker {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 650;
+  border: 1px solid var(--a8n-border-strong);
+  background: var(--a8n-surface-muted);
+  color: var(--a8n-text-muted);
+}
+
+.step--ok .step__marker {
+  background: var(--a8n-ok-bg);
+  border-color: var(--a8n-ok-border);
+  color: var(--a8n-ok-fg);
+}
+
+.step--warn .step__marker {
+  background: var(--a8n-warn-bg);
+  border-color: var(--a8n-warn-border);
+  color: var(--a8n-warn-fg);
+}
+
+.step--bad .step__marker {
+  background: var(--a8n-bad-bg);
+  border-color: var(--a8n-bad-border);
+  color: var(--a8n-bad-fg);
+}
+
+.step__body {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.step__title {
+  font-weight: 560;
   overflow-wrap: anywhere;
+}
+
+.step__meta {
+  font-size: 12px;
+  color: var(--a8n-text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* ── Lists and key/value rows ───────────────────────────────────── */
+
+.stack-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.stack-list > li {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
 }
 
 .row {
@@ -194,74 +384,204 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-width: 0;
 }
 
-.mono {
+.kv {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 12px;
+  font-size: 13px;
+}
+
+.kv dt {
+  color: var(--a8n-text-muted);
+}
+
+.kv dd {
+  margin: 0;
   overflow-wrap: anywhere;
+}
+
+/* ── Code ───────────────────────────────────────────────────────── */
+
+.code {
+  font-family: var(--font-mono, ui-monospace, "SF Mono", Consolas, monospace);
+  font-size: 12px;
+  background: var(--a8n-surface-muted);
+  border: 1px solid var(--a8n-border);
+  border-radius: var(--a8n-radius-sm);
+  padding: 2px 6px;
+  overflow-wrap: anywhere;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+
+.action {
+  display: grid;
+  gap: 6px;
+}
+
+.btn {
+  min-height: 36px;
+  border-radius: var(--a8n-radius-sm);
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 140ms ease, background-color 140ms ease;
+}
+
+.btn--primary {
+  background: var(--a8n-text);
+  color: var(--a8n-surface);
+}
+
+.btn--secondary {
+  background: var(--a8n-surface);
+  color: var(--a8n-text);
+  border-color: var(--a8n-border-strong);
+}
+
+.btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.btn:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--a8n-accent-fg);
+  outline-offset: 2px;
+}
+
+.btn--done {
+  background: var(--a8n-ok-bg);
+  color: var(--a8n-ok-fg);
+  border-color: var(--a8n-ok-border);
+}
+
+.action__hint {
+  font-size: 12px;
+  color: var(--a8n-text-muted);
+}
+
+.action__hint--error {
+  color: var(--a8n-bad-fg);
+}
+
+#fullscreenBtn {
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--a8n-radius-sm);
+  border: 1px solid var(--a8n-border-strong);
+  background: var(--a8n-surface);
+  color: var(--a8n-text-muted);
+  cursor: pointer;
+}
+
+#fullscreenBtn[hidden] {
+  display: none;
+}
+
+/* ── States ─────────────────────────────────────────────────────── */
+
+.state {
+  text-align: center;
+  padding: 20px 16px;
+}
+
+.state__title {
+  font-weight: 600;
+}
+
+.skeleton {
+  display: grid;
+  gap: 8px;
+}
+
+.skeleton__line {
+  height: 11px;
+  border-radius: 999px;
+  background: var(--a8n-surface-muted);
+  border: 1px solid var(--a8n-border);
+  animation: a8n-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton__line:nth-child(2) {
+  width: 78%;
+}
+
+.skeleton__line:nth-child(3) {
+  width: 55%;
+}
+
+@keyframes a8n-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__line {
+    animation: none;
+  }
+
+  .btn {
+    transition: none;
+  }
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 
-@media (max-width: 520px) {
+@media (max-width: 480px) {
+  main {
+    padding: 12px;
+  }
+
   header {
-    display: grid;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
-  button {
+  .btn--primary,
+  .btn--secondary {
     width: 100%;
+  }
+
+  .kv {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px 0;
+  }
+
+  .kv dt {
+    margin-top: 6px;
   }
 }
 
-/* ── Dark mode fallback (only when host vars are absent) ─────── */
+/* The host grants more room in fullscreen; use it for reading width. */
+body.fullscreen main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px;
+}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    background: var(--color-background-primary, #0a0d12);
-    color: var(--color-text-primary, #f3f4f6);
-  }
-
-  .subtle,
-  h2 {
-    color: var(--color-text-secondary, #a7b0bd);
-  }
-
-  .panel {
-    background: var(--color-background-secondary, #111827);
-    border-color: var(--color-border-primary, #263244);
-  }
-
-  .metric {
-    background: var(--color-background-tertiary, #0f172a);
-    border-color: var(--color-border-primary, #263244);
-  }
-
-  button {
-    border-color: #f3f4f6;
-    background: #f3f4f6;
-    color: #111827;
-  }
-
-  .pill {
-    background: #1e3a8a;
-    color: #dbeafe;
-  }
-
-  .ok {
-    background: #14532d;
-    color: #dcfce7;
-  }
-
-  .warn {
-    background: #713f12;
-    color: #fef3c7;
-  }
-
-  .bad {
-    background: #7f1d1d;
-    color: #fee2e2;
-  }
+.header__aside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }

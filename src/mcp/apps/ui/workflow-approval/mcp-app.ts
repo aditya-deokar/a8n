@@ -1,20 +1,33 @@
 /**
  * Workflow Approval — MCP App widget.
  *
- * Displays the diff summary (added/changed/removed nodes),
- * validation status, and confirmation hash. Interactive — the
- * "Apply draft" button calls `apply_workflow_draft` via
- * `app.callServerTool()`.
+ * The confirmation step before a draft is written to a real workflow. Shows
+ * what would change, why it cannot be applied when it cannot, and the
+ * confirmation hash the server checks.
  *
- * Data shape matches the `approvalPreview()` function in
+ * Data shape matches `approvalPreview()` in
  * `src/mcp/resources/app-resources.resource.ts`.
  */
 
 import "../shared/styles.css";
 import { initWidget } from "../shared/bridge";
-import { html, metric, panel, setStatus, safeText } from "../shared/utils";
+import {
+  actionButton,
+  bindAction,
+  code,
+  emptyState,
+  errorState,
+  html,
+  keyValues,
+  list,
+  metric,
+  metricRow,
+  panel,
+  setHeader,
+  setStatus,
+  skeleton,
+} from "../shared/utils";
 import type { WidgetRenderData } from "../shared/bridge";
-import type { App } from "@modelcontextprotocol/ext-apps";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -55,110 +68,148 @@ interface ApprovalData {
 
 // ── Render ──────────────────────────────────────────────────────────
 
-function renderApproval(data: ApprovalData, app: App | null): string {
-  const titleEl = document.getElementById("title");
-  if (titleEl) {
-    titleEl.textContent = safeText(
-      data.draft?.name
-        ? "Approve: " + data.draft.name
-        : "Workflow Approval",
-    );
-  }
+function renderApproval(
+  data: ApprovalData,
+  app: WidgetRenderData["app"],
+): string {
+  const draft = data.draft;
+  setHeader(
+    draft?.name ? `Apply “${draft.name}”?` : "Workflow approval",
+    draft?.workflowId
+      ? "This updates an existing workflow."
+      : "This creates a new workflow.",
+  );
 
   const valid = Boolean(data.validation?.valid);
-  setStatus(valid ? "Valid" : "Invalid", valid ? "ok" : "bad");
+  setStatus(valid ? "Ready to apply" : "Cannot apply yet", valid ? "ok" : "bad");
 
-  const diff = data.diff || {
+  const diff = data.diff ?? {
     addedNodes: [],
     changedNodes: [],
     removedNodes: [],
     addedEdges: [],
   };
+  const removedCount = (diff.removedNodes ?? []).length;
+  const errors = data.validation?.errors ?? [];
   const hash = data.approval?.confirmationHash || "";
 
-  // Build the apply arguments from the approval data
-  const canCall = Boolean(app && data.approval?.arguments);
-  const rawArgs = data.approval?.arguments;
-  const applyArgs: ApprovalArgs | null = rawArgs
-    ? {
-        draftId: rawArgs.draftId,
-        workflowId: rawArgs.workflowId,
-        approved: true,
-        confirmationHash: rawArgs.confirmationHash,
-      }
-    : null;
+  const changes = panel(
+    "What changes",
+    metricRow([
+      metric("Added", (diff.addedNodes ?? []).length, "ok"),
+      metric("Changed", (diff.changedNodes ?? []).length, "warn"),
+      metric("Removed", removedCount, removedCount > 0 ? "bad" : "neutral"),
+      metric("New connections", (diff.addedEdges ?? []).length),
+    ]) +
+      (removedCount > 0
+        ? `<p class="muted">Removing ${html(removedCount)} step${removedCount === 1 ? "" : "s"} cannot be undone from here.</p>`
+        : ""),
+  );
 
-  // Bind the apply button after DOM update
-  setTimeout(() => {
-    const button = document.getElementById(
-      "applyDraft",
-    ) as HTMLButtonElement | null;
-    if (!button) return;
+  const blockers = valid
+    ? ""
+    : panel(
+        "Why it cannot be applied",
+        list(
+          errors,
+          (item) => `<li>${html(item)}</li>`,
+          "The server reported this draft as invalid without listing reasons.",
+        ),
+        { tone: "bad" },
+      );
 
-    button.disabled = !canCall || !valid;
+  const confirmation = panel(
+    "Confirmation",
+    keyValues([
+      ["Draft", code(draft?.id || "—")],
+      ["Hash", code(hash || "—")],
+    ]) +
+      '<p class="muted">The server re-checks this hash, so an approval cannot be replayed against a draft that changed.</p>',
+  );
 
-    // Only bind once
-    if (button.dataset.bound === "true") return;
-    button.dataset.bound = "true";
+  const canApply = Boolean(app && data.approval?.arguments && valid);
+  const action = panel(
+    "Approval",
+    actionButton("applyDraft", "Apply this draft", {
+      disabled: !canApply,
+      hint: !valid
+        ? "Fix the problems above first."
+        : app
+          ? "Applies the draft to your workspace."
+          : "Connecting to the host…",
+    }),
+  );
 
-    button.addEventListener("click", async () => {
-      if (!app || !applyArgs) return;
-      button.disabled = true;
-      button.textContent = "Applying...";
-      try {
-        await app.callServerTool({
-          name: "apply_workflow_draft",
-          arguments: applyArgs as unknown as Record<string, unknown>,
-        });
-        button.textContent = "✓ Applied";
-      } catch {
-        button.textContent = "Apply draft";
-        button.disabled = false;
-      }
-    });
-  }, 0);
-
-  return [
-    '<div class="grid">' +
-      metric("Added nodes", (diff.addedNodes || []).length) +
-      metric("Changed nodes", (diff.changedNodes || []).length) +
-      metric("Removed nodes", (diff.removedNodes || []).length) +
-      metric("Added connections", (diff.addedEdges || []).length) +
-      "</div>",
-    panel(
-      "Confirmation hash",
-      "<p><code>" + html(hash) + "</code></p>",
-    ),
-    '<button id="applyDraft" type="button" disabled>Apply draft</button>',
-  ].join("");
+  return [changes, blockers, confirmation, action].join("");
 }
 
 // ── Init ────────────────────────────────────────────────────────────
 
-let appInstance: App | null = null;
+function payloadOf(renderData: WidgetRenderData): ApprovalData | null {
+  const candidate =
+    renderData.details && Object.keys(renderData.details).length > 0
+      ? renderData.details
+      : renderData.result;
+
+  if (!candidate || Object.keys(candidate).length === 0) return null;
+  return candidate as unknown as ApprovalData;
+}
 
 function handleRender(renderData: WidgetRenderData): void {
-  const data = (renderData.details && Object.keys(renderData.details).length > 0
-    ? renderData.details
-    : renderData.result) as unknown as ApprovalData;
-
   const content = document.getElementById("content");
   if (!content) return;
 
-  if (!data || Object.keys(data).length === 0) {
-    setStatus("Waiting", "warn");
-    content.innerHTML = panel(
-      "Status",
-      '<p class="subtle">Waiting for widget data.</p>',
+  const data = payloadOf(renderData);
+
+  if (!data) {
+    if (renderData.connectionError) {
+      setStatus("Disconnected", "bad");
+      content.innerHTML = errorState(
+        "Could not reach the host",
+        renderData.connectionError,
+      );
+      return;
+    }
+
+    if (renderData.isPartial) {
+      setStatus("Loading", "warn");
+      content.innerHTML = skeleton();
+      return;
+    }
+
+    setStatus("Waiting", "neutral");
+    content.innerHTML = emptyState(
+      "Nothing to approve",
+      "Ask to apply a workflow draft and the approval appears here.",
     );
     return;
   }
 
-  content.innerHTML = renderApproval(data, appInstance);
+  const app = renderData.app;
+  content.innerHTML = renderApproval(data, app);
+
+  const rawArgs = data.approval?.arguments;
+  if (app && rawArgs && data.validation?.valid) {
+    bindAction(
+      "applyDraft",
+      async () => {
+        await app.callServerTool({
+          name: data.approval?.tool || "apply_workflow_draft",
+          arguments: {
+            draftId: rawArgs.draftId,
+            workflowId: rawArgs.workflowId,
+            approved: true,
+            confirmationHash: rawArgs.confirmationHash,
+          },
+        });
+      },
+      {
+        idle: "Apply this draft",
+        busy: "Applying…",
+        done: "Applied",
+      },
+    );
+  }
 }
 
-initWidget("a8n Workflow Approval", "1.0.0", handleRender)
-  .then((app) => {
-    appInstance = app;
-  })
-  .catch(() => undefined);
+initWidget("a8n Workflow Approval", "1.0.0", handleRender);
