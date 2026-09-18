@@ -19,7 +19,7 @@ every fix has a check that fails if it regresses.
 | Widget e2e tests | Asserted against a bridge the widgets no longer use | 78 passing against the real ext-apps protocol |
 | `pnpm lint` | Crashes before linting anything | Still crashes — see [Not fixed](#not-fixed) |
 | Tool behavior hints reaching clients | 0 of 52 tools | 52 of 52 tools |
-| Model-facing docs naming removed tools | 3 tools across 7 files | 0 |
+| Model-facing docs naming removed tools | 4 tools across 7 files | 0 |
 | Dashboard prefetch statements (10 OAuth clients) | 88 | 16 |
 
 ---
@@ -165,7 +165,7 @@ use to decide whether a call needs a confirmation prompt.
 registered tools after registration, leaving tools that set their own
 annotations untouched. All 52 tools now carry hints.
 
-### 11. Model-facing docs named three tools that no longer exist
+### 11. Model-facing docs named four tools that no longer exist
 
 `a8n://docs/api`, the prompt contracts, the ChatGPT submission assets and two
 prompts still instructed the model to call `execute_workflow`,
