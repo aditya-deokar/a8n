@@ -9,6 +9,28 @@ import { env, resolveEnvProfile } from "@/env";
 
 const envProfile = resolveEnvProfile(process.env);
 
+/**
+ * Fall back to the app's own origin rather than "*".
+ *
+ * A wildcard is rejected outright in production (see the MCP route), so
+ * shipping "*" as the default turned an unset env var into a total endpoint
+ * outage instead of a narrower CORS policy.
+ */
+function defaultCorsOrigins(): string {
+  const appUrl =
+    env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL;
+
+  if (appUrl) {
+    try {
+      return new URL(appUrl).origin;
+    } catch {
+      // Fall through to the development wildcard below.
+    }
+  }
+
+  return process.env.NODE_ENV === "production" ? "" : "*";
+}
+
 export const MCP_CONFIG = {
   /** Server identification */
   SERVER_NAME: "a8n-mcp-server",
@@ -71,7 +93,7 @@ export const MCP_CONFIG = {
   SAFETY_STRICT_MODE: env.MCP_SAFETY_STRICT_MODE === true,
 
   /** CORS */
-  CORS_ORIGINS: env.MCP_CORS_ORIGINS || "*",
+  CORS_ORIGINS: env.MCP_CORS_ORIGINS || defaultCorsOrigins(),
 
   /** Webhook hardening */
   WEBHOOK_SHARED_SECRET_CONFIGURED: Boolean(env.A8N_WEBHOOK_SHARED_SECRET),
