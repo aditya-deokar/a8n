@@ -10,4 +10,29 @@
  * already accepts both the origin and the `/api/mcp` form, so this is additive.
  */
 
-export { GET, OPTIONS, dynamic } from "../../route";
+import { protectedResourceMetadata } from "@/mcp/auth/oauth.service";
+
+// Route segment config has to be declared in the file that uses it. Next.js
+// parses it statically and rejects a re-export, so this cannot be pulled in
+// from the root route alongside the handlers.
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request): Promise<Response> {
+  return Response.json(protectedResourceMetadata(request), {
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
+export async function OPTIONS(): Promise<Response> {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}

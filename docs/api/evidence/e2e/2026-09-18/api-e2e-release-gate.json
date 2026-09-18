@@ -1,0 +1,67 @@
+{
+  "suite": "api-e2e-release-gate",
+  "generatedAt": "2026-09-18T16:48:03.889Z",
+  "mode": "smoke",
+  "includeMcp": false,
+  "checkTimeoutMs": 900000,
+  "passed": false,
+  "failedRequired": [
+    "API E2E smoke"
+  ],
+  "stopShipCriteria": [
+    "Anonymous users cannot reach protected backend data.",
+    "Free users cannot call premium-only backend mutations.",
+    "Cross-tenant workflow, credential, execution, API-key, and OAuth access cannot succeed.",
+    "Raw credential values, API key hashes, OAuth token hashes, and webhook secrets are absent from responses and artifacts.",
+    "Workflow dispatch happens only after ownership checks pass.",
+    "Webhooks reject missing, wrong, malformed, stale, or unsigned traffic.",
+    "Malformed requests and simulated backend failures do not expose environment secrets.",
+    "The E2E database schema matches committed Prisma migrations."
+  ],
+  "artifacts": [
+    "playwright-report/api-e2e",
+    "test-results/api-e2e",
+    "docs/api/evidence/e2e"
+  ],
+  "checks": [
+    {
+      "name": "prisma validate",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\prisma\\build\\index.js validate --schema prisma/schema.prisma",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2545,
+      "stdout": "The schema at prisma\\schema.prisma is valid 🚀",
+      "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from prisma\\schema.prisma."
+    },
+    {
+      "name": "prisma migrate status",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\prisma\\build\\index.js migrate status --schema prisma/schema.prisma",
+      "status": "passed",
+      "exitCode": 0,
+      "durationMs": 2130,
+      "stdout": "Datasource \"db\": PostgreSQL database \"a8n_test\", schema \"public\" at \"127.0.0.1:5433\"\n\n18 migrations found in prisma/migrations\n\nDatabase schema is up to date!",
+      "stderr": "Loaded Prisma config from prisma.config.ts.\n\nPrisma schema loaded from prisma\\schema.prisma.\n┌─────────────────────────────────────────────────────────┐\n│  Update available 7.7.0 -> 8.0.0-rc.15                  │\n│                                                         │\n│  This is a major update - please follow the guide at    │\n│  https://pris.ly/d/major-version-upgrade                │\n│                                                         │\n│  Run the following to update                            │\n│    npm i --save-dev prisma@latest                       │\n│    npm i @prisma/client@latest                          │\n└─────────────────────────────────────────────────────────┘"
+    },
+    {
+      "name": "API E2E smoke",
+      "required": true,
+      "command": "C:\\Program Files\\nodejs\\node.exe C:\\Users\\adity\\Documents\\final-year project\\n8n\\node_modules\\@playwright\\test\\cli.js test --config playwright.api-e2e.config.mjs auth.e2e.ts trpc-transport.e2e.ts workflows.e2e.ts tenant-isolation.e2e.ts",
+      "status": "failed",
+      "exitCode": 1,
+      "durationMs": 198063,
+      "stdout": "Running 21 tests using 1 worker\n\n{\"level\":\"warn\",\"timestamp\":\"2026-09-18T16:45:44.209Z\",\"service\":\"a8n\",\"environment\":\"test\",\"provider\":\"console\",\"env\":\"test\",\"service.name\":\"a8n\",\"deployment.environment\":\"test\",\"component\":\"database\",\"event\":\"db_slow_query\",\"target\":\"ClientEngine\",\"durationMs\":6453.6521,\"slowQuery\":true,\"thresholdMs\":500,\"msg\":\"Slow database query detected.\"}\n{\"level\":\"warn\",\"timestamp\":\"2026-09-18T16:46:24.317Z\",\"service\":\"a8n\",\"environment\":\"test\",\"provider\":\"console\",\"env\":\"test\",\"service.name\":\"a8n\",\"deployment.environment\":\"test\",\"component\":\"database\",\"event\":\"db_slow_query\",\"target\":\"ClientEngine\",\"durationMs\":1576.7644999999975,\"slowQuery\":true,\"thresholdMs\":500,\"msg\":\"Slow database query detected.\"}\n  x   1 tests\\e2e\\api\\specs\\auth.e2e.ts:25:7 › backend E2E auth and sessions › signs up a user and uses the session cookie for protected tRPC (45.2s)\n  ok  2 tests\\e2e\\api\\specs\\auth.e2e.ts:44:7 › backend E2E auth and sessions › logs in with email/password and persists session cookies (16.8s)\n  ok  3 tests\\e2e\\api\\specs\\auth.e2e.ts:60:7 › backend E2E auth and sessions › rejects protected tRPC calls without a session (555ms)\n  ok  4 tests\\e2e\\api\\specs\\auth.e2e.ts:69:7 › backend E2E auth and sessions › logout invalidates protected tRPC access (654ms)\n  ok  5 tests\\e2e\\api\\specs\\auth.e2e.ts:86:7 › backend E2E auth and sessions › invalid login returns a safe error response (335ms)\n  ok  6 tests\\e2e\\api\\specs\\tenant-isolation.e2e.ts:43:7 › backend E2E tenant isolation › blocks cross-tenant reads, writes, revokes, and dispatches (29.7s)\n  ok  7 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:30:7 › backend E2E tRPC transport › executes a real protected tRPC query over HTTP (498ms)\n  ok  8 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:60:7 › backend E2E tRPC transport › executes a real protected tRPC mutation over HTTP (710ms)\n{\"level\":\"warn\",\"timestamp\":\"2026-09-18T16:47:28.511Z\",\"service\":\"a8n\",\"environment\":\"test\",\"provider\":\"console\",\"env\":\"test\",\"service.name\":\"a8n\",\"deployment.environment\":\"test\",\"component\":\"database\",\"event\":\"db_slow_query\",\"target\":\"ClientEngine\",\"durationMs\":524.1552999999985,\"slowQuery\":true,\"thresholdMs\":500,\"msg\":\"Slow database query detected.\"}\n  ok  9 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:86:7 › backend E2E tRPC transport › executes batched tRPC queries over one HTTP transport (1.6s)\n  ok 10 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:118:7 › backend E2E tRPC transport › rejects invalid tRPC input through the real route (1.1s)\n  ok 11 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:129:7 › backend E2E tRPC transport › rejects unknown procedures safely (580ms)\n  ok 12 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:144:7 › backend E2E tRPC transport › rejects malformed JSON safely (532ms)\n  x  13 tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:154:7 › backend E2E tRPC transport › saves valid workflow graph input through real HTTP (516ms)\n  ok 14 tests\\e2e\\api\\specs\\workflows.e2e.ts:29:7 › backend E2E workflow lifecycle › pro test user creates a workflow through real HTTP (6.6s)\n  ok 15 tests\\e2e\\api\\specs\\workflows.e2e.ts:43:7 › backend E2E workflow lifecycle › free test user cannot create a premium workflow (998ms)\n  ok 16 tests\\e2e\\api\\specs\\workflows.e2e.ts:51:7 › backend E2E workflow lifecycle › lists and fetches only the signed-in user's workflow (1.6s)\n  ok 17 tests\\e2e\\api\\specs\\workflows.e2e.ts:79:7 › backend E2E workflow lifecycle › renames a workflow and persists the change (1.2s)\n  x  18 tests\\e2e\\api\\specs\\workflows.e2e.ts:105:7 › backend E2E workflow lifecycle › saves a valid workflow graph atomically (1.3s)\n  ok 19 tests\\e2e\\api\\specs\\workflows.e2e.ts:135:7 › backend E2E workflow lifecycle › rejects invalid graph input without changing the existing graph (930ms)\n  ok 20 tests\\e2e\\api\\specs\\workflows.e2e.ts:170:7 › backend E2E workflow lifecycle › deletes a workflow through real HTTP (258ms)\n  ok 21 tests\\e2e\\api\\specs\\workflows.e2e.ts:196:7 › backend E2E workflow lifecycle › another user cannot read, rename, save, or delete a workflow (2.0s)\n\n\n  1) tests\\e2e\\api\\specs\\auth.e2e.ts:25:7 › backend E2E auth and sessions › signs up a user and uses the session cookie for protected tRPC \n\n    Test timeout of 45000ms exceeded.\n\n    Error: expect(received).resolves.toMatchObject()\n\n    Received promise rejected instead of resolved\n    Rejected to value: [TRPCClientError: apiRequestContext.fetch: Request context disposed.\n    Call log:\n      - → GET http://127.0.0.1:3000/api/trpc/workflows.getMany?batch=1&input=%7B%220%22%3A%7B%22json%22%3A%7B%22page%22%3A1%2C%22pageSize%22%3A5%2C%22search%22%3A%22%22%7D%7D%7D\n        - user-agent: Playwright/1.61.1 (x64; windows 10.0) node/24.12 CI/1\n        - accept: */*\n        - accept-encoding: gzip,deflate,br\n        - cookie: better-auth.session_token=vKViEW9XhmSt3lsUO52HU5C9UVsVJEcy.sLLMErH%2FG%2BvF1E8cgSxnH652%2FFxZPZ2CT%2Bw8hj4ZwAg%3D\n    ]\n\n      35 |     await expect(\n      36 |       trpc.workflows.getMany.query({ page: 1, pageSize: 5, search: \"\" }),\n    > 37 |     ).resolves.toMatchObject({\n         |                ^\n      38 |       page: 1,\n      39 |       pageSize: 5,\n      40 |       items: [],\n        at C:\\Users\\adity\\Documents\\final-year project\\n8n\\tests\\e2e\\api\\specs\\auth.e2e.ts:37:16\n\n    Error Context: test-results\\auth.e2e.ts-backend-E2E-au-f6bc6-n-cookie-for-protected-tRPC\\error-context.md\n\n    Error Context: test-results\\auth.e2e.ts-backend-E2E-au-f6bc6-n-cookie-for-protected-tRPC\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\auth.e2e.ts-backend-E2E-au-f6bc6-n-cookie-for-protected-tRPC\\trace.zip\n    Usage:\n\n        pnpm exec playwright show-trace test-results\\auth.e2e.ts-backend-E2E-au-f6bc6-n-cookie-for-protected-tRPC\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  2) tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:154:7 › backend E2E tRPC transport › saves valid workflow graph input through real HTTP \n\n    Error: expect(received).resolves.toMatchObject()\n\n    Received promise rejected instead of resolved\n    Rejected to value: [TRPCClientError: The placeholder node cannot be combined with configured steps. Replace it by adding your first step.]\n\n      171 |         edges: graph.edges,\n      172 |       }),\n    > 173 |     ).resolves.toMatchObject({\n          |                ^\n      174 |       id: \"e2e_workflow_graph\",\n      175 |     });\n      176 |\n        at C:\\Users\\adity\\Documents\\final-year project\\n8n\\tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:173:16\n\n    Error Context: test-results\\trpc-transport.e2e.ts-back-b33d8-aph-input-through-real-HTTP\\error-context.md\n\n    Error Context: test-results\\trpc-transport.e2e.ts-back-b33d8-aph-input-through-real-HTTP\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\trpc-transport.e2e.ts-back-b33d8-aph-input-through-real-HTTP\\trace.zip\n    Usage:\n\n        pnpm exec playwright show-trace test-results\\trpc-transport.e2e.ts-back-b33d8-aph-input-through-real-HTTP\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  3) tests\\e2e\\api\\specs\\workflows.e2e.ts:105:7 › backend E2E workflow lifecycle › saves a valid workflow graph atomically \n\n    Error: expect(received).resolves.toMatchObject()\n\n    Received promise rejected instead of resolved\n    Rejected to value: [TRPCClientError: The placeholder node cannot be combined with configured steps. Replace it by adding your first step.]\n\n      121 |         edges: graph.edges,\n      122 |       }),\n    > 123 |     ).resolves.toMatchObject({\n          |                ^\n      124 |       id: \"e2e_workflow_graph_save\",\n      125 |     });\n      126 |\n        at C:\\Users\\adity\\Documents\\final-year project\\n8n\\tests\\e2e\\api\\specs\\workflows.e2e.ts:123:16\n\n    Error Context: test-results\\workflows.e2e.ts-backend-E-de090-d-workflow-graph-atomically\\error-context.md\n\n    Error Context: test-results\\workflows.e2e.ts-backend-E-de090-d-workflow-graph-atomically\\error-context.md\n\n    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results\\workflows.e2e.ts-backend-E-de090-d-workflow-graph-atomically\\trace.zip\n    Usage:\n\n        pnpm exec playwright show-trace test-results\\workflows.e2e.ts-backend-E-de090-d-workflow-graph-atomically\\trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  3 failed\n    tests\\e2e\\api\\specs\\auth.e2e.ts:25:7 › backend E2E auth and sessions › signs up a user and uses the session cookie for protected tRPC \n    tests\\e2e\\api\\specs\\trpc-transport.e2e.ts:154:7 › backend E2E tRPC transport › saves valid workflow graph input through real HTTP \n    tests\\e2e\\api\\specs\\workflows.e2e.ts:105:7 › backend E2E workflow lifecycle › saves a valid workflow graph atomically \n  18 passed (3.2m)",
+      "stderr": "[WebServer] 2026-09-18T16:46:55.427Z WARN [Better Auth]: User not found"
+    },
+    {
+      "name": "MCP widget E2E",
+      "required": false,
+      "command": "",
+      "status": "skipped",
+      "exitCode": null,
+      "durationMs": 0,
+      "reason": "Pass --include-mcp to include MCP browser E2E."
+    }
+  ]
+}

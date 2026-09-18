@@ -1,0 +1,77 @@
+{
+  "suite": "environment-drift-check",
+  "generatedAt": "2026-09-18T16:15:44.946Z",
+  "strict": true,
+  "passed": true,
+  "failedRequired": [],
+  "checks": [
+    {
+      "name": "environment baseline",
+      "status": "passed",
+      "required": true,
+      "message": "Environment baseline should exist with local, test, preview, staging, and production definitions.",
+      "details": {
+        "owner": "platform-owner",
+        "reviewCadence": "quarterly",
+        "environments": [
+          "local",
+          "test",
+          "preview",
+          "staging",
+          "production"
+        ]
+      }
+    },
+    {
+      "name": "production critical variables",
+      "status": "passed",
+      "required": true,
+      "message": "Production baseline should include all critical runtime secrets and URLs.",
+      "details": {
+        "missing": []
+      }
+    },
+    {
+      "name": "environment separation",
+      "status": "passed",
+      "required": true,
+      "message": "Staging and production workflows should use separate GitHub variables and secrets."
+    },
+    {
+      "name": "env example local baseline",
+      "status": "passed",
+      "required": true,
+      "message": ".env.example should document critical local runtime variables."
+    },
+    {
+      "name": "runtime env schema",
+      "status": "passed",
+      "required": true,
+      "message": "Runtime env schema should validate critical backend and platform variables."
+    },
+    {
+      "name": "drift runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Environment drift runbook should describe baseline ownership and staging/production drift response."
+    },
+    {
+      "name": "drift workflow",
+      "status": "passed",
+      "required": true,
+      "message": "Governance workflow should run environment drift detection and upload drift evidence."
+    },
+    {
+      "name": "release workflow drift gate",
+      "status": "passed",
+      "required": true,
+      "message": "Production workflow should include governance and environment drift release gates."
+    },
+    {
+      "name": "infra ownership",
+      "status": "passed",
+      "required": true,
+      "message": "CODEOWNERS should require review for infra and drift detection changes."
+    }
+  ]
+}

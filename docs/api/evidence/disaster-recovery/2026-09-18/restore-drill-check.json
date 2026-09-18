@@ -1,0 +1,51 @@
+{
+  "suite": "restore-drill-check",
+  "generatedAt": "2026-09-18T16:14:10.531Z",
+  "strict": true,
+  "passed": true,
+  "failedRequired": [],
+  "checks": [
+    {
+      "name": "disaster recovery runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Disaster recovery runbook should define RPO, RTO, backups, and restore drills."
+    },
+    {
+      "name": "database restore runbook",
+      "status": "passed",
+      "required": true,
+      "message": "Database restore runbook should cover PITR, staging rehearsal, integrity checks, and production approval."
+    },
+    {
+      "name": "restore drill workflow",
+      "status": "passed",
+      "required": true,
+      "message": "Restore drill workflow should run DR readiness checks and upload DR evidence."
+    },
+    {
+      "name": "backup verification checklist",
+      "status": "passed",
+      "required": true,
+      "message": "DR runbook should include recurring backup verification and restore point checks."
+    },
+    {
+      "name": "rollback before restore",
+      "status": "passed",
+      "required": true,
+      "message": "Rollback runbook should make database restore a last-resort option after safer rollback paths."
+    },
+    {
+      "name": "release checklist restore coverage",
+      "status": "passed",
+      "required": true,
+      "message": "Release checklist should cover restore readiness and disaster recovery evidence."
+    },
+    {
+      "name": "restore drill evidence path",
+      "status": "passed",
+      "required": true,
+      "message": "Disaster recovery runbook should name the restore drill evidence path."
+    }
+  ]
+}
