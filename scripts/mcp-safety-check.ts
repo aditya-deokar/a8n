@@ -4,6 +4,7 @@ import {
   CHATGPT_APP_TOOL_POLICY,
   CHATGPT_FORBIDDEN_TOOLS,
 } from "../src/mcp/safety/app-tool-policy";
+import { CHATGPT_TOOL_CONTRACTS } from "../src/mcp/contracts/tools.manifest";
 import { detectPromptInjectionWarnings } from "../src/mcp/shared/safety";
 import { mcpJsonResponse, sanitizeOutput } from "../src/mcp/shared/sanitize";
 
@@ -44,9 +45,16 @@ function main() {
   const toolPolicies = Object.values(CHATGPT_APP_TOOL_POLICY);
 
   const checks: Check[] = [
-    assertCheck("chatgpt tool policy has 28 tools", CHATGPT_APP_TOOL_COUNT === 28, {
-      count: CHATGPT_APP_TOOL_COUNT,
-    }),
+    // The policy is generated from the contract, so assert the relationship
+    // rather than a literal count that goes stale on every consolidation.
+    assertCheck(
+      "chatgpt tool policy matches the chatgpt tool contract",
+      CHATGPT_APP_TOOL_COUNT > 0 && CHATGPT_APP_TOOL_COUNT === CHATGPT_TOOL_CONTRACTS.length,
+      {
+        policyCount: CHATGPT_APP_TOOL_COUNT,
+        contractCount: CHATGPT_TOOL_CONTRACTS.length,
+      },
+    ),
     assertCheck(
       "chatgpt tool policy excludes forbidden tools",
       CHATGPT_FORBIDDEN_TOOLS.every((tool) => !(tool in CHATGPT_APP_TOOL_POLICY)),

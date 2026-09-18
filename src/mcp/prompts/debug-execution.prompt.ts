@@ -38,7 +38,7 @@ Please diagnose this systematically:
    - **Cycle detection**: Workflow graph contains circular dependencies
    - **Execution timeout**: Long-running operations that exceeded limits
 4. **Suggest fixes** — Based on the diagnosis, suggest specific changes using the appropriate MCP tools
-5. **Re-execute** — After fixes, offer to re-run with \`execute_workflow\`
+5. **Re-execute** — After fixes, offer to re-run with \`execute_workflow_and_wait\`
 
 Please start by fetching the execution details.`,
           },

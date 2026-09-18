@@ -37,10 +37,9 @@ export const MCP_PROMPT_CONTRACTS: McpPromptContract[] = [
     name: "setup_integration",
     source: "src/mcp/prompts/setup-integration.prompt.ts",
     requiredTools: [
-      "get_integration_setup_guide",
       "get_workflow_setup_checklist",
       "test_credential",
-      "test_webhook_setup",
+      "run_workflow_test",
     ],
     requiredResources: ["a8n://integrations/{service}/setup"],
     asksForSecretsInChat: false,

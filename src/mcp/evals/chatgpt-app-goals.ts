@@ -83,7 +83,6 @@ export const CHATGPT_APP_EVALS: ChatGptAppEvalCase[] = [
     {
       tools: [
         "get_workflow_setup_checklist",
-        "get_integration_setup_guide",
         "test_credential",
         "render_workflow_setup_checklist",
       ],
