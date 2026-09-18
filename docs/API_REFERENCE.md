@@ -1,4 +1,4 @@
-﻿# ðŸ”Œ API Reference
+# 🔌 API Reference
 
 > **Last Updated:** April 2026  
 > **Framework:** tRPC v11.16.0  
@@ -45,8 +45,8 @@ graph TD
 
     subgraph Middleware["Procedure Middleware"]
         Base["baseProcedure"]
-        Protected["protectedProcedure<br/>â†’ ctx.auth"]
-        Premium["premiumProcedure<br/>â†’ ctx.customer"]
+        Protected["protectedProcedure<br/>→ ctx.auth"]
+        Premium["premiumProcedure<br/>→ ctx.customer"]
     end
 
     useTRPC --> BatchLink
@@ -85,7 +85,7 @@ The tRPC layer defines three authorization tiers via middleware:
 
 ### `baseProcedure`
 
-No authentication required. Currently unused â€” all endpoints require at least a session.
+No authentication required. Currently unused — all endpoints require at least a session.
 
 ```typescript
 export const baseProcedure = t.procedure;
@@ -109,7 +109,7 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
 });
 ```
 
-**Context injected:** `ctx.auth` â€” `{ user: { id, name, email, ... }, session: { ... } }`
+**Context injected:** `ctx.auth` — `{ user: { id, name, email, ... }, session: { ... } }`
 
 ### `premiumProcedure`
 
@@ -129,7 +129,7 @@ export const premiumProcedure = protectedProcedure.use(async ({ ctx, next }) => 
 });
 ```
 
-**Context injected:** `ctx.customer` â€” Polar customer state with subscription details
+**Context injected:** `ctx.customer` — Polar customer state with subscription details
 
 ---
 
@@ -219,7 +219,7 @@ Renames a workflow.
 |---|---|
 | **Type** | `mutation` |
 | **Auth** | `protectedProcedure` |
-| **Input** | `{ id: string, name: string }` â€” name must be non-empty |
+| **Input** | `{ id: string, name: string }` — name must be non-empty |
 | **Returns** | Updated `Workflow` object |
 
 ---
@@ -237,10 +237,10 @@ Fetches a single workflow with its nodes and connections transformed into React 
 
 **Response Transformation:**
 ```typescript
-// Prisma Node â†’ React Flow Node
+// Prisma Node → React Flow Node
 { id, type: node.type, position: node.position, data: node.data }
 
-// Prisma Connection â†’ React Flow Edge
+// Prisma Connection → React Flow Edge
 { id, source: fromNodeId, target: toNodeId, sourceHandle: fromOutput, targetHandle: toInput }
 ```
 
@@ -260,7 +260,7 @@ Lists workflows with search and pagination.
 **Input Defaults:**
 | Param | Default | Range |
 |---|---|---|
-| `page` | `1` | â€” |
+| `page` | `1` | — |
 | `pageSize` | `5` | `1..100` |
 | `search` | `""` | Case-insensitive name search |
 
@@ -393,9 +393,9 @@ Creates a new encrypted credential.
 | **Returns** | `Credential` object (with encrypted value) |
 
 **Input Validation:**
-- `name` â€” non-empty string
-- `type` â€” must be one of `CredentialType` enum: `OPENAI`, `ANTHROPIC`, `GEMINI`
-- `value` â€” non-empty string (the raw API key)
+- `name` — non-empty string
+- `type` — must be one of `CredentialType` enum: `OPENAI`, `ANTHROPIC`, `GEMINI`
+- `value` — non-empty string (the raw API key)
 
 **Security:** The `value` is encrypted via `encrypt(value)` (AES-256) before storage. The raw key is never persisted.
 
@@ -466,7 +466,7 @@ Fetches all credentials of a specific type (used in node configuration dropdowns
 | **Type** | `query` |
 | **Auth** | `protectedProcedure` |
 | **Input** | `{ type: CredentialType }` |
-| **Returns** | `Credential[]` â€” ordered by `updatedAt` descending |
+| **Returns** | `Credential[]` — ordered by `updatedAt` descending |
 
 ---
 
@@ -679,7 +679,7 @@ const mutation = useMutation(trpc.workflows.create.mutationOptions({
 
 | Router | Procedure | Type | Auth | Input |
 |---|---|---|---|---|
-| `workflows` | `create` | mutation | premium | â€” |
+| `workflows` | `create` | mutation | premium | — |
 | `workflows` | `remove` | mutation | protected | `{ id }` |
 | `workflows` | `update` | mutation | protected | `{ id, nodes[], edges[] }` |
 | `workflows` | `updateName` | mutation | protected | `{ id, name }` |
@@ -705,7 +705,7 @@ const mutation = useMutation(trpc.workflows.create.mutationOptions({
 
 ## Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) â€” API layer in the system architecture
-- [DATABASE.md](./DATABASE.md) â€” Underlying data models
-- [AUTHENTICATION.md](./AUTHENTICATION.md) â€” Session and authorization details
-- [STATE_AND_DATA_FLOW.md](./STATE_AND_DATA_FLOW.md) â€” Client-side data fetching patterns
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — API layer in the system architecture
+- [DATABASE.md](./DATABASE.md) — Underlying data models
+- [AUTHENTICATION.md](./AUTHENTICATION.md) — Session and authorization details
+- [STATE_AND_DATA_FLOW.md](./STATE_AND_DATA_FLOW.md) — Client-side data fetching patterns

@@ -1,10 +1,10 @@
-﻿# âš™ï¸ Workflow Execution Engine
+# ⚙️ Workflow Execution Engine
 
 > **Last Updated:** August 2026 (Phases 0-3 hardening)  
 > **Engine:** Inngest v4.2.0 with Realtime Middleware  
 > **Pattern:** Event-driven, durable step functions with topological DAG execution
 
-This is the **heart of a8n** â€” the system that transforms a visual DAG of nodes into a reliable, observable execution pipeline.
+This is the **heart of a8n** — the system that transforms a visual DAG of nodes into a reliable, observable execution pipeline.
 
 ---
 
@@ -28,19 +28,19 @@ This is the **heart of a8n** â€” the system that transforms a visual DAG of
 
 ```mermaid
 graph TD
-    subgraph Trigger["ðŸ”Œ Entry Points"]
+    subgraph Trigger["🔌 Entry Points"]
         Manual["Manual Trigger<br/>(button click)"]
         GForm["Google Forms<br/>(webhook POST)"]
         Stripe["Stripe<br/>(webhook POST)"]
     end
 
-    subgraph Dispatch["ðŸ“¤ Event Dispatch"]
+    subgraph Dispatch["📤 Event Dispatch"]
         tRPCMutation["tRPC: workflows.execute"]
         WebhookHandler["Webhook Route Handler"]
         InngestSend["inngest.send()<br/>workflows/execute.workflow"]
     end
 
-    subgraph Engine["âš™ï¸ Inngest Function"]
+    subgraph Engine["⚙️ Inngest Function"]
         Step1["Step 1: create-execution<br/>Persist Execution record"]
         Step2["Step 2: prepare-workflow<br/>Fetch DAG + topological sort"]
         Step3["Step 3: find-user-id<br/>Resolve workflow owner"]
@@ -48,14 +48,14 @@ graph TD
         Step5["Step 5: update-execution<br/>Mark SUCCESS + persist output"]
     end
 
-    subgraph Executors["ðŸ§© Node Executors"]
+    subgraph Executors["🧩 Node Executors"]
         TriggerExec["Trigger Executors<br/>(pass-through context)"]
         HTTPExec["HTTP Request<br/>(ky HTTP client)"]
         AIExec["AI Executors<br/>(Vercel AI SDK)"]
         IntegExec["Integration Executors<br/>(Discord/Slack webhooks)"]
     end
 
-    subgraph Realtime["ðŸ“¡ Realtime"]
+    subgraph Realtime["📡 Realtime"]
         Channels["11 Inngest Channels<br/>(one per node type)"]
         Browser["Browser<br/>(useInngestSubscription)"]
     end
@@ -147,7 +147,7 @@ export const sendWorkflowExecution = async (data) => {
 
 ## Execution Pipeline
 
-The `executeWorkflow` function is the main Inngest function. Each step is **individually durable** â€” if step 3 fails and retries, steps 1-2 do not re-execute.
+The `executeWorkflow` function is the main Inngest function. Each step is **individually durable** — if step 3 fails and retries, steps 1-2 do not re-execute.
 
 ```typescript
 // src/inngest/functions.ts
@@ -204,7 +204,7 @@ const userId = await step.run("find-user-id", async () => {
 });
 ```
 
-Resolves the workflow owner â€” needed for credential access (executors can only decrypt credentials belonging to the workflow owner).
+Resolves the workflow owner — needed for credential access (executors can only decrypt credentials belonging to the workflow owner).
 
 ### Step 4: Node Execution Loop
 
@@ -228,7 +228,7 @@ Nodes execute **sequentially** in topological order. Each node:
 1. Receives the **accumulated context** from all upstream nodes
 2. Performs its action (API call, AI generation, etc.)
 3. Returns an **updated context** (merged with its output)
-4. Publishes realtime status updates (loading â†’ success/error)
+4. Publishes realtime status updates (loading → success/error)
 
 ### Step 5: Update Execution
 
@@ -249,7 +249,7 @@ await step.run("update-execution", async () => {
 
 ## Topological Sort Algorithm
 
-The topological sort ensures nodes execute in dependency order â€” a node only runs after all its upstream nodes have completed.
+The topological sort ensures nodes execute in dependency order — a node only runs after all its upstream nodes have completed.
 
 ```typescript
 // src/inngest/utils.ts
@@ -289,8 +289,8 @@ export const topologicalSort = (nodes: Node[], connections: Connection[]): Node[
 | **No connections** | Returns nodes as-is (all independent) |
 | **Disconnected nodes** | Added as self-edges to include them in the sort |
 | **Cyclic graph** | Throws `"Workflow contains a cycle"` error |
-| **Linear chain** | A â†’ B â†’ C returns `[A, B, C]` |
-| **Diamond pattern** | A â†’ B, A â†’ C, B â†’ D, C â†’ D returns `[A, B, C, D]` or `[A, C, B, D]` |
+| **Linear chain** | A → B → C returns `[A, B, C]` |
+| **Diamond pattern** | A → B, A → C, B → D, C → D returns `[A, B, C, D]` or `[A, C, B, D]` |
 
 **Library:** Uses the `toposort` npm package for the core algorithm.
 
@@ -298,7 +298,7 @@ export const topologicalSort = (nodes: Node[], connections: Connection[]): Node[
 
 ## Node Executor Pattern
 
-Every node type implements the `NodeExecutor` interface â€” a function that receives context and returns updated context.
+Every node type implements the `NodeExecutor` interface — a function that receives context and returns updated context.
 
 ### Type Definitions
 
@@ -337,7 +337,7 @@ Every executor follows the same pattern:
 
 **On error:**
 ```
-catch â†’ Publish "error" status â†’ Re-throw error
+catch → Publish "error" status → Re-throw error
 ```
 
 ---
@@ -371,7 +371,7 @@ export const getExecutor = (type: NodeType): NodeExecutor => {
 };
 ```
 
-> **Note:** `INITIAL` maps to `manualTriggerExecutor` because INITIAL is the placeholder node created when a workflow is first generated â€” it acts as a pass-through.
+> **Note:** `INITIAL` maps to `manualTriggerExecutor` because INITIAL is the placeholder node created when a workflow is first generated — it acts as a pass-through.
 
 ---
 
@@ -379,7 +379,7 @@ export const getExecutor = (type: NodeType): NodeExecutor => {
 
 ### Manual Trigger Executor (Simplest)
 
-The simplest executor â€” passes context through unchanged. Acts as the workflow entry point.
+The simplest executor — passes context through unchanged. Acts as the workflow entry point.
 
 ```typescript
 export const manualTriggerExecutor: NodeExecutor<ManualTriggerData> = async ({
@@ -470,7 +470,7 @@ export const openAiExecutor: NodeExecutor<OpenAiData> = async ({
 ```
 
 **Key Details:**
-- **Credential Security**: API key decrypted at runtime â€” never stored in Inngest event payload
+- **Credential Security**: API key decrypted at runtime — never stored in Inngest event payload
 - **User Scoping**: `where: { id: data.credentialId, userId }` ensures users can only use their own credentials
 - **AI SDK Instrumentation**: `step.ai.wrap()` enables Inngest telemetry and step-level durability for AI calls
 - **Prompt Templates**: System and user prompts support `{{variable}}` references to upstream context
@@ -548,9 +548,9 @@ export function useNodeStatus({ nodeId, channel, topic, refreshToken }) {
 ### Status Flow
 
 ```
-Executor publishes "loading" â†’ Channel â†’ useNodeStatus â†’ NodeStatusIndicator (spinner)
-Executor publishes "success" â†’ Channel â†’ useNodeStatus â†’ NodeStatusIndicator (âœ“ green)
-Executor publishes "error"   â†’ Channel â†’ useNodeStatus â†’ NodeStatusIndicator (âœ— red)
+Executor publishes "loading" → Channel → useNodeStatus → NodeStatusIndicator (spinner)
+Executor publishes "success" → Channel → useNodeStatus → NodeStatusIndicator (✓ green)
+Executor publishes "error"   → Channel → useNodeStatus → NodeStatusIndicator (✗ red)
 ```
 
 ---
@@ -574,7 +574,7 @@ Node B (HTTP Request, variableName: "apiData"):
 
 Node C (OpenAI, variableName: "aiResponse"):
   Input:  { apiData: { httpResponse: {...} } }
-  Prompt: "Summarize this: {{apiData.httpResponse.data}}"    â† Handlebars
+  Prompt: "Summarize this: {{apiData.httpResponse.data}}"    ← Handlebars
   Output: { apiData: {...}, aiResponse: { text: "..." } }
 
 Node D (Slack, message: "AI said: {{aiResponse.text}}"):
@@ -584,10 +584,10 @@ Node D (Slack, message: "AI said: {{aiResponse.text}}"):
 
 ### Key Rules
 
-1. **Context is immutable per node** â€” each node spreads the existing context and adds its own key
-2. **Variable names are configurable** â€” users set `variableName` in the node's data configuration
-3. **Template access** â€” Handlebars `{{variable.path}}` syntax accesses any upstream context value
-4. **Final context = execution output** â€” stored in `Execution.output`
+1. **Context is immutable per node** — each node spreads the existing context and adds its own key
+2. **Variable names are configurable** — users set `variableName` in the node's data configuration
+3. **Template access** — Handlebars `{{variable.path}}` syntax accesses any upstream context value
+4. **Final context = execution output** — stored in `Execution.output`
 
 ---
 
@@ -630,8 +630,8 @@ onFailure: async ({ event, step }) => {
 ### Error Propagation
 
 ```
-Node executor throws â†’ Inngest retries (if retriable) â†’ 
-  All retries exhausted â†’ onFailure handler â†’ 
+Node executor throws → Inngest retries (if retriable) → 
+  All retries exhausted → onFailure handler → 
   Execution.status = FAILED, error + errorStack saved
 ```
 
@@ -828,7 +828,7 @@ Marks executions `FAILED` when `RUNNING` for more than 15 minutes. Register in y
 | Apps Script generator | Now emits the `x-a8n-webhook-secret` header with a `WEBHOOK_SECRET` placeholder |
 ## Related Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) â€” How the engine fits into the system
-- [DATABASE.md](./DATABASE.md) â€” Node, Connection, and Execution schemas
-- [API_REFERENCE.md](./API_REFERENCE.md) â€” `workflows.execute` mutation
-- [FEATURE_MODULES.md](./FEATURE_MODULES.md) â€” Feature module structure for executors
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — How the engine fits into the system
+- [DATABASE.md](./DATABASE.md) — Node, Connection, and Execution schemas
+- [API_REFERENCE.md](./API_REFERENCE.md) — `workflows.execute` mutation
+- [FEATURE_MODULES.md](./FEATURE_MODULES.md) — Feature module structure for executors
