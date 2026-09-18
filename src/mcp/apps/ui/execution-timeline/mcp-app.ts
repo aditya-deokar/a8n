@@ -1,17 +1,34 @@
 /**
  * Execution Timeline — MCP App widget.
  *
- * Displays execution status, duration, node-by-node timeline, and
- * error details. Interactive — can call `diagnose_execution` via
- * `app.callServerTool()`.
+ * Shows how a run went: overall status, how long it took, each node in order,
+ * and the error when there is one. When the run failed and the host supports
+ * tool calls, it offers to diagnose the failure.
  *
- * Data shape matches the `executionTimeline()` function in
+ * Data shape matches `executionTimeline()` in
  * `src/mcp/resources/app-resources.resource.ts`.
  */
 
 import "../shared/styles.css";
 import { initWidget } from "../shared/bridge";
-import { html, list, metric, panel, setStatus, safeText } from "../shared/utils";
+import {
+  actionButton,
+  bindAction,
+  emptyState,
+  errorState,
+  html,
+  keyValues,
+  metric,
+  metricRow,
+  panel,
+  pill,
+  setHeader,
+  setStatus,
+  skeleton,
+  statusLabel,
+  steps,
+  toneForStatus,
+} from "../shared/utils";
 import type { WidgetRenderData } from "../shared/bridge";
 import type { App } from "@modelcontextprotocol/ext-apps";
 
@@ -41,119 +58,164 @@ interface TimelineData {
   output?: unknown;
 }
 
+// ── Formatting ─────────────────────────────────────────────────────
+
+function formatDuration(durationMs: number | null | undefined): string {
+  if (durationMs == null) return "still running";
+  if (durationMs < 1000) return `${durationMs} ms`;
+  if (durationMs < 60_000) return `${(durationMs / 1000).toFixed(1)} s`;
+  const minutes = Math.floor(durationMs / 60_000);
+  const seconds = Math.round((durationMs % 60_000) / 1000);
+  return `${minutes}m ${seconds}s`;
+}
+
+function formatTime(value: string | undefined): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 // ── Render ──────────────────────────────────────────────────────────
 
 function renderTimeline(data: TimelineData, app: App | null): string {
-  const titleEl = document.getElementById("title");
-  if (titleEl) {
-    titleEl.textContent = safeText(
-      data.execution?.workflowName || "Execution Timeline",
-    );
-  }
-
-  const status = data.execution?.status || "unknown";
-  setStatus(
-    status,
-    status === "SUCCESS" ? "ok" : status === "FAILED" ? "bad" : "warn",
+  const execution = data.execution;
+  setHeader(
+    execution?.workflowName || "Execution timeline",
+    execution ? `Run ${execution.id}` : "Node-by-node view of a workflow run.",
   );
 
-  const timeline = list(data.timeline, (item) => {
-    const step = item as TimelineStep;
-    const stepStatus = step.status || "unknown";
-    const statusClass =
-      stepStatus === "success"
-        ? "ok"
-        : stepStatus === "needs_diagnosis"
-          ? "bad"
-          : "";
-    return (
-      "<li><strong>" +
-      html(step.order) +
-      ". " +
-      html(step.label || step.nodeType) +
-      '</strong> <span class="pill ' +
-      statusClass +
-      '">' +
-      html(stepStatus) +
-      "</span></li>"
-    );
-  });
+  const status = execution?.status || "unknown";
+  const tone = toneForStatus(status);
+  setStatus(statusLabel(status), tone);
 
-  const duration =
-    data.execution?.durationMs == null
-      ? "running"
-      : data.execution.durationMs + " ms";
+  const timeline = data.timeline ?? [];
+  const failedSteps = timeline.filter(
+    (step) => toneForStatus(step.status) === "bad",
+  ).length;
 
-  const error = data.execution?.error
+  const overview = panel(
+    "Run",
+    // The header pill already carries the status, so the row covers the
+    // things the pill cannot say.
+    metricRow([
+      metric("Duration", formatDuration(execution?.durationMs)),
+      metric("Steps", timeline.length),
+      metric("Need attention", failedSteps, failedSteps > 0 ? "bad" : "neutral"),
+    ]) +
+      keyValues([
+        ["Started", html(formatTime(execution?.startedAt))],
+        ["Finished", html(formatTime(execution?.completedAt))],
+      ]),
+  );
+
+  const timelinePanel = panel(
+    "Steps",
+    steps(
+      timeline,
+      (item) => {
+        const step = item as TimelineStep;
+        return {
+          title: step.label || step.nodeType,
+          meta: step.nodeId,
+          tone: toneForStatus(step.status),
+          trailing: pill(step.status, toneForStatus(step.status)),
+        };
+      },
+      "This run recorded no steps.",
+    ),
+  );
+
+  const errorPanel = execution?.error
+    ? panel("Error", `<p class="code">${html(execution.error)}</p>`, {
+        tone: "bad",
+      })
+    : "";
+
+  // Diagnosis is only offered for runs that actually failed.
+  const canDiagnose = Boolean(execution?.id) && toneForStatus(status) === "bad";
+  const diagnose = canDiagnose
     ? panel(
-        "Error",
-        '<p class="mono">' + html(data.execution.error) + "</p>",
+        "Next step",
+        actionButton("diagnoseBtn", "Diagnose this failure", {
+          disabled: !app,
+          hint: app
+            ? "Runs diagnose_execution and reports back in the conversation."
+            : "Connecting to the host…",
+        }),
       )
     : "";
 
-  // Diagnose button for failed executions
-  let diagnoseAction = "";
-  if (app && data.execution?.id && status === "FAILED") {
-    diagnoseAction =
-      '<button id="diagnoseBtn" type="button" style="margin-top: 12px;">Diagnose failure</button>';
-
-    setTimeout(() => {
-      const btn = document.getElementById("diagnoseBtn");
-      if (!btn) return;
-      btn.addEventListener("click", async () => {
-        btn.textContent = "Diagnosing...";
-        (btn as HTMLButtonElement).disabled = true;
-        try {
-          await app.callServerTool({
-            name: "diagnose_execution",
-            arguments: { executionId: data.execution!.id },
-          });
-          btn.textContent = "Diagnosed";
-        } catch {
-          btn.textContent = "Diagnose failure";
-          (btn as HTMLButtonElement).disabled = false;
-        }
-      });
-    }, 0);
-  }
-
-  return [
-    '<div class="grid">' +
-      metric("Status", status) +
-      metric("Duration", duration) +
-      "</div>",
-    panel("Timeline", timeline),
-    error,
-    diagnoseAction,
-  ].join("");
+  return [overview, timelinePanel, errorPanel, diagnose].join("");
 }
 
 // ── Init ────────────────────────────────────────────────────────────
 
-let appInstance: App | null = null;
+function payloadOf(renderData: WidgetRenderData): TimelineData | null {
+  const candidate =
+    renderData.details && Object.keys(renderData.details).length > 0
+      ? renderData.details
+      : renderData.result;
+
+  if (!candidate || Object.keys(candidate).length === 0) return null;
+  return candidate as unknown as TimelineData;
+}
 
 function handleRender(renderData: WidgetRenderData): void {
-  const data = (renderData.details && Object.keys(renderData.details).length > 0
-    ? renderData.details
-    : renderData.result) as unknown as TimelineData;
-
   const content = document.getElementById("content");
   if (!content) return;
 
-  if (!data || Object.keys(data).length === 0) {
-    setStatus("Waiting", "warn");
-    content.innerHTML = panel(
-      "Status",
-      '<p class="subtle">Waiting for widget data.</p>',
+  const data = payloadOf(renderData);
+
+  if (!data) {
+    if (renderData.connectionError) {
+      setStatus("Disconnected", "bad");
+      content.innerHTML = errorState(
+        "Could not reach the host",
+        renderData.connectionError,
+      );
+      return;
+    }
+
+    if (renderData.isPartial) {
+      setStatus("Loading", "warn");
+      content.innerHTML = skeleton();
+      return;
+    }
+
+    setStatus("Waiting", "neutral");
+    content.innerHTML = emptyState(
+      "No run to show",
+      "Ask for an execution timeline and the run appears here.",
     );
     return;
   }
 
-  content.innerHTML = renderTimeline(data, appInstance);
+  const app = renderData.app;
+  content.innerHTML = renderTimeline(data, app);
+
+  const executionId = data.execution?.id;
+  if (app && executionId) {
+    bindAction(
+      "diagnoseBtn",
+      async () => {
+        await app.callServerTool({
+          name: "diagnose_execution",
+          arguments: { executionId },
+        });
+      },
+      {
+        idle: "Diagnose this failure",
+        busy: "Diagnosing…",
+        done: "Diagnosis sent to the chat",
+      },
+    );
+  }
 }
 
-initWidget("a8n Execution Timeline", "1.0.0", handleRender)
-  .then((app) => {
-    appInstance = app;
-  })
-  .catch(() => undefined);
+initWidget("a8n Execution Timeline", "1.0.0", handleRender);

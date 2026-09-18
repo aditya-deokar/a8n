@@ -3,24 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>a8n — Setup Checklist</title>
+    <title>a8n — Setup checklist</title>
   </head>
   <body>
     <main>
       <header>
-        <div>
-          <h1 id="title">Setup Checklist</h1>
-          <p class="subtle" id="subtitle">
-            Shows credentials, missing fields, webhook setup, and test steps.
-          </p>
+        <div class="header__text">
+          <h1 id="title">Setup checklist</h1>
+          <p class="subtle" id="subtitle">What this workflow still needs before it can run.</p>
         </div>
-        <span class="pill" id="status">Loading</span>
+        <div class="header__aside">
+          <span class="pill" id="status" role="status" aria-live="polite">Loading</span>
+          <button id="fullscreenBtn" type="button" hidden aria-pressed="false">Full screen</button>
+        </div>
       </header>
-      <section class="stack" id="content">
-        <div class="panel">
-          <p class="subtle">Waiting for widget data.</p>
-        </div>
-      </section>
+      <section class="stack" id="content"></section>
     </main>
     <script type="module" src="./mcp-app.ts"></script>
   </body>
