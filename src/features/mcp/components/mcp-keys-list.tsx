@@ -104,7 +104,7 @@ export const McpKeysList = ({ onNew }: { onNew: () => void }) => {
                       {apiKey.scopes.map((scope) => (
                         <span
                           key={scope}
-                          className="text-[10px] font-mono bg-accent/40 text-muted-foreground px-1.5 py-0.2 rounded"
+                          className="text-[10px] font-mono bg-accent/40 text-muted-foreground px-1.5 py-0.5 rounded"
                         >
                           {scope}
                         </span>

@@ -8,6 +8,16 @@ onlyBuiltDependencies:
   - inngest-cli
 
 overrides:
+  # typescript-eslint reads enum objects (ts.Extension, ts.ModuleKind) that the
+  # TypeScript 7 JS API no longer exposes, so ESLint crashes on load before
+  # linting a single file. No released typescript-eslint supports TS 7 (8.70's
+  # peer range is still <6.1.0), so the linter gets its own TypeScript while
+  # the app keeps 7.x for tsc and the build.
+  "@typescript-eslint/typescript-estree>typescript": "5.9.3"
+  "@typescript-eslint/parser>typescript": "5.9.3"
+  "@typescript-eslint/project-service>typescript": "5.9.3"
+  "@typescript-eslint/tsconfig-utils>typescript": "5.9.3"
+  "@typescript-eslint/utils>typescript": "5.9.3"
   "@grpc/grpc-js@>=1.14.0 <1.14.4": 1.14.4
   "@opentelemetry/auto-instrumentations-node@<0.75.0": 0.75.0
   "@opentelemetry/exporter-prometheus@<0.217.0": 0.217.0

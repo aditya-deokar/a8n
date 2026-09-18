@@ -103,6 +103,7 @@ model Credential {
   Node Node[]
 
   @@index([userId])
+  @@index([userId, updatedAt])
 }
 
 enum CredentialType {
@@ -132,6 +133,7 @@ model Workflow {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, updatedAt])
 }
 
 enum NodeType {
@@ -167,6 +169,9 @@ model Node {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([workflowId])
+  @@index([credentialId])
 }
 
 enum WorkflowDraftStatus {
@@ -233,6 +238,7 @@ model WorkflowVersion {
 
   @@index([workflowId])
   @@index([userId])
+  @@index([workflowId, createdAt])
 }
 
 model Connection {
@@ -252,6 +258,8 @@ model Connection {
   updatedAt DateTime @updatedAt
 
   @@unique([fromNodeId, toNodeId, fromOutput, toInput])
+  @@index([workflowId])
+  @@index([toNodeId])
 }
 
 enum ExecutionStatus {
@@ -277,6 +285,8 @@ model Execution {
 
   output Json?
   nodeRuns ExecutionNodeRun[]
+
+  @@index([workflowId, startedAt])
 }
 
 model ExecutionNodeRun {
@@ -311,7 +321,6 @@ model ApiKey {
   createdAt  DateTime  @default(now())
   revokedAt  DateTime?
 
-  @@index([keyHash])
   @@index([userId])
   @@map("api_key")
 }
@@ -333,6 +342,8 @@ model McpAuditLog {
   userAgent     String?
 
   @@index([userId, timestamp])
+  @@index([userId, status, timestamp])
+  @@index([timestamp])
   @@index([tool])
   @@index([status])
   @@map("mcp_audit_log")
@@ -470,7 +481,6 @@ model McpOAuthClient {
   refreshTokens      McpOAuthRefreshToken[]
   consents           McpOAuthConsent[]
 
-  @@index([clientId])
   @@map("mcp_oauth_client")
 }
 
@@ -510,10 +520,11 @@ model McpOAuthAccessToken {
   createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
 
-  @@index([tokenHash])
   @@index([userId])
   @@index([clientId])
   @@index([expiresAt])
+  @@index([userId, clientId, expiresAt])
+  @@index([userId, clientId, lastUsedAt])
   @@map("mcp_oauth_access_token")
 }
 
@@ -531,10 +542,11 @@ model McpOAuthRefreshToken {
   createdAt  DateTime  @default(now())
   lastUsedAt DateTime?
 
-  @@index([tokenHash])
   @@index([userId])
   @@index([clientId])
   @@index([expiresAt])
+  @@index([userId, clientId, expiresAt])
+  @@index([userId, clientId, lastUsedAt])
   @@map("mcp_oauth_refresh_token")
 }
 
@@ -553,6 +565,7 @@ model McpOAuthConsent {
   @@index([userId])
   @@index([clientId])
   @@index([userId, clientId, revokedAt])
+  @@index([userId, revokedAt, createdAt])
   @@map("mcp_oauth_consent")
 }
 

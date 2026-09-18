@@ -47,7 +47,6 @@ Mutation note: \`create_workflow\` and \`create_credential\` require an active s
 | update_workflow   | mutation | Replace all nodes & connections            |
 | rename_workflow   | mutation | Rename a workflow                         |
 | delete_workflow   | mutation | Permanently delete                        |
-| execute_workflow  | mutation | Trigger async execution and return event correlation ID |
 | plan_workflow_from_goal | query | Turn a goal into plain-language plan |
 | create_workflow_draft | mutation | Build a persisted draft graph |
 | answer_workflow_draft_questions | mutation | Fill non-sensitive draft fields |
@@ -81,11 +80,8 @@ Mutation note: \`create_workflow\` and \`create_credential\` require an active s
 | Tool | Type | Description |
 |------|------|-------------|
 | get_workflow_setup_checklist | query | Missing fields, credentials, webhooks, tests, and effort |
-| get_integration_setup_guide | query | Plain-language setup guide for supported services |
 | test_credential | query | Validate saved credential without returning secrets |
-| test_webhook_setup | mutation | Generate sample Google Form/Stripe payload and optionally run |
 | generate_google_form_script | query | Generate Google Apps Script for form webhook |
-| get_webhook_url | query | Return Google Form or Stripe workflow webhook URL |
 
 ### Execution Tools (scope: executions:read and/or workflows:execute)
 
@@ -158,12 +154,12 @@ Mutation note: \`create_workflow\` and \`create_credential\` require an active s
 5. \`explain_workflow\` + \`preview_workflow_diff\` -> show the user what will happen
 6. \`apply_workflow_draft\` -> save after explicit approval
 7. \`get_workflow_setup_checklist\` -> guide credentials and webhooks
-8. \`test_credential\` and \`test_webhook_setup\` -> verify setup safely
+8. \`test_credential\` -> verify saved credentials safely
 9. \`run_workflow_test\` or \`execute_workflow_and_wait\` -> trigger and monitor
 10. \`diagnose_execution\` -> explain failures and suggest repair
 
 ### Set up an AI integration
-1. \`get_integration_setup_guide\` for OPENAI/ANTHROPIC/GEMINI/SMTP_EMAIL/GOOGLE_SHEETS
+1. \`get_workflow_setup_checklist\` to see which credentials the workflow needs
 2. Use the dashboard or secure setup UI for secrets when possible
 3. \`test_credential\` to verify the saved connection
 4. \`get_workflow_setup_checklist\` before running

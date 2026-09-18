@@ -13,6 +13,12 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
+/blob-report
+
+# playwright
+/playwright/.cache
 
 # next.js
 /.next/
@@ -20,7 +26,7 @@
 
 # production
 /build
-/dist/mcp-apps
+/dist
 
 # misc
 .DS_Store

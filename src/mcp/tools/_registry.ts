@@ -24,6 +24,7 @@ import { CHATGPT_APP_TOOL_COUNT } from "@/mcp/safety/app-tool-policy";
 import { registerChatGptAppTools } from "./chatgpt-profile";
 import { logger } from "@/lib/logging";
 import { registerEmbeddedAgentTools } from "./embedded-agent-profile";
+import { applyContractAnnotations } from "./apply-contract-annotations";
 
 /**
  * Register all MCP tools from all domains. (Phase 1: consolidated from 57 → 52)
@@ -46,6 +47,7 @@ export function registerAllTools(
 ): void {
   if (isChatGptAppProfile(context.appProfile)) {
     registerChatGptAppTools(server, context);
+    applyContractAnnotations(server);
     logger.info(
       {
         component: "mcp",
@@ -61,6 +63,7 @@ export function registerAllTools(
 
   if (isEmbeddedAgentProfile(context.appProfile)) {
     registerEmbeddedAgentTools(server, context);
+    applyContractAnnotations(server);
     logger.info(
       {
         component: "mcp",
@@ -82,6 +85,10 @@ export function registerAllTools(
   registerIntegrationTools(server, context);
   registerChatGptRenderTools(server, context);
 
+  // Behavior hints come from the contract manifest; most tools register
+  // through an SDK overload that cannot carry them.
+  const annotated = applyContractAnnotations(server);
+
   logger.info(
     {
       component: "mcp",
@@ -90,6 +97,7 @@ export function registerAllTools(
       profile: "default",
       count: 52,
       domains: 8,
+      annotated,
     },
     "MCP tools registered.",
   );

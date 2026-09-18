@@ -1,0 +1,18 @@
+{
+  "check": "mcp-query-count",
+  "label": "before",
+  "generatedAt": "2026-09-18T14:10:16.276Z",
+  "connectedOAuthClients": 10,
+  "listOAuthConnections": {
+    "statements": 42
+  },
+  "securitySummary": {
+    "statements": 46
+  },
+  "secondUser": {
+    "statements": 42
+  },
+  "dashboardPrefetchTotal": 88,
+  "scalesWithConnections": true,
+  "passed": false
+}

@@ -127,9 +127,16 @@ function runTsx(
   args: string[] = [],
   required = true,
   env: NodeJS.ProcessEnv = process.env,
+  tsxArgs: string[] = [],
 ) {
-  return run(name, [tsxCli(), script, ...args], required, env);
+  return run(name, [tsxCli(), ...tsxArgs, script, ...args], required, env);
 }
+
+/**
+ * Scripts that boot the MCP server pull in modules marked `server-only`, which
+ * throws under plain tsx. tsconfig.scripts.json maps it to a stub.
+ */
+const SCRIPTS_TSCONFIG = ["--tsconfig", "tsconfig.scripts.json"];
 
 function writeReport(report: unknown, outDir: string) {
   fs.mkdirSync(outDir, { recursive: true });
@@ -156,6 +163,16 @@ function main() {
     run("prisma validate", [prismaCli(), "validate", "--schema", "prisma/schema.prisma"], true, env),
     run("typecheck", ["--max-old-space-size=4096", tscCli(), "--noEmit", "--pretty", "false"], true, env),
     runTsx("MCP contract check", "scripts/mcp-contract-check.ts", ["--json"], true, env),
+    // Boots the real server per profile: catches registration drift that a
+    // source-level contract check cannot see.
+    runTsx(
+      "MCP runtime audit",
+      "scripts/mcp-runtime-audit.ts",
+      ["--json"],
+      true,
+      env,
+      SCRIPTS_TSCONFIG,
+    ),
     runTsx("MCP eval", "scripts/mcp-eval.ts", ["--json"], true, env),
     runTsx("MCP safety check", "scripts/mcp-safety-check.ts", ["--json"], true, env),
     runTsx("ChatGPT app eval", "scripts/mcp-chatgpt-app-eval.ts", ["--json"], true, env),

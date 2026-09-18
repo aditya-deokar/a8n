@@ -21,7 +21,7 @@ export const CHATGPT_WIDGET_URIS = {
 
 export const APP_WIDGET_URIS = CHATGPT_WIDGET_URIS;
 
-type WidgetSpec = {
+export type WidgetSpec = {
   name: string;
   title: string;
   uri: string;
@@ -147,9 +147,7 @@ export async function renderChatGptWidgetHtml(
   return readWidgetHtmlFile(spec.htmlFile);
 }
 
-export function listChatGptWidgetSpecs(): Array<
-  Pick<WidgetSpec, "name" | "title" | "uri" | "description" | "kind">
-> {
+export function listChatGptWidgetSpecs(): WidgetSpec[] {
   return WIDGET_SPECS.map((spec) => ({ ...spec }));
 }
 

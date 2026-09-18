@@ -15,6 +15,7 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
   const [expiresInDays, setExpiresInDays] = useState<number>(0); // 0 means never
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   const createMutation = useCreateMcpKey();
 
@@ -51,11 +52,17 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
     );
   };
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!createdKey) return;
-    navigator.clipboard.writeText(createdKey);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    // The clipboard API is unavailable over plain HTTP and in some embedded
+    // browsers. The key stays selectable, so say so instead of failing mutely.
+    try {
+      await navigator.clipboard.writeText(createdKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopyFailed(true);
+    }
   };
 
   const handleClose = () => {
@@ -66,6 +73,7 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
       setExpiresInDays(0);
       setCreatedKey(null);
       setCopied(false);
+      setCopyFailed(false);
       createMutation.reset();
     }, 300);
   };
@@ -77,8 +85,9 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
         size="icon" 
         className="absolute top-4 right-4 z-10 text-gray-500 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
         onClick={handleClose}
+        aria-label="Close"
       >
-        <XIcon className="size-4" />
+        <XIcon className="size-4" aria-hidden="true" />
       </Button>
 
       <div className="pb-4 pt-6 px-6 border-b border-gray-100 dark:border-zinc-800/50 flex-shrink-0">
@@ -108,14 +117,26 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
                   onClick={handleCopy}
                   className="shrink-0"
                   title="Copy key"
+                  aria-label="Copy API key"
                 >
                   {copied ? (
-                    <CheckIcon className="size-4 text-emerald-500 animate-in scale-in-50 duration-200" />
+                    <CheckIcon
+                      className="size-4 text-emerald-500 animate-in scale-in-50 duration-200"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <CopyIcon className="size-4" />
+                    <CopyIcon className="size-4" aria-hidden="true" />
                   )}
                 </Button>
               </div>
+              <span className="sr-only" role="status">
+                {copied ? "API key copied to clipboard" : ""}
+              </span>
+              {copyFailed && (
+                <span className="text-xs text-amber-600 dark:text-amber-500">
+                  Could not copy automatically. Select the key above and copy it manually.
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-2 text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-2.5 rounded-md">
               <SparklesIcon className="size-4 shrink-0" />
@@ -168,28 +189,35 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
                 {Object.entries(MCP_SCOPES).map(([scopeKey, description]) => {
                   const checked = scopes.includes("*") ? true : scopes.includes(scopeKey);
                   const isWildcard = scopeKey === "*";
+                  const disabled = scopes.includes("*") && !isWildcard;
+                  const descriptionId = `scope-desc-${scopeKey.replace(/[^a-z0-9]/gi, "-")}`;
+                  // A clickable div with a Checkbox that had no change handler
+                  // was unreachable by keyboard; a label + real checkbox is.
                   return (
-                    <div
+                    <label
                       key={scopeKey}
-                      className={`flex items-start gap-2.5 p-1.5 rounded hover:bg-accent/40 transition-colors cursor-pointer ${
-                        isWildcard ? "border-b pb-2 mb-1" : ""
-                      }`}
-                      onClick={() => handleScopeToggle(scopeKey)}
+                      htmlFor={`scope-${scopeKey}`}
+                      className={`flex items-start gap-2.5 p-1.5 rounded hover:bg-accent/40 transition-colors ${
+                        disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+                      } ${isWildcard ? "border-b pb-2 mb-1" : ""}`}
                     >
                       <Checkbox
-                         checked={checked}
-                         disabled={scopes.includes("*") && !isWildcard}
-                         className="mt-0.5"
+                        id={`scope-${scopeKey}`}
+                        checked={checked}
+                        disabled={disabled}
+                        aria-describedby={descriptionId}
+                        onCheckedChange={() => handleScopeToggle(scopeKey)}
+                        className="mt-0.5"
                       />
                       <div className="flex flex-col gap-0.5 leading-none">
                         <span className="text-xs font-semibold font-mono text-foreground">
                           {scopeKey}
                         </span>
-                        <span className="text-[11px] text-muted-foreground">
+                        <span id={descriptionId} className="text-[11px] text-muted-foreground">
                           {description}
                         </span>
                       </div>
-                    </div>
+                    </label>
                   );
                 })}
               </div>
@@ -204,6 +232,11 @@ export const McpKeyCreatePanel = ({ onClose }: { onClose: () => void }) => {
               >
                 {createMutation.isPending ? "Generating..." : "Generate Key"}
               </Button>
+              {createMutation.isError && (
+                <p role="alert" className="text-xs text-destructive">
+                  {createMutation.error?.message || "Could not create the API key."}
+                </p>
+              )}
               <Button
                 type="button"
                 variant="ghost"

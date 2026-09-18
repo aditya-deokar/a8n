@@ -38,7 +38,10 @@ const MCP_ALLOWED_METHODS = "GET, POST, DELETE, OPTIONS";
 const MCP_ALLOWED_HEADERS =
   "Authorization, Content-Type, MCP-Protocol-Version, Mcp-Session-Id";
 const MCP_EXPOSED_HEADERS =
-  "Mcp-Session-Id, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After";
+  // WWW-Authenticate is not CORS-safelisted: without exposing it, a browser
+  // client (MCP Inspector) cannot read `resource_metadata` off a 401 and its
+  // OAuth discovery degrades to blind path probing.
+  "Mcp-Session-Id, WWW-Authenticate, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After";
 
 function configuredCorsOrigins(): string[] {
   return MCP_CONFIG.CORS_ORIGINS.split(",")
@@ -53,6 +56,8 @@ function isOriginAllowed(request: Request): boolean {
   const allowedOrigins = configuredCorsOrigins();
   if (allowedOrigins.includes("*")) return true;
 
+  // Sandboxed iframes and file:// pages send the literal string "null";
+  // allowing it requires listing it explicitly.
   return allowedOrigins.includes(origin);
 }
 
@@ -103,6 +108,17 @@ function rejectDisallowedOrigin(request: Request): Response | null {
     process.env.NODE_ENV === "production" &&
     configuredCorsOrigins().includes("*")
   ) {
+    logger.error(
+      {
+        component: "mcp",
+        event: "mcp_cors_misconfigured",
+        route: "/api/mcp",
+      },
+      "MCP_CORS_ORIGINS is a wildcard in production; refusing MCP requests.",
+    );
+
+    // Deliberately not wrapped in withCors: a server that is misconfigured to
+    // allow every origin must not then hand that origin CORS headers.
     return new Response(
       JSON.stringify({
         error: "MCP_CORS_ORIGINS must list explicit origins in production.",
@@ -401,54 +417,58 @@ async function postHandler(request: Request): Promise<Response> {
 }
 
 /**
- * Handle GET requests — SSE streams and server capability discovery.
- * Some MCP clients use GET for SSE-based streaming.
+ * Handle GET requests.
+ *
+ * The SDK client opens a standalone GET SSE stream right after `initialize`
+ * and treats 405 as "this server has no server-initiated stream". Any other
+ * status is treated as a live stream — and under the stateless transport used
+ * here the per-request server has nothing to push, so a 200 would hand every
+ * client a connection that never emits and never closes (and, on serverless,
+ * pins a function open until it is killed).
+ *
+ * Answering 405 is the documented way to say the stream is unsupported.
  */
 async function getHandler(request: Request): Promise<Response> {
   const originError = rejectDisallowedOrigin(request);
   if (originError) return originError;
 
-  const guardResult = await authenticateRequest(request);
-  if ("error" in guardResult) return withCors(request, guardResult.error);
-  const { auth } = guardResult;
-  const appProfile = appProfileFromRequest(request);
-
-  // Create transport and pass through the GET for SSE stream support
-  try {
-    const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
-
-    const server = createMcpServer(auth, { appProfile });
-    await server.connect(transport);
-
-    const response = await transport.handleRequest(request);
-    return withCors(request, response ?? new Response(null, { status: 204 }));
-  } catch {
-    // Fallback: return server info as JSON
-    return withCors(
-      request,
-      new Response(
-        JSON.stringify({
+  return withCors(
+    request,
+    new Response(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: null,
+        error: {
+          code: -32000,
+          message:
+            "Server-initiated SSE streams are not supported on this stateless endpoint. Use POST for MCP requests.",
+        },
+        server: {
           name: MCP_CONFIG.SERVER_NAME,
           version: MCP_CONFIG.SERVER_VERSION,
           description: MCP_CONFIG.SERVER_DESCRIPTION,
           endpoint: MCP_CONFIG.ENDPOINT_PATH,
           transport: "streamable-http",
           auth: "Bearer token (API key or session)",
-          appProfile,
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
         },
-      ),
-    );
-  }
+      }),
+      {
+        status: 405,
+        headers: {
+          "Content-Type": "application/json",
+          Allow: MCP_ALLOWED_METHODS,
+        },
+      },
+    ),
+  );
 }
 
 /**
- * Handle DELETE requests — session cleanup (stateless = no-op).
+ * Handle DELETE requests — session cleanup.
+ *
+ * Sessions are stateless, so there is nothing to tear down. Building a full
+ * 52-tool server just to have the transport no-op was pure overhead on a path
+ * every client hits when it disconnects.
  */
 async function deleteHandler(request: Request): Promise<Response> {
   const originError = rejectDisallowedOrigin(request);
@@ -456,22 +476,8 @@ async function deleteHandler(request: Request): Promise<Response> {
 
   const guardResult = await authenticateRequest(request);
   if ("error" in guardResult) return withCors(request, guardResult.error);
-  const { auth } = guardResult;
-  const appProfile = appProfileFromRequest(request);
 
-  try {
-    const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
-
-    const server = createMcpServer(auth, { appProfile });
-    await server.connect(transport);
-
-    const response = await transport.handleRequest(request);
-    return withCors(request, response ?? new Response(null, { status: 204 }));
-  } catch {
-    return withCors(request, new Response(null, { status: 204 }));
-  }
+  return withCors(request, new Response(null, { status: 204 }));
 }
 
 async function optionsHandler(request: Request): Promise<Response> {

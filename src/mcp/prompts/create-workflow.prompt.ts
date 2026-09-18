@@ -41,7 +41,7 @@ Process:
 7. Run \`validate_workflow_draft\`.
 8. Use \`explain_workflow\` and \`preview_workflow_diff\` to show the user the plain-language plan, setup checklist, side effects, and approval hash.
 9. Apply only after explicit user approval by calling \`apply_workflow_draft\` with \`approved: true\` and the matching \`confirmationHash\`.
-10. Test with \`execute_workflow\` and verify with \`list_executions\` or \`get_execution\`.
+10. Test with \`run_workflow_test\` and verify with \`list_executions\` or \`get_execution\`.
 
 Use raw \`create_workflow\` and \`update_workflow\` only for advanced developer workflows. For non-technical users, prefer drafts, validation, explanation, preview, and approval before saving.`,
           },

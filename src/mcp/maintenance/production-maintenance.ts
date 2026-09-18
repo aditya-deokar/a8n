@@ -51,10 +51,18 @@ export function getMcpBackupRestoreManifest() {
   };
 }
 
+/** How far back the audit health probe counts. */
+const AUDIT_HEALTH_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 export async function getMcpAuditHealth() {
   const prisma = (await import("@/lib/db")).default;
-  const [total, latest] = await Promise.all([
-    prisma.mcpAuditLog.count(),
+  const since = new Date(Date.now() - AUDIT_HEALTH_WINDOW_MS);
+
+  const [recentEvents, latest] = await Promise.all([
+    // Bounded by the retention window. An unqualified count() is a full scan
+    // of a table that grows with every MCP request, and this probe runs on
+    // every maintenance cron tick.
+    prisma.mcpAuditLog.count({ where: { timestamp: { gte: since } } }),
     prisma.mcpAuditLog.findFirst({
       orderBy: { timestamp: "desc" },
       select: { timestamp: true, status: true, tool: true },
@@ -63,7 +71,8 @@ export async function getMcpAuditHealth() {
 
   return {
     databaseEnabled: process.env.MCP_AUDIT_DB_ENABLED !== "false",
-    totalAuditEvents: total,
+    auditEventsLast24h: recentEvents,
+    auditWindowStart: since,
     latestAuditEvent: latest || null,
     healthy: process.env.MCP_AUDIT_DB_ENABLED !== "false",
   };
